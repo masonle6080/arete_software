@@ -34,6 +34,10 @@ pub enum CoreError {
     #[error("this Thesis already has a Drop; cancel it before you make a new one")]
     ActiveDropExists { thesis_id: i64 },
 
+    /// A Thesis has at most one Documentary.
+    #[error("this Thesis already has a Documentary")]
+    DocumentaryExists { thesis_id: i64 },
+
     #[error("the library at {path} is disconnected; reconnect its drive")]
     LibraryDisconnected { path: PathBuf },
 
@@ -69,6 +73,7 @@ impl CoreError {
             CoreError::NoLibraryOpen => "NoLibraryOpen",
             CoreError::StatusMoveRefused { .. } => "StatusMoveRefused",
             CoreError::ActiveDropExists { .. } => "ActiveDropExists",
+            CoreError::DocumentaryExists { .. } => "DocumentaryExists",
             CoreError::LibraryDisconnected { .. } => "LibraryDisconnected",
             CoreError::NotFound { .. } => "NotFound",
             CoreError::InvalidInput { .. } => "InvalidInput",

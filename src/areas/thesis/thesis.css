@@ -46,6 +46,8 @@
 .drop-section .empty { color: var(--muted); margin: 0; }
 .drop-card .actions { display: flex; gap: 8px; margin-top: 8px; }
 .drop-warning { margin-top: 8px; display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.drop-warning p,
+.drop-warning ul { flex-basis: 100%; margin: 0; }
 .drop-create { display: flex; gap: 8px; margin-top: 8px; }
 .drop-create input {
   font: inherit;
@@ -56,3 +58,15 @@
   padding: 6px 8px;
 }
 .drop-cancelled { list-style: none; margin: 12px 0 0; padding: 0; color: var(--muted); }
+
+.documentary-section .status { color: var(--muted); margin: 0; font-size: 0.85rem; }
+.documentary-card .actions { display: flex; gap: 8px; margin-top: 8px; }
+.documentary-create { display: flex; gap: 8px; margin-top: 8px; }
+.documentary-create input {
+  font: inherit;
+  color: var(--fg);
+  background: transparent;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 6px 8px;
+}

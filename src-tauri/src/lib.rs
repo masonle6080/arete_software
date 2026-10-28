@@ -20,6 +20,7 @@ pub mod note;
 pub mod vendor;
 pub mod drop;
 pub mod clip;
+pub mod documentary;
 
 pub fn run() {
     ipc::run()

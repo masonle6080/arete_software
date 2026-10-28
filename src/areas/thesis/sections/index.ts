@@ -1,6 +1,7 @@
 import type { ComponentType } from "react";
 import type { Thesis } from "../types";
 import { dropSection } from "./DropSection";
+import { documentarySection } from "./DocumentarySection";
 
 /** Props every Thesis view section receives. */
 export interface ThesisSectionProps {
@@ -24,4 +25,5 @@ export interface ThesisSection {
  */
 export const thesisSections: ThesisSection[] = [
   dropSection,
+  documentarySection,
 ];

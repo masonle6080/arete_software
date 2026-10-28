@@ -13,6 +13,7 @@ mod note;
 mod vendor;
 mod thesis;
 mod drop;
+mod documentary;
 
 use std::sync::Mutex;
 
@@ -92,6 +93,15 @@ pub fn run() {
             clip::import_clip,
             clip::set_clip_date_shot,
             clip::reveal_clip,
+            // documentary
+            documentary::create_documentary,
+            documentary::move_documentary,
+            documentary::thesis_documentary,
+            documentary::list_documentaries,
+            documentary::add_clip_to_documentary,
+            documentary::remove_clip_from_documentary,
+            documentary::documentary_clips,
+            documentary::clip_documentaries,
         ])
         .run(tauri::generate_context!())
         .expect("error while running Arete");

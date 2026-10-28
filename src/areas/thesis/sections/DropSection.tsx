@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState, type FormEvent } from "react";
 import { toCoreError, type CoreError } from "../../../shell/coreError";
 import { dropApi } from "../../drop/api";
-import { stageLabel, type Drop, type DropStage, type DropWarning, type ThesisDrops } from "../../drop/types";
+import { stageLabel, warningText, type Drop, type DropStage, type DropWarning, type ThesisDrops } from "../../drop/types";
 import type { ThesisSection, ThesisSectionProps } from ".";
 
 /** A move that the core stopped until the founder confirms it. */
@@ -79,10 +79,12 @@ function DropSectionView({ thesis, onThesisChanged }: ThesisSectionProps) {
           )}
           {pending && (
             <div className="drop-warning">
-              <p>
-                Moving to {stageLabel[pending.to]} needs confirmation:{" "}
-                {pending.warnings.map((w) => w.kind).join(", ")}
-              </p>
+              <p>Moving to {stageLabel[pending.to]} needs confirmation:</p>
+              <ul>
+                {pending.warnings.map((w, i) => (
+                  <li key={i}>{warningText(w)}</li>
+                ))}
+              </ul>
               <button onClick={() => move(active, pending.to, true)}>Move to {stageLabel[pending.to]} anyway</button>
               <button onClick={() => setPending(undefined)}>Keep {stageLabel[active.stage]}</button>
             </div>
