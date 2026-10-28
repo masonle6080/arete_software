@@ -13,8 +13,10 @@ mod note;
 mod vendor;
 mod thesis;
 mod drop;
+mod style;
 mod media;
 mod moodboard;
+mod documentary;
 mod export;
 
 use std::sync::Mutex;
@@ -86,6 +88,13 @@ pub fn run() {
             drop::create_drop,
             drop::move_drop,
             drop::thesis_drops,
+            // style
+            style::create_style,
+            style::move_style,
+            style::get_style,
+            style::drop_styles,
+            style::attach_style_files,
+            style::style_files,
             // media
             media::import_media_bytes,
             media::read_media,
@@ -108,6 +117,15 @@ pub fn run() {
             clip::import_clip,
             clip::set_clip_date_shot,
             clip::reveal_clip,
+            // documentary
+            documentary::create_documentary,
+            documentary::move_documentary,
+            documentary::thesis_documentary,
+            documentary::list_documentaries,
+            documentary::add_clip_to_documentary,
+            documentary::remove_clip_from_documentary,
+            documentary::documentary_clips,
+            documentary::clip_documentaries,
             // export
             export::save_export_file,
             export::print_export,

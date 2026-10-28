@@ -10,6 +10,8 @@ export type CoreErrorKind =
   | "NoLibraryOpen"
   | "StatusMoveRefused"
   | "ActiveDropExists"
+  | "StylesNotReady"
+  | "DocumentaryExists"
   | "LibraryDisconnected"
   | "NotFound"
   | "InvalidInput"

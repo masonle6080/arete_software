@@ -21,6 +21,8 @@ pub mod vendor;
 pub mod drop;
 pub mod moodboard;
 pub mod clip;
+pub mod style;
+pub mod documentary;
 pub mod export;
 
 pub fn run() {

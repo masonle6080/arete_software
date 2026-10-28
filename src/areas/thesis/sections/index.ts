@@ -3,12 +3,15 @@ import type { Thesis } from "../types";
 import { dropSection } from "./DropSection";
 import { essaysSection } from "./EssaysSection";
 import { moodboardsSection } from "./MoodboardsSection";
+import { documentarySection } from "./DocumentarySection";
 
 /** Props every Thesis view section receives. */
 export interface ThesisSectionProps {
   thesis: Thesis;
   /** Call after a section changes the Thesis itself (for example, its status). */
   onThesisChanged(): void;
+  /** Opens the full Style view, in place of the Thesis view. */
+  onOpenStyle(styleId: number): void;
 }
 
 /** One section of the Thesis view, for example Essays or Drop. */
@@ -28,4 +31,5 @@ export const thesisSections: ThesisSection[] = [
   essaysSection,
   moodboardsSection,
   dropSection,
+  documentarySection,
 ];

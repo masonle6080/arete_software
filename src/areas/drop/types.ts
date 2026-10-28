@@ -1,3 +1,5 @@
+import { documentaryStatusLabel, type DocumentaryStatus } from "../documentary/types";
+
 /** Mirrors `DropStage` in `src-tauri/src/drop/stage.rs`. */
 export type DropStage = "design" | "sampling" | "production" | "released" | "cancelled";
 
@@ -20,8 +22,19 @@ export interface Drop {
 }
 
 /** Mirrors `DropWarning`: a reason a move needs confirmation. Tagged by `kind`. */
-export interface DropWarning {
-  kind: string;
+export type DropWarning = {
+  kind: "documentaryNotReleased";
+  documentaryId: number;
+  title: string;
+  status: DocumentaryStatus;
+};
+
+/** The founder-facing text of a warning. */
+export function warningText(w: DropWarning): string {
+  switch (w.kind) {
+    case "documentaryNotReleased":
+      return `The Documentary "${w.title}" is ${documentaryStatusLabel[w.status]}, not Released. The Documentary should come out before the Drop.`;
+  }
 }
 
 /** Mirrors `DropMove`, the result of `move_drop`. */

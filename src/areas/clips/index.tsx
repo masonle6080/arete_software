@@ -1,8 +1,10 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
 import { convertFileSrc } from "@tauri-apps/api/core";
 import { open } from "@tauri-apps/plugin-dialog";
 import type { Area } from "../../shell/area";
 import { toCoreError, type CoreError } from "../../shell/coreError";
+import { documentaryApi } from "../documentary/api";
+import type { Documentary } from "../documentary/types";
 import { clipApi, type Clip } from "./api";
 import "./clips.css";
 
@@ -18,7 +20,69 @@ function formatDuration(ms: number | null): string {
   return h > 0 ? `${h}:${String(m).padStart(2, "0")}:${s}` : `${m}:${s}`;
 }
 
-function ClipCard({ clip, onChange, onError }: { clip: Clip; onChange(c: Clip): void; onError(e: CoreError): void }) {
+interface ClipDocumentariesProps {
+  clip: Clip;
+  all: Documentary[];
+  memberOf: Set<number>;
+  onChanged(): void;
+  onError(e: CoreError): void;
+}
+
+/** The Documentaries a Clip is in, with controls to add and remove it. */
+function ClipDocumentaries({ clip, all, memberOf, onChanged, onError }: ClipDocumentariesProps) {
+  async function run(action: () => Promise<unknown>) {
+    try {
+      await action();
+    } catch (raw) {
+      onError(toCoreError(raw));
+    }
+    onChanged();
+  }
+
+  if (all.length === 0) return null;
+  const inDocs = all.filter((d) => memberOf.has(d.id));
+  const others = all.filter((d) => !memberOf.has(d.id));
+  return (
+    <div className="documentaries">
+      {inDocs.map((d) => (
+        <span key={d.id} className="tag">
+          {d.title}
+          <button title={`Remove from ${d.title}`} onClick={() => run(() => documentaryApi.removeClip(d.id, clip.id))}>
+            ×
+          </button>
+        </span>
+      ))}
+      {others.length > 0 && (
+        <select
+          value=""
+          onChange={(e) => {
+            const id = Number(e.target.value);
+            if (id) run(() => documentaryApi.addClip(id, clip.id));
+          }}
+        >
+          <option value="">Add to Documentary…</option>
+          {others.map((d) => (
+            <option key={d.id} value={d.id}>
+              {d.title}
+            </option>
+          ))}
+        </select>
+      )}
+    </div>
+  );
+}
+
+function ClipCard({
+  clip,
+  onChange,
+  onError,
+  children,
+}: {
+  clip: Clip;
+  onChange(c: Clip): void;
+  onError(e: CoreError): void;
+  children?: ReactNode;
+}) {
   async function setDate(value: string) {
     try {
       onChange(await clipApi.setDateShot(clip.id, value === "" ? null : value));
@@ -52,6 +116,7 @@ function ClipCard({ clip, onChange, onError }: { clip: Clip; onChange(c: Clip): 
           <input type="date" value={clip.dateShot ?? ""} onChange={(e) => setDate(e.target.value)} />
         </label>
       </div>
+      {children}
       <button onClick={reveal}>Show in Finder</button>
     </li>
   );
@@ -61,10 +126,42 @@ function ClipsScreen() {
   const [clips, setClips] = useState<Clip[] | null>(null);
   const [error, setError] = useState<CoreError>();
   const [importing, setImporting] = useState<string | null>(null);
+  const [documentaries, setDocumentaries] = useState<Documentary[]>([]);
+  // Documentary id → the Clips in it, in pool order.
+  const [docClips, setDocClips] = useState<Map<number, Clip[]>>(new Map());
+  // The Documentary the pool is filtered by, or null for every Clip.
+  const [filter, setFilter] = useState<number | null>(null);
 
   useEffect(() => {
     clipApi.listClips().then(setClips, (raw) => setError(toCoreError(raw)));
   }, []);
+
+  const loadDocumentaries = useCallback(async () => {
+    try {
+      const docs = await documentaryApi.listDocumentaries();
+      const lists = await Promise.all(docs.map((d) => documentaryApi.documentaryClips(d.id)));
+      setDocumentaries(docs);
+      setDocClips(new Map(docs.map((d, i) => [d.id, lists[i]])));
+    } catch (raw) {
+      setError(toCoreError(raw));
+    }
+  }, []);
+  useEffect(() => {
+    loadDocumentaries();
+  }, [loadDocumentaries]);
+
+  const memberships = useMemo(() => {
+    const byClip = new Map<number, Set<number>>();
+    for (const [docId, list] of docClips) {
+      for (const c of list) {
+        if (!byClip.has(c.id)) byClip.set(c.id, new Set());
+        byClip.get(c.id)!.add(docId);
+      }
+    }
+    return byClip;
+  }, [docClips]);
+
+  const shown = filter === null ? clips : (clips?.filter((c) => memberships.get(c.id)?.has(filter)) ?? null);
 
   async function importVideo() {
     const picked = await open({
@@ -99,10 +196,35 @@ function ClipsScreen() {
         </button>
       </div>
       {error && <p className="error">{error.message}</p>}
+      {documentaries.length > 0 && (
+        <label className="clips-filter">
+          Documentary
+          <select
+            value={filter ?? ""}
+            onChange={(e) => setFilter(e.target.value === "" ? null : Number(e.target.value))}
+          >
+            <option value="">All Clips</option>
+            {documentaries.map((d) => (
+              <option key={d.id} value={d.id}>
+                {d.title}
+              </option>
+            ))}
+          </select>
+        </label>
+      )}
       {clips && clips.length === 0 && <p className="muted">No Clips yet. Import video to start the pool.</p>}
+      {clips && clips.length > 0 && shown?.length === 0 && <p className="muted">No Clips in this Documentary.</p>}
       <ul className="clip-grid">
-        {clips?.map((c) => (
-          <ClipCard key={c.id} clip={c} onChange={replace} onError={setError} />
+        {shown?.map((c) => (
+          <ClipCard key={c.id} clip={c} onChange={replace} onError={setError}>
+            <ClipDocumentaries
+              clip={c}
+              all={documentaries}
+              memberOf={memberships.get(c.id) ?? new Set()}
+              onChanged={loadDocumentaries}
+              onError={setError}
+            />
+          </ClipCard>
         ))}
       </ul>
     </section>
