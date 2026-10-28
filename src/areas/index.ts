@@ -1,4 +1,5 @@
 import type { Area } from "../shell/area";
+import { essaysArea } from "./essays";
 import { libraryArea } from "./library";
 
 /**
@@ -8,4 +9,5 @@ import { libraryArea } from "./library";
  */
 export const areas: Area[] = [
   libraryArea,
+  essaysArea,
 ];

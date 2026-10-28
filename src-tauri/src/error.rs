@@ -25,6 +25,9 @@ pub enum CoreError {
     #[error("no library is open")]
     NoLibraryOpen,
 
+    #[error("document {id} does not exist")]
+    DocumentNotFound { id: String },
+
     #[error("file system error: {0}")]
     Io(#[from] std::io::Error),
 
@@ -41,6 +44,7 @@ impl CoreError {
             CoreError::FolderNotEmpty { .. } => "FolderNotEmpty",
             CoreError::NewerSchema { .. } => "NewerSchema",
             CoreError::NoLibraryOpen => "NoLibraryOpen",
+            CoreError::DocumentNotFound { .. } => "DocumentNotFound",
             CoreError::Io(_) => "Io",
             CoreError::Database(_) => "Database",
         }

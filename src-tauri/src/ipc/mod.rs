@@ -6,6 +6,7 @@
 //! commands in `generate_handler!` under a `// <area>` comment, one command
 //! per line.
 
+mod document;
 mod library;
 
 use std::sync::Mutex;
@@ -52,6 +53,11 @@ pub fn run() {
             library::open_library,
             library::reopen_last_library,
             library::current_library,
+            // document
+            document::create_document,
+            document::open_document,
+            document::save_document,
+            document::list_documents,
         ])
         .run(tauri::generate_context!())
         .expect("error while running Arete");
