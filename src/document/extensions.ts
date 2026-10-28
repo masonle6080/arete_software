@@ -1,5 +1,7 @@
 import { Extension, getSchema, type AnyExtension } from "@tiptap/core";
+import Code from "@tiptap/extension-code";
 import StarterKit from "@tiptap/starter-kit";
+import { Passage } from "./passage";
 
 /**
  * Lists remember if they are tight (no blank line between items), so a
@@ -35,8 +37,13 @@ export const documentExtensions: AnyExtension[] = [
     // change the file on every open.
     trailingNode: false,
     link: { openOnClick: false, autolink: true },
+    code: false,
   }),
+  // Inline code excludes the other inline marks, but not a Passage, so a
+  // Passage can cover code.
+  Code.extend({ excludes: "bold italic strike link" }),
   ListTightness,
+  Passage,
 ];
 
 /** The schema of a document, for use without an editor (for example tests). */
