@@ -9,6 +9,7 @@
 mod library;
 mod vendor;
 mod thesis;
+mod drop;
 
 use std::sync::Mutex;
 
@@ -71,6 +72,10 @@ pub fn run() {
             thesis::move_thesis,
             thesis::list_theses,
             thesis::get_thesis,
+            // drop
+            drop::create_drop,
+            drop::move_drop,
+            drop::thesis_drops,
         ])
         .run(tauri::generate_context!())
         .expect("error while running Arete");

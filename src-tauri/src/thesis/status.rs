@@ -39,6 +39,12 @@ impl ThesisStatus {
         )
     }
 
+    /// Whether a new Drop may be made from a Thesis in this status. Creating
+    /// the Drop moves the Thesis to Committed.
+    pub fn can_take_drop(self) -> bool {
+        matches!(self, ThesisStatus::Seed | ThesisStatus::Developing)
+    }
+
     /// Every status the founder may move to by hand from `self`.
     pub fn manual_moves(self) -> Vec<ThesisStatus> {
         ThesisStatus::ALL.into_iter().filter(|to| self.manual_move_allowed(*to)).collect()

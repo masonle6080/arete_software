@@ -9,6 +9,7 @@ export type CoreErrorKind =
   | "NewerSchema"
   | "NoLibraryOpen"
   | "StatusMoveRefused"
+  | "ActiveDropExists"
   | "LibraryDisconnected"
   | "NotFound"
   | "InvalidInput"

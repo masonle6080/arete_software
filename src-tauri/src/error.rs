@@ -30,6 +30,10 @@ pub enum CoreError {
     #[error("a {what} cannot move from {from} to {to}")]
     StatusMoveRefused { what: &'static str, from: &'static str, to: &'static str },
 
+    /// A Thesis has at most one Drop that is not Cancelled.
+    #[error("this Thesis already has a Drop; cancel it before you make a new one")]
+    ActiveDropExists { thesis_id: i64 },
+
     #[error("the library at {path} is disconnected; reconnect its drive")]
     LibraryDisconnected { path: PathBuf },
 
@@ -58,6 +62,7 @@ impl CoreError {
             CoreError::NewerSchema { .. } => "NewerSchema",
             CoreError::NoLibraryOpen => "NoLibraryOpen",
             CoreError::StatusMoveRefused { .. } => "StatusMoveRefused",
+            CoreError::ActiveDropExists { .. } => "ActiveDropExists",
             CoreError::LibraryDisconnected { .. } => "LibraryDisconnected",
             CoreError::NotFound { .. } => "NotFound",
             CoreError::InvalidInput { .. } => "InvalidInput",
