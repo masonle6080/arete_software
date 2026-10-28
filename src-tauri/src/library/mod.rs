@@ -8,7 +8,9 @@
 //! ```
 //!
 //! Domain command functions for this area: [`create_library`],
-//! [`open_library`], [`reopen_last_library`].
+//! [`open_library`], [`reopen_last_library`], and on [`Library`]:
+//! [`Library::is_reachable`] and [`Library::reconnect`] for a library whose
+//! drive was disconnected.
 
 mod app_config;
 
@@ -70,10 +72,15 @@ impl Library {
     }
 
     fn connect(root: &Path, migrations: &[Migration]) -> CoreResult<Library> {
-        let mut conn = Connection::open(root.join(DATABASE_FILE))?;
-        conn.pragma_update(None, "foreign_keys", true)?;
+        let mut conn = Self::open_connection(root)?;
         migrations::apply(&mut conn, migrations)?;
         Ok(Library { root: root.to_path_buf(), conn })
+    }
+
+    fn open_connection(root: &Path) -> CoreResult<Connection> {
+        let conn = Connection::open(root.join(DATABASE_FILE))?;
+        conn.pragma_update(None, "foreign_keys", true)?;
+        Ok(conn)
     }
 
     pub fn root(&self) -> &Path {
@@ -99,11 +106,39 @@ impl Library {
         &self.conn
     }
 
+    /// True when the library folder can be reached (for example, its
+    /// external drive is plugged in).
+    pub fn is_reachable(&self) -> bool {
+        self.root.join(DATABASE_FILE).is_file()
+    }
+
+    /// Fails with `LibraryDisconnected` when the library folder cannot be
+    /// reached. [`Library::writer`] calls it; file writes into
+    /// `documents/` or `media/` call it too, before they touch the disk.
+    pub fn ensure_reachable(&self) -> CoreResult<()> {
+        if self.is_reachable() {
+            Ok(())
+        } else {
+            Err(CoreError::LibraryDisconnected { path: self.root.clone() })
+        }
+    }
+
+    /// Reopens the database after the folder comes back (for example, the
+    /// drive is plugged in again). The old connection may hold a dead file
+    /// handle, so this always opens a new one. It does not run migrations:
+    /// the schema was current when the library was opened. Fails with
+    /// `LibraryDisconnected` while the folder is still unreachable.
+    pub fn reconnect(&mut self) -> CoreResult<()> {
+        self.ensure_reachable()?;
+        self.conn = Self::open_connection(&self.root)?;
+        Ok(())
+    }
+
     /// The database, for writes by domain modules. Every write must go
-    /// through here, so library-wide write guards (for example the
-    /// "library disconnected" check) live in one place.
-    #[allow(dead_code)]
-    pub(crate) fn writer(&self) -> CoreResult<&Connection> {
+    /// through here, so library-wide write guards live in one place. It
+    /// refuses with `LibraryDisconnected` when the folder is unreachable.
+    pub fn writer(&self) -> CoreResult<&Connection> {
+        self.ensure_reachable()?;
         Ok(&self.conn)
     }
 }

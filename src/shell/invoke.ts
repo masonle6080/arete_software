@@ -9,6 +9,19 @@ export async function call<T>(command: string, args?: Record<string, unknown>): 
   try {
     return await invoke<T>(command, args);
   } catch (raw) {
-    throw toCoreError(raw);
+    const err = toCoreError(raw);
+    if (err.kind === "LibraryDisconnected") disconnectListeners.forEach((l) => l());
+    throw err;
   }
+}
+
+const disconnectListeners = new Set<() => void>();
+
+/**
+ * Calls `listener` whenever any command fails with `LibraryDisconnected`.
+ * The shell uses it to show the reconnect screen. Returns an unsubscribe.
+ */
+export function onLibraryDisconnected(listener: () => void): () => void {
+  disconnectListeners.add(listener);
+  return () => disconnectListeners.delete(listener);
 }
