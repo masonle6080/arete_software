@@ -1,0 +1,22 @@
+.notes { margin-top: 24px; max-width: 560px; }
+.notes .muted { color: var(--muted); }
+
+.note-form { display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px; }
+.note-form textarea {
+  font: inherit;
+  color: var(--fg);
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 6px 8px;
+  resize: vertical;
+}
+.note-form .actions { display: flex; gap: 8px; }
+.pending-files { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 4px; }
+.pending-files li { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+
+.note-list { list-style: none; padding: 0; margin: 0; }
+.note-list > li { padding: 10px 0; border-bottom: 1px solid var(--line); }
+.note-list time { color: var(--muted); font-size: 0.85em; }
+.note-list .body { margin: 4px 0 0; white-space: pre-wrap; }
+.note-list .attachments { margin: 6px 0 0; padding-left: 18px; color: var(--muted); }

@@ -7,6 +7,7 @@
 //! per line.
 
 mod library;
+mod note;
 mod vendor;
 
 use std::sync::Mutex;
@@ -65,6 +66,9 @@ pub fn run() {
             vendor::list_vendors,
             vendor::create_vendor,
             vendor::update_vendor,
+            // note
+            note::list_notes,
+            note::add_note,
         ])
         .run(tauri::generate_context!())
         .expect("error while running Arete");

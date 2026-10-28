@@ -6,11 +6,11 @@
 mod common;
 
 use arete_lib::error::CoreError;
-use arete_lib::vendor::{self, VendorInput, VendorRole};
+use arete_lib::vendor::{self, VendorContact, VendorInput, VendorRole};
 use common::TestEnv;
 
 fn input(name: &str, roles: &[VendorRole]) -> VendorInput {
-    VendorInput { name: name.to_string(), roles: roles.to_vec() }
+    VendorInput { name: name.to_string(), roles: roles.to_vec(), ..Default::default() }
 }
 
 #[test]
@@ -146,4 +146,117 @@ fn vendors_are_kept_when_the_library_is_reopened() {
     let reopened = arete_lib::library::open_library(&env.config, &root).unwrap();
 
     assert_eq!(vendor::list_vendors(&reopened).unwrap(), vec![created]);
+}
+
+fn contact(name: &str, role: &str, email: &str, phone: &str) -> VendorContact {
+    VendorContact { name: name.into(), role: role.into(), email: email.into(), phone: phone.into() }
+}
+
+#[test]
+fn a_vendor_holds_contacts_location_minimum_order_quantity_and_lead_time() {
+    let env = TestEnv::new();
+    let lib = env.library();
+
+    let created = vendor::create_vendor(
+        &lib,
+        VendorInput {
+            name: "Cut Co".into(),
+            roles: vec![VendorRole::Manufacturer],
+            contacts: vec![
+                contact("Ana Ruiz", "Sales", "ana@cut.co", "+1 555 0100"),
+                contact("Ben Ito", "Production", "", ""),
+            ],
+            location: "Los Angeles, CA".into(),
+            minimum_order_quantity: Some(150),
+            lead_time: "4-6 weeks after Sample approval".into(),
+        },
+    )
+    .unwrap();
+
+    let read = vendor::get_vendor(&lib, created.id).unwrap();
+    assert_eq!(read, created);
+    assert_eq!(
+        read.contacts,
+        vec![contact("Ana Ruiz", "Sales", "ana@cut.co", "+1 555 0100"), contact("Ben Ito", "Production", "", "")]
+    );
+    assert_eq!(read.location, "Los Angeles, CA");
+    assert_eq!(read.minimum_order_quantity, Some(150));
+    assert_eq!(read.lead_time, "4-6 weeks after Sample approval");
+    assert_eq!(vendor::list_vendors(&lib).unwrap(), vec![read]);
+}
+
+#[test]
+fn a_new_vendor_has_no_details_until_the_founder_adds_them() {
+    let env = TestEnv::new();
+    let lib = env.library();
+
+    let created = vendor::create_vendor(&lib, input("Bare", &[VendorRole::Mill])).unwrap();
+
+    assert_eq!(created.contacts, vec![]);
+    assert_eq!(created.location, "");
+    assert_eq!(created.minimum_order_quantity, None);
+    assert_eq!(created.lead_time, "");
+}
+
+#[test]
+fn editing_a_vendor_replaces_its_contacts_and_details() {
+    let env = TestEnv::new();
+    let lib = env.library();
+    let mut first = input("Dye House", &[VendorRole::Decorator]);
+    first.contacts = vec![contact("Old Contact", "", "", "")];
+    first.minimum_order_quantity = Some(50);
+    first.location = "Portland".into();
+    let created = vendor::create_vendor(&lib, first).unwrap();
+
+    let mut second = input("Dye House", &[VendorRole::Decorator]);
+    second.contacts = vec![contact("New Contact", "Owner", "new@dye.house", "")];
+    second.lead_time = "2 weeks".into();
+    vendor::update_vendor(&lib, created.id, second).unwrap();
+
+    let read = vendor::get_vendor(&lib, created.id).unwrap();
+    assert_eq!(read.contacts, vec![contact("New Contact", "Owner", "new@dye.house", "")]);
+    assert_eq!(read.location, "");
+    assert_eq!(read.minimum_order_quantity, None);
+    assert_eq!(read.lead_time, "2 weeks");
+}
+
+#[test]
+fn contact_and_detail_text_is_saved_without_surrounding_spaces() {
+    let env = TestEnv::new();
+    let lib = env.library();
+    let mut i = input("Trim", &[VendorRole::Mill]);
+    i.contacts = vec![contact("  Cleo  ", " Sales ", " c@mill.co ", " 123 ")];
+    i.location = "  Osaka ".into();
+    i.lead_time = " 3 weeks ".into();
+
+    let created = vendor::create_vendor(&lib, i).unwrap();
+
+    assert_eq!(created.contacts, vec![contact("Cleo", "Sales", "c@mill.co", "123")]);
+    assert_eq!(created.location, "Osaka");
+    assert_eq!(created.lead_time, "3 weeks");
+}
+
+#[test]
+fn a_contact_without_a_name_is_refused() {
+    let env = TestEnv::new();
+    let lib = env.library();
+    let mut i = input("Nameless contact", &[VendorRole::Mill]);
+    i.contacts = vec![contact("  ", "Sales", "x@y.z", "")];
+
+    let err = vendor::create_vendor(&lib, i).unwrap_err();
+
+    assert!(matches!(err, CoreError::InvalidInput { .. }), "{err:?}");
+    assert_eq!(vendor::list_vendors(&lib).unwrap(), vec![]);
+}
+
+#[test]
+fn a_minimum_order_quantity_of_zero_is_refused() {
+    let env = TestEnv::new();
+    let lib = env.library();
+    let mut i = input("Zero MOQ", &[VendorRole::Mill]);
+    i.minimum_order_quantity = Some(0);
+
+    let err = vendor::create_vendor(&lib, i).unwrap_err();
+
+    assert!(matches!(err, CoreError::InvalidInput { .. }), "{err:?}");
 }
