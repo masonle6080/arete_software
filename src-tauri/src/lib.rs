@@ -16,6 +16,7 @@ pub mod library;
 pub mod thesis;
 pub mod document;
 pub mod media;
+pub mod note;
 pub mod vendor;
 pub mod clip;
 

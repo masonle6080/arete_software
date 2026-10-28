@@ -9,6 +9,7 @@
 mod clip;
 mod document;
 mod library;
+mod note;
 mod vendor;
 mod thesis;
 
@@ -68,6 +69,9 @@ pub fn run() {
             vendor::list_vendors,
             vendor::create_vendor,
             vendor::update_vendor,
+            // note
+            note::list_notes,
+            note::add_note,
             // thesis
             thesis::create_thesis,
             thesis::move_thesis,
