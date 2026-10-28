@@ -23,6 +23,7 @@ pub mod moodboard;
 pub mod clip;
 pub mod style;
 pub mod sample;
+pub mod documentary;
 
 pub fn run() {
     ipc::run()
