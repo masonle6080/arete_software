@@ -29,3 +29,9 @@ export interface StyleFile {
   /** Absolute path of the stored copy in the library. */
   path: string;
 }
+
+/**
+ * Mirrors `StyleBase` in `src-tauri/src/style/base.rs`: what a Style is
+ * built on. Exactly one of a Blank or a Tech Pack.
+ */
+export type StyleBase = { kind: "blank"; blankId: number };

@@ -17,6 +17,7 @@ mod style;
 mod sample;
 mod media;
 mod moodboard;
+mod blank;
 mod documentary;
 mod export;
 
@@ -96,12 +97,20 @@ pub fn run() {
             style::drop_styles,
             style::attach_style_files,
             style::style_files,
+            style::style_base,
+            style::set_style_base,
+            style::style_sizes,
+            style::set_style_sizes,
             // sample
             sample::request_sample,
             sample::style_samples,
             sample::set_sample_feedback,
             sample::attach_sample_photos,
             sample::decide_sample,
+            // blank
+            blank::list_blanks,
+            blank::create_blank,
+            blank::update_blank,
             // media
             media::import_media_bytes,
             media::read_media,

@@ -65,3 +65,10 @@
 .sample-detail ul { margin: 0 0 8px; padding-left: 18px; }
 .sample-detail textarea { width: 100%; box-sizing: border-box; resize: vertical; }
 .sample-detail .actions { display: flex; gap: 8px; margin-top: 8px; }
+.style-base { display: flex; flex-direction: column; gap: 8px; max-width: 560px; }
+.style-base > label { display: flex; flex-direction: column; gap: 4px; }
+.style-base select { font: inherit; color: var(--fg); background: var(--bg); border: 1px solid var(--line); border-radius: 6px; padding: 6px 8px; }
+.style-base .empty { color: var(--muted); margin: 0; }
+.style-base .sizes { border: none; padding: 0; margin: 0; display: flex; flex-wrap: wrap; gap: 4px 16px; }
+.style-base .sizes legend { padding: 0; margin-bottom: 4px; }
+.style-base .size { display: flex; align-items: center; gap: 6px; }
