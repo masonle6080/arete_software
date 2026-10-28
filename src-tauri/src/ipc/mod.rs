@@ -14,6 +14,7 @@ mod vendor;
 mod thesis;
 mod drop;
 mod style;
+mod sample;
 mod media;
 mod moodboard;
 
@@ -92,6 +93,12 @@ pub fn run() {
             style::drop_styles,
             style::attach_style_files,
             style::style_files,
+            // sample
+            sample::request_sample,
+            sample::style_samples,
+            sample::set_sample_feedback,
+            sample::attach_sample_photos,
+            sample::decide_sample,
             // media
             media::import_media_bytes,
             media::read_media,
