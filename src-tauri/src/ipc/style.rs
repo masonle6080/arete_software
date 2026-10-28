@@ -1,0 +1,40 @@
+//! IPC for the Style area. See `src/areas/style/api.ts` for the callers.
+
+use std::path::PathBuf;
+
+use tauri::State;
+
+use super::AppState;
+use crate::drop::DropId;
+use crate::error::CoreResult;
+use crate::style::{self, Style, StyleFile, StyleId, StyleStatus};
+
+#[tauri::command]
+pub fn create_style(state: State<AppState>, drop_id: DropId, name: String, color: String) -> CoreResult<Style> {
+    state.with_library(|lib| style::create_style(lib, drop_id, &name, &color))
+}
+
+#[tauri::command]
+pub fn move_style(state: State<AppState>, id: StyleId, to: StyleStatus) -> CoreResult<Style> {
+    state.with_library(|lib| style::move_style(lib, id, to))
+}
+
+#[tauri::command]
+pub fn get_style(state: State<AppState>, id: StyleId) -> CoreResult<Style> {
+    state.with_library(|lib| style::get_style(lib, id))
+}
+
+#[tauri::command]
+pub fn drop_styles(state: State<AppState>, drop_id: DropId) -> CoreResult<Vec<Style>> {
+    state.with_library(|lib| style::drop_styles(lib, drop_id))
+}
+
+#[tauri::command]
+pub fn attach_style_files(state: State<AppState>, id: StyleId, sources: Vec<PathBuf>) -> CoreResult<Vec<StyleFile>> {
+    state.with_library(|lib| style::attach_style_files(lib, id, &sources))
+}
+
+#[tauri::command]
+pub fn style_files(state: State<AppState>, id: StyleId) -> CoreResult<Vec<StyleFile>> {
+    state.with_library(|lib| style::style_files(lib, id))
+}

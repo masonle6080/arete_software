@@ -34,6 +34,11 @@ pub enum CoreError {
     #[error("this Thesis already has a Drop; cancel it before you make a new one")]
     ActiveDropExists { thesis_id: i64 },
 
+    /// A Drop moves to Production only when every Style is Approved or Cut.
+    /// `styles` names the others as "<name> (<color>)".
+    #[error("approve or cut every Style before Production; not ready: {}", styles.join(", "))]
+    StylesNotReady { styles: Vec<String> },
+
     #[error("the library at {path} is disconnected; reconnect its drive")]
     LibraryDisconnected { path: PathBuf },
 
@@ -69,6 +74,7 @@ impl CoreError {
             CoreError::NoLibraryOpen => "NoLibraryOpen",
             CoreError::StatusMoveRefused { .. } => "StatusMoveRefused",
             CoreError::ActiveDropExists { .. } => "ActiveDropExists",
+            CoreError::StylesNotReady { .. } => "StylesNotReady",
             CoreError::LibraryDisconnected { .. } => "LibraryDisconnected",
             CoreError::NotFound { .. } => "NotFound",
             CoreError::InvalidInput { .. } => "InvalidInput",

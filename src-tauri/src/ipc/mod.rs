@@ -13,6 +13,7 @@ mod note;
 mod vendor;
 mod thesis;
 mod drop;
+mod style;
 mod media;
 mod moodboard;
 
@@ -84,6 +85,13 @@ pub fn run() {
             drop::create_drop,
             drop::move_drop,
             drop::thesis_drops,
+            // style
+            style::create_style,
+            style::move_style,
+            style::get_style,
+            style::drop_styles,
+            style::attach_style_files,
+            style::style_files,
             // media
             media::import_media_bytes,
             media::read_media,

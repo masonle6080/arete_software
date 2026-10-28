@@ -7,10 +7,12 @@ import { statusLabel, type Thesis, type ThesisStatus } from "./types";
 interface Props {
   id: number;
   onBack(): void;
+  /** Opens the Style view for one Style of this Thesis's Drop. */
+  onOpenStyle(styleId: number): void;
 }
 
 /** One Thesis: its header and status moves, then every registered section. */
-export function ThesisView({ id, onBack }: Props) {
+export function ThesisView({ id, onBack, onOpenStyle }: Props) {
   const [thesis, setThesis] = useState<Thesis>();
   const [error, setError] = useState<CoreError>();
 
@@ -53,7 +55,7 @@ export function ThesisView({ id, onBack }: Props) {
           {thesisSections.map(({ id: sectionId, title, Component }) => (
             <section key={sectionId} className="thesis-section">
               <h2>{title}</h2>
-              <Component thesis={thesis} onThesisChanged={reload} />
+              <Component thesis={thesis} onThesisChanged={reload} onOpenStyle={onOpenStyle} />
             </section>
           ))}
         </>

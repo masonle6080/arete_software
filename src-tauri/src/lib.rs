@@ -21,6 +21,7 @@ pub mod vendor;
 pub mod drop;
 pub mod moodboard;
 pub mod clip;
+pub mod style;
 
 pub fn run() {
     ipc::run()

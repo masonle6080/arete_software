@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState, type FormEvent } from "react";
 import { toCoreError, type CoreError } from "../../../shell/coreError";
 import { dropApi } from "../../drop/api";
 import { stageLabel, type Drop, type DropStage, type DropWarning, type ThesisDrops } from "../../drop/types";
+import { DropStyles } from "../../style/DropStyles";
 import type { ThesisSection, ThesisSectionProps } from ".";
 
 /** A move that the core stopped until the founder confirms it. */
@@ -10,7 +11,7 @@ interface PendingMove {
   warnings: DropWarning[];
 }
 
-function DropSectionView({ thesis, onThesisChanged }: ThesisSectionProps) {
+function DropSectionView({ thesis, onThesisChanged, onOpenStyle }: ThesisSectionProps) {
   const [data, setData] = useState<ThesisDrops>();
   const [name, setName] = useState(thesis.title);
   const [error, setError] = useState<CoreError>();
@@ -87,6 +88,7 @@ function DropSectionView({ thesis, onThesisChanged }: ThesisSectionProps) {
               <button onClick={() => setPending(undefined)}>Keep {stageLabel[active.stage]}</button>
             </div>
           )}
+          <DropStyles drop={active} onOpen={onOpenStyle} />
         </div>
       )}
 
