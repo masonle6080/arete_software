@@ -15,6 +15,7 @@ mod thesis;
 mod drop;
 mod media;
 mod moodboard;
+mod export;
 
 use std::sync::Mutex;
 
@@ -58,6 +59,7 @@ pub fn run() {
         .setup(|app| {
             let dir = app.path().app_config_dir()?;
             app.manage(AppState::new(AppConfig::new(dir)));
+            app.manage(crate::export::PrintJobs::default());
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
@@ -106,6 +108,10 @@ pub fn run() {
             clip::import_clip,
             clip::set_clip_date_shot,
             clip::reveal_clip,
+            // export
+            export::save_export_file,
+            export::print_export,
+            export::take_print_job,
         ])
         .run(tauri::generate_context!())
         .expect("error while running Arete");

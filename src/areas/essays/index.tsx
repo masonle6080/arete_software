@@ -3,6 +3,7 @@ import type { Area } from "../../shell/area";
 import { toCoreError } from "../../shell/coreError";
 import { DocumentEditor, type DocumentEditorHandle } from "../../document/DocumentEditor";
 import { documentApi, type DocumentSummary, type StoredDocument } from "./api";
+import { EssayExport } from "./EssayExport";
 import { EssayTheses } from "./EssayTheses";
 import "./essays.css";
 
@@ -82,6 +83,7 @@ export function EssayScreen({ id, onClose, backLabel = "← Essays" }: EssayScre
       </button>
       {error && <p className="error">{error}</p>}
       {essay && <EssayTheses essayId={essay.id} />}
+      {essay && <EssayExport essayId={essay.id} flush={async () => editor.current?.flush()} />}
       {essay && <DocumentEditor ref={editor} key={essay.id} title={essay.title} markdown={essay.markdown} onSave={save} />}
     </section>
   );
