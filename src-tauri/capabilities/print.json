@@ -1,0 +1,7 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "print",
+  "description": "Permissions for print windows (PDF exports). They can only close themselves.",
+  "windows": ["print-*"],
+  "permissions": ["core:default", "core:window:allow-close"]
+}
