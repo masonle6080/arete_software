@@ -87,6 +87,10 @@ pub fn run() {
             document::open_document,
             document::save_document,
             document::list_documents,
+            document::link_essay_to_thesis,
+            document::unlink_essay_from_thesis,
+            document::theses_of_essay,
+            document::essays_of_thesis,
             // clip
             clip::list_clips,
             clip::import_clip,
