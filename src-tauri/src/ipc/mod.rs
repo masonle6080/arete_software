@@ -6,9 +6,11 @@
 //! commands in `generate_handler!` under a `// <area>` comment, one command
 //! per line.
 
+mod document;
 mod library;
 mod note;
 mod vendor;
+mod thesis;
 
 use std::sync::Mutex;
 
@@ -69,6 +71,16 @@ pub fn run() {
             // note
             note::list_notes,
             note::add_note,
+            // thesis
+            thesis::create_thesis,
+            thesis::move_thesis,
+            thesis::list_theses,
+            thesis::get_thesis,
+            // document
+            document::create_document,
+            document::open_document,
+            document::save_document,
+            document::list_documents,
         ])
         .run(tauri::generate_context!())
         .expect("error while running Arete");

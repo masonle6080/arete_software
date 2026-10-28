@@ -5,7 +5,7 @@
 //!
 //! To use Notes on a new owner kind: the [`NoteOwner`] variant and the
 //! `owner_kind` value already exist. Make [`owner_exists`] check the owner's
-//! table, and add a delete trigger for that table (see `0004_note.sql`).
+//! table, and add a delete trigger for that table (see `0006_note.sql`).
 //!
 //! Domain command functions for this area: [`add_note`], [`list_notes`].
 

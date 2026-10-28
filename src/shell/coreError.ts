@@ -8,6 +8,7 @@ export type CoreErrorKind =
   | "FolderNotEmpty"
   | "NewerSchema"
   | "NoLibraryOpen"
+  | "StatusMoveRefused"
   | "LibraryDisconnected"
   | "NotFound"
   | "InvalidInput"

@@ -1,6 +1,8 @@
 import type { Area } from "../shell/area";
+import { essaysArea } from "./essays";
 import { libraryArea } from "./library";
 import { vendorArea } from "./vendor";
+import { thesisArea } from "./thesis";
 
 /**
  * Navigation: one entry per area, in sidebar order. To add an area, create
@@ -9,5 +11,7 @@ import { vendorArea } from "./vendor";
  */
 export const areas: Area[] = [
   libraryArea,
+  essaysArea,
   vendorArea,
+  thesisArea,
 ];
