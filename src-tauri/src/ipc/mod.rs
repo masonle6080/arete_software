@@ -7,7 +7,10 @@
 //! per line.
 
 mod clip;
+mod document;
 mod library;
+mod vendor;
+mod thesis;
 
 use std::sync::Mutex;
 
@@ -33,6 +36,12 @@ impl AppState {
         f(guard.as_ref().ok_or(CoreError::NoLibraryOpen)?)
     }
 
+    /// Like [`AppState::with_library`], for commands that change the library.
+    pub fn with_library_mut<T>(&self, f: impl FnOnce(&mut Library) -> CoreResult<T>) -> CoreResult<T> {
+        let mut guard = self.library.lock().expect("library lock poisoned");
+        f(guard.as_mut().ok_or(CoreError::NoLibraryOpen)?)
+    }
+
     /// Replaces the open library.
     pub fn set_library(&self, lib: Library) {
         *self.library.lock().expect("library lock poisoned") = Some(lib);
@@ -53,6 +62,22 @@ pub fn run() {
             library::open_library,
             library::reopen_last_library,
             library::current_library,
+            library::library_connected,
+            library::reconnect_library,
+            // vendor
+            vendor::list_vendors,
+            vendor::create_vendor,
+            vendor::update_vendor,
+            // thesis
+            thesis::create_thesis,
+            thesis::move_thesis,
+            thesis::list_theses,
+            thesis::get_thesis,
+            // document
+            document::create_document,
+            document::open_document,
+            document::save_document,
+            document::list_documents,
             // clip
             clip::list_clips,
             clip::import_clip,

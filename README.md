@@ -57,7 +57,10 @@ executable, where the app finds them.
 
 - `src-tauri/src/<area>/`: Library core, one module per domain area
   (`library`, later `thesis`, `essay`, ...). Each area exposes plain domain
-  command functions. All rules live here.
+  command functions. All rules live here. Every database write goes through
+  `Library::writer()`, which refuses with `LibraryDisconnected` when the
+  library folder is unreachable. File writes call `Library::ensure_reachable()`
+  first.
 - `src-tauri/src/ipc/<area>.rs`: thin Tauri commands over those functions.
   Register them in `src-tauri/src/ipc/mod.rs`.
 - `src-tauri/migrations/NNNN_name.sql`: one file per schema migration, applied
@@ -66,4 +69,6 @@ executable, where the app finds them.
   against a fresh temporary library (`tests/common::TestEnv`) and check results
   only through the same API.
 - `src/areas/<area>/`: UI for one area. Register it in `src/areas/index.ts`.
+- `src/document/`: the document module (Markdown ⇄ editor document) and the
+  shared editor, for Essays and Scripts. Vitest tests sit next to it.
 - `src/shell/`: app shell, navigation, and the IPC helper `call()`.

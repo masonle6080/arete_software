@@ -122,21 +122,20 @@ pub fn get_clip(lib: &Library, id: i64) -> CoreResult<Clip> {
     lib.db()
         .query_row(&format!("SELECT {COLUMNS} FROM clip WHERE id = ?1"), [id], |r| from_row(lib, r))
         .optional()?
-        .ok_or(CoreError::ClipNotFound { id })
+        .ok_or(CoreError::NotFound { record: "Clip", id })
 }
 
 /// Sets or clears (`None`) the date a Clip was shot. The date is `YYYY-MM-DD`.
 pub fn set_date_shot(lib: &Library, id: i64, date_shot: Option<&str>) -> CoreResult<Clip> {
     if let Some(d) = date_shot {
         if !is_valid_date(d) {
-            return Err(CoreError::InvalidDate { value: d.to_string() });
+            return Err(CoreError::InvalidInput { reason: format!("{d:?} is not a date; use YYYY-MM-DD") });
         }
     }
-    lib.ensure_reachable()?;
     let changed =
         lib.writer()?.execute("UPDATE clip SET date_shot = ?1 WHERE id = ?2", params![date_shot, id])?;
     if changed == 0 {
-        return Err(CoreError::ClipNotFound { id });
+        return Err(CoreError::NotFound { record: "Clip", id });
     }
     get_clip(lib, id)
 }

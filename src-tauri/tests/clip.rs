@@ -124,7 +124,7 @@ fn an_invalid_date_shot_is_refused() {
 
     for bad in ["2023-02-29", "2026-13-01", "May 1", "2026-5-1"] {
         let err = clip::set_date_shot(&lib, id, Some(bad)).unwrap_err();
-        assert!(matches!(err, CoreError::InvalidDate { .. }), "{bad}: {err:?}");
+        assert!(matches!(err, CoreError::InvalidInput { .. }), "{bad}: {err:?}");
     }
     assert_eq!(clip::get_clip(&lib, id).unwrap().date_shot.as_deref(), Some("2026-05-01"));
 }
@@ -136,7 +136,7 @@ fn editing_an_unknown_clip_fails() {
 
     let err = clip::set_date_shot(&lib, 42, Some("2026-05-01")).unwrap_err();
 
-    assert!(matches!(err, CoreError::ClipNotFound { id: 42 }), "{err:?}");
+    assert!(matches!(err, CoreError::NotFound { record: "Clip", id: 42 }), "{err:?}");
 }
 
 #[test]
