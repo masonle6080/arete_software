@@ -15,15 +15,30 @@ export function roleLabel(role: VendorRole): string {
   return VENDOR_ROLES.find((r) => r.role === role)?.label ?? role;
 }
 
+/** A contact person at a Vendor. Only `name` is required; the rest may be "". */
+export interface VendorContact {
+  name: string;
+  role: string;
+  email: string;
+  phone: string;
+}
+
 export interface Vendor {
   id: number;
   name: string;
   roles: VendorRole[];
+  contacts: VendorContact[];
+  location: string;
+  /** In pieces; `null` when unknown. */
+  minimumOrderQuantity: number | null;
+  /** Free text such as "4-6 weeks". */
+  leadTime: string;
 }
 
-export interface VendorInput {
-  name: string;
-  roles: VendorRole[];
+export type VendorInput = Omit<Vendor, "id">;
+
+export function emptyVendorInput(): VendorInput {
+  return { name: "", roles: [], contacts: [], location: "", minimumOrderQuantity: null, leadTime: "" };
 }
 
 /** IPC wrappers for `src-tauri/src/ipc/vendor.rs`. */

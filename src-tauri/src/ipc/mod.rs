@@ -6,7 +6,10 @@
 //! commands in `generate_handler!` under a `// <area>` comment, one command
 //! per line.
 
+mod clip;
+mod document;
 mod library;
+mod note;
 mod vendor;
 mod thesis;
 mod media;
@@ -68,6 +71,9 @@ pub fn run() {
             vendor::list_vendors,
             vendor::create_vendor,
             vendor::update_vendor,
+            // note
+            note::list_notes,
+            note::add_note,
             // thesis
             thesis::create_thesis,
             thesis::move_thesis,
@@ -81,6 +87,16 @@ pub fn run() {
             moodboard::list_moodboards,
             moodboard::load_moodboard_scene,
             moodboard::save_moodboard_scene,
+            // document
+            document::create_document,
+            document::open_document,
+            document::save_document,
+            document::list_documents,
+            // clip
+            clip::list_clips,
+            clip::import_clip,
+            clip::set_clip_date_shot,
+            clip::reveal_clip,
         ])
         .run(tauri::generate_context!())
         .expect("error while running Arete");
