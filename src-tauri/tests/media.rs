@@ -115,3 +115,54 @@ fn import_is_refused_when_the_library_is_disconnected() {
     let media_dir = unplugged.join("media");
     assert_eq!(std::fs::read_dir(media_dir).unwrap().count(), 0, "nothing was copied");
 }
+
+#[test]
+fn dropped_bytes_import_with_the_same_dedup_as_files() {
+    let env = TestEnv::new();
+    let lib = env.library();
+    let src = source_file(&env, "look.png", b"dragged image bytes");
+
+    let from_file = media::import_media(&lib, &src).unwrap();
+    let from_drop = media::import_media_bytes(&lib, b"dragged image bytes", "Look From Browser.PNG").unwrap();
+
+    assert_eq!(from_drop, from_file);
+    assert_eq!(stored_files(&lib).len(), 1);
+}
+
+#[test]
+fn stored_media_reads_back_as_its_bytes() {
+    let env = TestEnv::new();
+    let lib = env.library();
+
+    let media = media::import_media_bytes(&lib, b"abc", "note.TXT").unwrap();
+
+    assert_eq!(
+        media.file_name(),
+        "6437b3ac38465133ffb63b75273a8db548c558465d79db03fd359c6cd5bd9d85.txt"
+    );
+    assert_eq!(media::read_media(&lib, &media).unwrap(), b"abc");
+}
+
+#[test]
+fn reading_media_refuses_names_outside_the_media_folder() {
+    let env = TestEnv::new();
+    let lib = env.library();
+    // A MediaRef can arrive over IPC, so the core must not trust its text.
+    let outside: media::MediaRef = serde_json::from_str("\"../arete.db\"").unwrap();
+
+    let err = media::read_media(&lib, &outside).unwrap_err();
+
+    assert!(matches!(err, CoreError::InvalidInput { .. }), "{err:?}");
+}
+
+#[test]
+fn dropped_bytes_are_refused_when_the_library_is_disconnected() {
+    let env = TestEnv::new();
+    let lib = env.library();
+    std::fs::rename(lib.root(), env.path("unplugged")).unwrap();
+
+    let err = media::import_media_bytes(&lib, b"bytes", "a.png").unwrap_err();
+
+    assert!(matches!(err, CoreError::LibraryDisconnected { .. }), "{err:?}");
+    assert!(!lib.root().exists(), "import must not recreate the library folder");
+}

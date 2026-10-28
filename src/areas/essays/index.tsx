@@ -3,6 +3,7 @@ import type { Area } from "../../shell/area";
 import { toCoreError } from "../../shell/coreError";
 import { DocumentEditor, type DocumentEditorHandle } from "../../document/DocumentEditor";
 import { documentApi, type DocumentSummary, type StoredDocument } from "./api";
+import { EssayTheses } from "./EssayTheses";
 import "./essays.css";
 
 function EssayList({ onOpen }: { onOpen(id: number): void }) {
@@ -44,7 +45,15 @@ function EssayList({ onOpen }: { onOpen(id: number): void }) {
   );
 }
 
-function EssayScreen({ id, onClose }: { id: number; onClose(): void }) {
+interface EssayScreenProps {
+  id: number;
+  onClose(): void;
+  /** Text of the back button, for example "← Essays". */
+  backLabel?: string;
+}
+
+/** One Essay in the editor, with its Thesis links. Other areas can open it too. */
+export function EssayScreen({ id, onClose, backLabel = "← Essays" }: EssayScreenProps) {
   const [essay, setEssay] = useState<StoredDocument | null>(null);
   const [error, setError] = useState<string | null>(null);
   const editor = useRef<DocumentEditorHandle>(null);
@@ -69,9 +78,10 @@ function EssayScreen({ id, onClose }: { id: number; onClose(): void }) {
           onClose();
         }}
       >
-        ← Essays
+        {backLabel}
       </button>
       {error && <p className="error">{error}</p>}
+      {essay && <EssayTheses essayId={essay.id} />}
       {essay && <DocumentEditor ref={editor} key={essay.id} title={essay.title} markdown={essay.markdown} onSave={save} />}
     </section>
   );

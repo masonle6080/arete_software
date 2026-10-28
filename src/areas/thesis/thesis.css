@@ -58,6 +58,12 @@
   padding: 6px 8px;
 }
 .drop-cancelled { list-style: none; margin: 12px 0 0; padding: 0; color: var(--muted); }
+.thesis-essays { list-style: none; margin: 0 0 8px; padding: 0; max-width: 560px; }
+.thesis-essays li { display: flex; align-items: center; gap: 8px; border-bottom: 1px solid var(--line); }
+.thesis-essays .open { flex: 1; text-align: left; border: none; padding: 8px 4px; }
+.thesis-essays .open:hover { background: var(--line); }
+.thesis-essays .unlink { border: none; color: var(--muted); }
+.thesis-essays-link select { font: inherit; color: var(--fg); background: transparent; border: 1px solid var(--line); border-radius: 6px; padding: 4px 6px; }
 
 .documentary-section .status { color: var(--muted); margin: 0; font-size: 0.85rem; }
 .documentary-card .actions { display: flex; gap: 8px; margin-top: 8px; }
