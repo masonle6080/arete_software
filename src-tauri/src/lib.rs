@@ -13,6 +13,7 @@ pub mod migrations;
 
 // Domain areas. One module per area; add yours on its own line.
 pub mod library;
+pub mod vendor;
 
 pub fn run() {
     ipc::run()
