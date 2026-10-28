@@ -9,6 +9,7 @@ use rusqlite::{params, OptionalExtension, Row};
 
 use crate::error::{CoreError, CoreResult};
 use crate::library::Library;
+use crate::style;
 use crate::thesis::{self, ThesisId, ThesisStatus};
 
 pub use stage::DropStage;
@@ -82,7 +83,17 @@ pub fn move_drop(lib: &Library, id: DropId, to: DropStage, confirmed: bool) -> C
 /// A hard rule returns an error (for example, Production needs every Style
 /// Approved or Cut). A soft rule returns a warning the founder can confirm
 /// past. Add new guards here.
-fn guard_move(_lib: &Library, _drop: &Drop, _to: DropStage) -> CoreResult<Vec<DropWarning>> {
+fn guard_move(lib: &Library, drop: &Drop, to: DropStage) -> CoreResult<Vec<DropWarning>> {
+    if to == DropStage::Production {
+        let styles: Vec<String> = style::drop_styles(lib, drop.id)?
+            .into_iter()
+            .filter(|s| !s.status.ready_for_production())
+            .map(|s| format!("{} ({})", s.name, s.color))
+            .collect();
+        if !styles.is_empty() {
+            return Err(CoreError::StylesNotReady { styles });
+        }
+    }
     Ok(Vec::new())
 }
 

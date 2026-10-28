@@ -13,6 +13,7 @@ mod note;
 mod vendor;
 mod thesis;
 mod drop;
+mod style;
 
 use std::sync::Mutex;
 
@@ -82,6 +83,13 @@ pub fn run() {
             drop::create_drop,
             drop::move_drop,
             drop::thesis_drops,
+            // style
+            style::create_style,
+            style::move_style,
+            style::get_style,
+            style::drop_styles,
+            style::attach_style_files,
+            style::style_files,
             // document
             document::create_document,
             document::open_document,
