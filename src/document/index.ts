@@ -6,7 +6,8 @@
  * - `toMarkdown(doc)`: editor document -> file text.
  *
  * - `passagesIn(doc)`: the Passages present in a document and their text.
- *   The save report (spec #1) builds on it.
+ * - `saveReport(doc)`: the Markdown plus `passagesIn(doc)`. The editor sends
+ *   it to the core on every save (spec #1).
  * - Editor commands `setPassage()` and `unsetPassage(id)`.
  *
  * A Passage is a mark carrying its ID in the editor, and a pair of
@@ -15,3 +16,4 @@
 export { documentExtensions, documentSchema } from "./extensions";
 export { fromMarkdown, toMarkdown } from "./markdown";
 export { newPassageId, passageIdsAt, passagesIn, type PassageText } from "./passage";
+export { saveReport, type SaveReport } from "./saveReport";

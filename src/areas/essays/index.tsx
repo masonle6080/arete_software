@@ -1,7 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { Area } from "../../shell/area";
 import { toCoreError } from "../../shell/coreError";
-import { DocumentEditor, type DocumentEditorHandle } from "../../document/DocumentEditor";
+import { DocumentEditor, type DocumentEditorHandle, type DocumentSave } from "../../document/DocumentEditor";
+import { OrphanedPassages } from "../passage/OrphanedPassages";
+import { PassageView } from "../passage/PassageView";
 import { documentApi, type DocumentSummary, type StoredDocument } from "./api";
 import { EssayTheses } from "./EssayTheses";
 import "./essays.css";
@@ -52,37 +54,65 @@ interface EssayScreenProps {
   backLabel?: string;
 }
 
-/** One Essay in the editor, with its Thesis links. Other areas can open it too. */
+/**
+ * One Essay in the editor, with its Thesis links and orphaned Passages.
+ * Other areas can open it too. A Passage opens in place over the editor; the
+ * editor stays mounted, so undo still works after coming back.
+ */
 export function EssayScreen({ id, onClose, backLabel = "← Essays" }: EssayScreenProps) {
   const [essay, setEssay] = useState<StoredDocument | null>(null);
   const [error, setError] = useState<string | null>(null);
   const editor = useRef<DocumentEditorHandle>(null);
+  const [saves, setSaves] = useState(0);
+  const [passageId, setPassageId] = useState<string | null>(null);
 
   useEffect(() => {
     documentApi.open(id).then(setEssay, (e) => setError(toCoreError(e).message));
   }, [id]);
 
   const save = useCallback(
-    async (edit: { title: string; markdown: string }) => {
-      await documentApi.save(id, edit);
+    async ({ title, markdown, passages }: DocumentSave) => {
+      await documentApi.save(id, { title, markdown }, passages);
+      setSaves((n) => n + 1);
     },
     [id],
   );
 
+  const openPassage = useCallback(async (pid: string) => {
+    // The Passage must be saved before the core knows it.
+    await editor.current?.flush();
+    setPassageId(pid);
+  }, []);
+
   return (
     <section>
-      <button
-        className="essay-back"
-        onClick={async () => {
-          await editor.current?.flush();
-          onClose();
-        }}
-      >
-        {backLabel}
-      </button>
-      {error && <p className="error">{error}</p>}
-      {essay && <EssayTheses essayId={essay.id} />}
-      {essay && <DocumentEditor ref={editor} key={essay.id} title={essay.title} markdown={essay.markdown} onSave={save} />}
+      {passageId && (
+        <PassageView key={passageId} id={passageId} backLabel="← Essay" onBack={() => setPassageId(null)} />
+      )}
+      <div hidden={passageId !== null}>
+        <button
+          className="essay-back"
+          onClick={async () => {
+            await editor.current?.flush();
+            onClose();
+          }}
+        >
+          {backLabel}
+        </button>
+        {error && <p className="error">{error}</p>}
+        {essay && <EssayTheses essayId={essay.id} />}
+        {essay && <OrphanedPassages documentId={essay.id} version={saves} onOpen={openPassage} />}
+        {essay && (
+          <DocumentEditor
+            ref={editor}
+            key={essay.id}
+            title={essay.title}
+            markdown={essay.markdown}
+            onSave={save}
+            onOpenPassage={openPassage}
+          />
+        )}
+      </div>
     </section>
   );
 }

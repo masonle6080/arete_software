@@ -1,0 +1,29 @@
+.passage-view .back { border: none; padding-left: 0; color: var(--muted); }
+.passage-view .meta { color: var(--muted); margin: 16px 0 0; font-size: 0.85rem; display: flex; gap: 8px; align-items: center; }
+.passage-view blockquote {
+  margin: 12px 0;
+  padding: 4px 0 4px 16px;
+  border-left: 3px solid rgba(230, 190, 80, 0.6);
+  font-size: 1.1rem;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  max-width: 680px;
+}
+.passage-section { margin-top: 32px; border-top: 1px solid var(--line); padding-top: 12px; }
+.passage-section h2 { font-size: 1rem; margin: 0 0 8px; }
+.orphaned-tag { border: 1px solid var(--line); border-radius: 999px; padding: 0 8px; font-size: 12px; }
+
+.orphaned-passages { margin: 0 0 16px; font-size: 13px; color: var(--muted); }
+.orphaned-passages summary { cursor: pointer; }
+.orphaned-passages ul { list-style: none; margin: 6px 0 0; padding: 0; }
+.orphaned-passages button {
+  border: none;
+  padding: 4px 0;
+  text-align: left;
+  color: var(--muted);
+  max-width: 680px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.orphaned-passages button:hover { color: var(--fg); }
