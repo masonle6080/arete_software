@@ -45,6 +45,12 @@ pub enum CoreError {
     #[error("{reason}")]
     InvalidInput { reason: String },
 
+    #[error("{path} is not a video Arete can read")]
+    NotAVideo { path: PathBuf },
+
+    #[error("ffmpeg was not found; the app bundle should include it")]
+    VideoToolMissing,
+
     #[error("file system error: {0}")]
     Io(#[from] std::io::Error),
 
@@ -66,6 +72,8 @@ impl CoreError {
             CoreError::LibraryDisconnected { .. } => "LibraryDisconnected",
             CoreError::NotFound { .. } => "NotFound",
             CoreError::InvalidInput { .. } => "InvalidInput",
+            CoreError::NotAVideo { .. } => "NotAVideo",
+            CoreError::VideoToolMissing => "VideoToolMissing",
             CoreError::Io(_) => "Io",
             CoreError::Database(_) => "Database",
         }

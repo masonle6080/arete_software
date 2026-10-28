@@ -24,6 +24,11 @@ impl MediaRef {
     pub fn file_name(&self) -> &str {
         &self.0
     }
+
+    /// A reference read back from a record. Only areas that stored it call this.
+    pub(crate) fn from_stored(file_name: String) -> MediaRef {
+        MediaRef(file_name)
+    }
 }
 
 /// The absolute path of a stored media file.

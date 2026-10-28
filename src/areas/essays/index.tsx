@@ -1,0 +1,89 @@
+import { useCallback, useEffect, useRef, useState } from "react";
+import type { Area } from "../../shell/area";
+import { toCoreError } from "../../shell/coreError";
+import { DocumentEditor, type DocumentEditorHandle } from "../../document/DocumentEditor";
+import { documentApi, type DocumentSummary, type StoredDocument } from "./api";
+import "./essays.css";
+
+function EssayList({ onOpen }: { onOpen(id: number): void }) {
+  const [essays, setEssays] = useState<DocumentSummary[] | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    documentApi.list("essay").then(setEssays, (e) => setError(toCoreError(e).message));
+  }, []);
+
+  const create = async () => {
+    try {
+      const essay = await documentApi.create("essay", "");
+      onOpen(essay.id);
+    } catch (e) {
+      setError(toCoreError(e).message);
+    }
+  };
+
+  return (
+    <section>
+      <header className="essay-list-header">
+        <h1>Essays</h1>
+        <button onClick={create}>New essay</button>
+      </header>
+      {error && <p className="error">{error}</p>}
+      {essays?.length === 0 && <p className="muted">No essays yet.</p>}
+      <ul className="essay-list">
+        {essays?.map((e) => (
+          <li key={e.id}>
+            <button onClick={() => onOpen(e.id)}>
+              <span>{e.title || "Untitled"}</span>
+              <time dateTime={e.updatedAt}>{new Date(e.updatedAt).toLocaleString()}</time>
+            </button>
+          </li>
+        ))}
+      </ul>
+    </section>
+  );
+}
+
+function EssayScreen({ id, onClose }: { id: number; onClose(): void }) {
+  const [essay, setEssay] = useState<StoredDocument | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const editor = useRef<DocumentEditorHandle>(null);
+
+  useEffect(() => {
+    documentApi.open(id).then(setEssay, (e) => setError(toCoreError(e).message));
+  }, [id]);
+
+  const save = useCallback(
+    async (edit: { title: string; markdown: string }) => {
+      await documentApi.save(id, edit);
+    },
+    [id],
+  );
+
+  return (
+    <section>
+      <button
+        className="essay-back"
+        onClick={async () => {
+          await editor.current?.flush();
+          onClose();
+        }}
+      >
+        ← Essays
+      </button>
+      {error && <p className="error">{error}</p>}
+      {essay && <DocumentEditor ref={editor} key={essay.id} title={essay.title} markdown={essay.markdown} onSave={save} />}
+    </section>
+  );
+}
+
+function EssaysArea() {
+  const [openId, setOpenId] = useState<number | null>(null);
+  return openId ? (
+    <EssayScreen id={openId} onClose={() => setOpenId(null)} />
+  ) : (
+    <EssayList onOpen={setOpenId} />
+  );
+}
+
+export const essaysArea: Area = { id: "essays", label: "Essays", Screen: EssaysArea };
