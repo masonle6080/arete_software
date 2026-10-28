@@ -8,7 +8,11 @@
 //! TypeScript document module (`src/document/`).
 //!
 //! Domain command functions for this area: [`create_document`],
-//! [`open_document`], [`save_document`], [`list_documents`].
+//! [`open_document`], [`save_document`], [`list_documents`]. Essay <-> Thesis
+//! links: [`link_essay_to_thesis`], [`unlink_essay_from_thesis`],
+//! [`theses_of_essay`], [`essays_of_thesis`].
+
+mod thesis_link;
 
 use std::path::PathBuf;
 
@@ -16,6 +20,8 @@ use rusqlite::{params, OptionalExtension, Row};
 
 use crate::error::{CoreError, CoreResult};
 use crate::library::Library;
+
+pub use thesis_link::{essays_of_thesis, link_essay_to_thesis, theses_of_essay, unlink_essay_from_thesis};
 
 /// What a document is for. Storage does not depend on it.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
