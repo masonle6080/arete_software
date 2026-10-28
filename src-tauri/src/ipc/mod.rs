@@ -119,6 +119,8 @@ pub fn run() {
             document::unlink_essay_from_thesis,
             document::theses_of_essay,
             document::essays_of_thesis,
+            document::get_passage,
+            document::passages_of_document,
             // clip
             clip::list_clips,
             clip::import_clip,

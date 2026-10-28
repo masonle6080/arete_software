@@ -48,6 +48,10 @@ pub enum CoreError {
     #[error("{record} {id} does not exist")]
     NotFound { record: &'static str, id: i64 },
 
+    /// Like `NotFound`, for a Passage (its ID is text). Crosses IPC as `NotFound`.
+    #[error("Passage {id} does not exist")]
+    PassageNotFound { id: String },
+
     /// The founder gave a value the core cannot accept, for example an
     /// empty title. `reason` says what to fix.
     #[error("{reason}")]
@@ -80,7 +84,7 @@ impl CoreError {
             CoreError::StylesNotReady { .. } => "StylesNotReady",
             CoreError::DocumentaryExists { .. } => "DocumentaryExists",
             CoreError::LibraryDisconnected { .. } => "LibraryDisconnected",
-            CoreError::NotFound { .. } => "NotFound",
+            CoreError::NotFound { .. } | CoreError::PassageNotFound { .. } => "NotFound",
             CoreError::InvalidInput { .. } => "InvalidInput",
             CoreError::NotAVideo { .. } => "NotAVideo",
             CoreError::VideoToolMissing => "VideoToolMissing",
