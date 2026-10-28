@@ -25,12 +25,19 @@ pub enum CoreError {
     #[error("no library is open")]
     NoLibraryOpen,
 
+    /// A lifecycle rule refuses this status move. `what` names the record
+    /// (for example "Thesis"); `from` and `to` are status labels.
+    #[error("a {what} cannot move from {from} to {to}")]
+    StatusMoveRefused { what: &'static str, from: &'static str, to: &'static str },
+
     #[error("the library at {path} is disconnected; reconnect its drive")]
     LibraryDisconnected { path: PathBuf },
 
     #[error("{record} {id} does not exist")]
     NotFound { record: &'static str, id: i64 },
 
+    /// The founder gave a value the core cannot accept, for example an
+    /// empty title. `reason` says what to fix.
     #[error("{reason}")]
     InvalidInput { reason: String },
 
@@ -50,6 +57,7 @@ impl CoreError {
             CoreError::FolderNotEmpty { .. } => "FolderNotEmpty",
             CoreError::NewerSchema { .. } => "NewerSchema",
             CoreError::NoLibraryOpen => "NoLibraryOpen",
+            CoreError::StatusMoveRefused { .. } => "StatusMoveRefused",
             CoreError::LibraryDisconnected { .. } => "LibraryDisconnected",
             CoreError::NotFound { .. } => "NotFound",
             CoreError::InvalidInput { .. } => "InvalidInput",

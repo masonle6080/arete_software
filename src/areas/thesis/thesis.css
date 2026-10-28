@@ -1,0 +1,43 @@
+.thesis-capture {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-width: 560px;
+  margin-bottom: 24px;
+}
+.thesis-capture input,
+.thesis-capture textarea {
+  font: inherit;
+  color: var(--fg);
+  background: transparent;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 6px 8px;
+}
+.thesis-capture button { align-self: flex-start; }
+
+.thesis-group h2 { font-size: 0.95rem; margin: 20px 0 6px; }
+.thesis-group .count { color: var(--muted); font-weight: normal; }
+.thesis-group ul { list-style: none; margin: 0; padding: 0; }
+.thesis-group .empty { color: var(--muted); margin: 0; }
+
+.thesis-row {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  width: 100%;
+  max-width: 560px;
+  text-align: left;
+  border: none;
+  padding: 6px 8px;
+}
+.thesis-row:hover { background: var(--line); }
+.thesis-row .statement,
+.thesis-view .statement { color: var(--muted); }
+
+.thesis-view .back { border: none; padding-left: 0; color: var(--muted); }
+.thesis-view .status { color: var(--muted); margin: 16px 0 0; font-size: 0.85rem; }
+.thesis-view h1 { margin: 4px 0; }
+.thesis-view .actions { display: flex; gap: 8px; margin-top: 12px; }
+.thesis-section { margin-top: 32px; border-top: 1px solid var(--line); padding-top: 12px; }
+.thesis-section h2 { font-size: 1rem; margin: 0 0 8px; }

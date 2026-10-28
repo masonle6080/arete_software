@@ -8,6 +8,7 @@
 
 mod library;
 mod vendor;
+mod thesis;
 
 use std::sync::Mutex;
 
@@ -65,6 +66,11 @@ pub fn run() {
             vendor::list_vendors,
             vendor::create_vendor,
             vendor::update_vendor,
+            // thesis
+            thesis::create_thesis,
+            thesis::move_thesis,
+            thesis::list_theses,
+            thesis::get_thesis,
         ])
         .run(tauri::generate_context!())
         .expect("error while running Arete");
