@@ -1,6 +1,7 @@
 import type { ComponentType } from "react";
 import type { Style } from "../types";
 import { filesSection } from "./FilesSection";
+import { baseSection } from "./BaseSection";
 
 /** Props every Style view section receives. */
 export interface StyleSectionProps {
@@ -25,4 +26,5 @@ export interface StyleSection {
  */
 export const styleSections: StyleSection[] = [
   filesSection,
+  baseSection,
 ];

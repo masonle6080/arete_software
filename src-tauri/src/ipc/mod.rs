@@ -16,6 +16,7 @@ mod drop;
 mod style;
 mod media;
 mod moodboard;
+mod blank;
 
 use std::sync::Mutex;
 
@@ -92,6 +93,14 @@ pub fn run() {
             style::drop_styles,
             style::attach_style_files,
             style::style_files,
+            style::style_base,
+            style::set_style_base,
+            style::style_sizes,
+            style::set_style_sizes,
+            // blank
+            blank::list_blanks,
+            blank::create_blank,
+            blank::update_blank,
             // media
             media::import_media_bytes,
             media::read_media,
