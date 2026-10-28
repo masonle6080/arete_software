@@ -5,7 +5,7 @@ import { DocumentEditor, type DocumentEditorHandle } from "../../document/Docume
 import { documentApi, type DocumentSummary, type StoredDocument } from "./api";
 import "./essays.css";
 
-function EssayList({ onOpen }: { onOpen(id: string): void }) {
+function EssayList({ onOpen }: { onOpen(id: number): void }) {
   const [essays, setEssays] = useState<DocumentSummary[] | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -44,7 +44,7 @@ function EssayList({ onOpen }: { onOpen(id: string): void }) {
   );
 }
 
-function EssayScreen({ id, onClose }: { id: string; onClose(): void }) {
+function EssayScreen({ id, onClose }: { id: number; onClose(): void }) {
   const [essay, setEssay] = useState<StoredDocument | null>(null);
   const [error, setError] = useState<string | null>(null);
   const editor = useRef<DocumentEditorHandle>(null);
@@ -78,7 +78,7 @@ function EssayScreen({ id, onClose }: { id: string; onClose(): void }) {
 }
 
 function EssaysArea() {
-  const [openId, setOpenId] = useState<string | null>(null);
+  const [openId, setOpenId] = useState<number | null>(null);
   return openId ? (
     <EssayScreen id={openId} onClose={() => setOpenId(null)} />
   ) : (

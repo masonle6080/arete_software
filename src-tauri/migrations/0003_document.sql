@@ -1,7 +1,7 @@
 -- Long-form documents (Essays, later Scripts). The text lives in
 -- documents/<file_name> as Markdown (ADR-0001). This table holds the record.
 CREATE TABLE document (
-    id         TEXT PRIMARY KEY NOT NULL,
+    id         INTEGER PRIMARY KEY AUTOINCREMENT,
     kind       TEXT NOT NULL,
     title      TEXT NOT NULL,
     file_name  TEXT NOT NULL UNIQUE,

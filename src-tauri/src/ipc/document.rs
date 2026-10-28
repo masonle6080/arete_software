@@ -13,13 +13,13 @@ pub fn create_document(state: State<AppState>, kind: DocumentKind, title: String
 }
 
 #[tauri::command]
-pub fn open_document(state: State<AppState>, id: String) -> CoreResult<Document> {
-    state.with_library(|lib| document::open_document(lib, &id))
+pub fn open_document(state: State<AppState>, id: i64) -> CoreResult<Document> {
+    state.with_library(|lib| document::open_document(lib, id))
 }
 
 #[tauri::command]
-pub fn save_document(state: State<AppState>, id: String, edit: DocumentEdit) -> CoreResult<DocumentSummary> {
-    state.with_library(|lib| document::save_document(lib, &id, &edit))
+pub fn save_document(state: State<AppState>, id: i64, edit: DocumentEdit) -> CoreResult<DocumentSummary> {
+    state.with_library(|lib| document::save_document(lib, id, &edit))
 }
 
 #[tauri::command]

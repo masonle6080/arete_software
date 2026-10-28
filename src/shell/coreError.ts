@@ -8,7 +8,9 @@ export type CoreErrorKind =
   | "FolderNotEmpty"
   | "NewerSchema"
   | "NoLibraryOpen"
-  | "DocumentNotFound"
+  | "LibraryDisconnected"
+  | "NotFound"
+  | "InvalidInput"
   | "Io"
   | "Database"
   | "Unknown";

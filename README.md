@@ -19,7 +19,10 @@ npm run build                     # type-check and build the webview
 
 - `src-tauri/src/<area>/`: Library core, one module per domain area
   (`library`, later `thesis`, `essay`, ...). Each area exposes plain domain
-  command functions. All rules live here.
+  command functions. All rules live here. Every database write goes through
+  `Library::writer()`, which refuses with `LibraryDisconnected` when the
+  library folder is unreachable. File writes call `Library::ensure_reachable()`
+  first.
 - `src-tauri/src/ipc/<area>.rs`: thin Tauri commands over those functions.
   Register them in `src-tauri/src/ipc/mod.rs`.
 - `src-tauri/migrations/NNNN_name.sql`: one file per schema migration, applied

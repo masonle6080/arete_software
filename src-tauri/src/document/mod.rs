@@ -50,7 +50,7 @@ impl DocumentKind {
 #[derive(Debug, Clone, PartialEq, Eq, serde::Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct DocumentSummary {
-    pub id: String,
+    pub id: i64,
     pub kind: DocumentKind,
     pub title: String,
     pub created_at: String,
@@ -61,7 +61,7 @@ pub struct DocumentSummary {
 #[derive(Debug, Clone, PartialEq, Eq, serde::Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Document {
-    pub id: String,
+    pub id: i64,
     pub kind: DocumentKind,
     pub title: String,
     pub created_at: String,
@@ -98,11 +98,11 @@ fn record(row: &Row) -> rusqlite::Result<Record> {
     })
 }
 
-fn find(lib: &Library, id: &str) -> CoreResult<Record> {
+fn find(lib: &Library, id: i64) -> CoreResult<Record> {
     lib.db()
         .query_row(&format!("SELECT {COLUMNS} FROM document WHERE id = ?1"), [id], record)
         .optional()?
-        .ok_or_else(|| CoreError::DocumentNotFound { id: id.to_string() })
+        .ok_or(CoreError::NotFound { record: "Document", id })
 }
 
 fn file_path(lib: &Library, file_name: &str) -> PathBuf {
@@ -126,19 +126,20 @@ fn with_text(summary: DocumentSummary, markdown: String) -> Document {
 /// Creates an empty document of `kind`. It belongs to no Thesis.
 pub fn create_document(lib: &Library, kind: DocumentKind, title: &str) -> CoreResult<Document> {
     let db = lib.writer()?;
-    let id: String = db.query_row("SELECT lower(hex(randomblob(16)))", [], |r| r.get(0))?;
-    let file_name = format!("{id}.md");
+    // A random file name stays unique even if a row id is ever reused.
+    let stem: String = db.query_row("SELECT lower(hex(randomblob(16)))", [], |r| r.get(0))?;
+    let file_name = format!("{stem}.md");
     write_atomically(&file_path(lib, &file_name), "")?;
     db.execute(
-        "INSERT INTO document (id, kind, title, file_name, edit_seq)
-         VALUES (?1, ?2, ?3, ?4, (SELECT COALESCE(MAX(edit_seq), 0) + 1 FROM document))",
-        params![id, kind.as_str(), title, file_name],
+        "INSERT INTO document (kind, title, file_name, edit_seq)
+         VALUES (?1, ?2, ?3, (SELECT COALESCE(MAX(edit_seq), 0) + 1 FROM document))",
+        params![kind.as_str(), title, file_name],
     )?;
-    open_document(lib, &id)
+    open_document(lib, db.last_insert_rowid())
 }
 
 /// Opens a document with its Markdown text, exactly as last saved.
-pub fn open_document(lib: &Library, id: &str) -> CoreResult<Document> {
+pub fn open_document(lib: &Library, id: i64) -> CoreResult<Document> {
     let rec = find(lib, id)?;
     let markdown = std::fs::read_to_string(file_path(lib, &rec.file_name))?;
     Ok(with_text(rec.summary, markdown))
@@ -146,7 +147,7 @@ pub fn open_document(lib: &Library, id: &str) -> CoreResult<Document> {
 
 /// Saves a document's title and Markdown text. The file holds exactly
 /// `edit.markdown`, so the document reloads unchanged.
-pub fn save_document(lib: &Library, id: &str, edit: &DocumentEdit) -> CoreResult<DocumentSummary> {
+pub fn save_document(lib: &Library, id: i64, edit: &DocumentEdit) -> CoreResult<DocumentSummary> {
     let db = lib.writer()?;
     let rec = find(lib, id)?;
     write_atomically(&file_path(lib, &rec.file_name), &edit.markdown)?;

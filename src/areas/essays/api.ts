@@ -4,7 +4,7 @@ import { call } from "../../shell/invoke";
 export type DocumentKind = "essay" | "script";
 
 export interface DocumentSummary {
-  id: string;
+  id: number;
   kind: DocumentKind;
   title: string;
   createdAt: string;
@@ -27,7 +27,7 @@ export interface DocumentEdit {
 export const documentApi = {
   create: (kind: DocumentKind, title: string) =>
     call<StoredDocument>("create_document", { kind, title }),
-  open: (id: string) => call<StoredDocument>("open_document", { id }),
-  save: (id: string, edit: DocumentEdit) => call<DocumentSummary>("save_document", { id, edit }),
+  open: (id: number) => call<StoredDocument>("open_document", { id }),
+  save: (id: number, edit: DocumentEdit) => call<DocumentSummary>("save_document", { id, edit }),
   list: (kind: DocumentKind) => call<DocumentSummary[]>("list_documents", { kind }),
 };
