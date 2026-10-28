@@ -9,6 +9,8 @@
 mod library;
 mod vendor;
 mod thesis;
+mod media;
+mod moodboard;
 
 use std::sync::Mutex;
 
@@ -71,6 +73,14 @@ pub fn run() {
             thesis::move_thesis,
             thesis::list_theses,
             thesis::get_thesis,
+            // media
+            media::import_media_bytes,
+            media::read_media,
+            // moodboard
+            moodboard::create_moodboard,
+            moodboard::list_moodboards,
+            moodboard::load_moodboard_scene,
+            moodboard::save_moodboard_scene,
         ])
         .run(tauri::generate_context!())
         .expect("error while running Arete");
