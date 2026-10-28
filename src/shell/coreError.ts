@@ -9,6 +9,10 @@ export type CoreErrorKind =
   | "NewerSchema"
   | "NoLibraryOpen"
   | "LibraryDisconnected"
+  | "NotAVideo"
+  | "VideoToolMissing"
+  | "ClipNotFound"
+  | "InvalidDate"
   | "Io"
   | "Database"
   | "Unknown";

@@ -28,6 +28,18 @@ pub enum CoreError {
     #[error("the library at {path} is disconnected; reconnect its drive")]
     LibraryDisconnected { path: PathBuf },
 
+    #[error("{path} is not a video Arete can read")]
+    NotAVideo { path: PathBuf },
+
+    #[error("ffmpeg was not found; the app bundle should include it")]
+    VideoToolMissing,
+
+    #[error("no Clip with id {id}")]
+    ClipNotFound { id: i64 },
+
+    #[error("{value:?} is not a date; use YYYY-MM-DD")]
+    InvalidDate { value: String },
+
     #[error("file system error: {0}")]
     Io(#[from] std::io::Error),
 
@@ -45,6 +57,10 @@ impl CoreError {
             CoreError::NewerSchema { .. } => "NewerSchema",
             CoreError::NoLibraryOpen => "NoLibraryOpen",
             CoreError::LibraryDisconnected { .. } => "LibraryDisconnected",
+            CoreError::NotAVideo { .. } => "NotAVideo",
+            CoreError::VideoToolMissing => "VideoToolMissing",
+            CoreError::ClipNotFound { .. } => "ClipNotFound",
+            CoreError::InvalidDate { .. } => "InvalidDate",
             CoreError::Io(_) => "Io",
             CoreError::Database(_) => "Database",
         }
