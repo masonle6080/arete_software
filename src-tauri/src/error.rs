@@ -25,6 +25,19 @@ pub enum CoreError {
     #[error("no library is open")]
     NoLibraryOpen,
 
+    #[error("{what} {id} does not exist")]
+    NotFound { what: &'static str, id: i64 },
+
+    /// The founder gave a value the core cannot accept, for example an
+    /// empty title. `message` says what to fix.
+    #[error("{message}")]
+    InvalidInput { message: String },
+
+    /// A lifecycle rule refuses this status move. `what` names the record
+    /// (for example "Thesis"); `from` and `to` are status labels.
+    #[error("a {what} cannot move from {from} to {to}")]
+    StatusMoveRefused { what: &'static str, from: &'static str, to: &'static str },
+
     #[error("file system error: {0}")]
     Io(#[from] std::io::Error),
 
@@ -41,6 +54,9 @@ impl CoreError {
             CoreError::FolderNotEmpty { .. } => "FolderNotEmpty",
             CoreError::NewerSchema { .. } => "NewerSchema",
             CoreError::NoLibraryOpen => "NoLibraryOpen",
+            CoreError::NotFound { .. } => "NotFound",
+            CoreError::InvalidInput { .. } => "InvalidInput",
+            CoreError::StatusMoveRefused { .. } => "StatusMoveRefused",
             CoreError::Io(_) => "Io",
             CoreError::Database(_) => "Database",
         }

@@ -7,6 +7,7 @@
 //! per line.
 
 mod library;
+mod thesis;
 
 use std::sync::Mutex;
 
@@ -52,6 +53,11 @@ pub fn run() {
             library::open_library,
             library::reopen_last_library,
             library::current_library,
+            // thesis
+            thesis::create_thesis,
+            thesis::move_thesis,
+            thesis::list_theses,
+            thesis::get_thesis,
         ])
         .run(tauri::generate_context!())
         .expect("error while running Arete");

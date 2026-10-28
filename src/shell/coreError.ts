@@ -8,6 +8,9 @@ export type CoreErrorKind =
   | "FolderNotEmpty"
   | "NewerSchema"
   | "NoLibraryOpen"
+  | "NotFound"
+  | "InvalidInput"
+  | "StatusMoveRefused"
   | "Io"
   | "Database"
   | "Unknown";
