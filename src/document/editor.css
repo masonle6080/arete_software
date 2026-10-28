@@ -47,3 +47,26 @@
   font-size: 12px;
   color: var(--muted);
 }
+
+/* Passages: a faint tint. Nested and overlapping Passages stack the tint. */
+.document-body .passage {
+  background: rgba(214, 170, 40, 0.13);
+  border-radius: 2px;
+}
+@media (prefers-color-scheme: dark) {
+  .document-body .passage { background: rgba(230, 190, 80, 0.14); }
+}
+
+.passage-bar {
+  display: flex;
+  gap: 8px;
+  min-height: 28px;
+  margin-bottom: 8px;
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+}
+.passage-bar button {
+  font-size: 12px;
+  padding: 3px 10px;
+  color: var(--muted);
+}
+.passage-bar button:disabled { opacity: 0.4; }
