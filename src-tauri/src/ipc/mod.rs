@@ -6,6 +6,7 @@
 //! commands in `generate_handler!` under a `// <area>` comment, one command
 //! per line.
 
+mod document;
 mod library;
 mod vendor;
 mod thesis;
@@ -71,6 +72,11 @@ pub fn run() {
             thesis::move_thesis,
             thesis::list_theses,
             thesis::get_thesis,
+            // document
+            document::create_document,
+            document::open_document,
+            document::save_document,
+            document::list_documents,
         ])
         .run(tauri::generate_context!())
         .expect("error while running Arete");

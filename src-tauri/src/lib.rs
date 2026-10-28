@@ -14,6 +14,7 @@ pub mod migrations;
 // Domain areas. One module per area; add yours on its own line.
 pub mod library;
 pub mod thesis;
+pub mod document;
 pub mod media;
 pub mod vendor;
 

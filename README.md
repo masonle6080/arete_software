@@ -31,4 +31,6 @@ npm run build                     # type-check and build the webview
   against a fresh temporary library (`tests/common::TestEnv`) and check results
   only through the same API.
 - `src/areas/<area>/`: UI for one area. Register it in `src/areas/index.ts`.
+- `src/document/`: the document module (Markdown ⇄ editor document) and the
+  shared editor, for Essays and Scripts. Vitest tests sit next to it.
 - `src/shell/`: app shell, navigation, and the IPC helper `call()`.
