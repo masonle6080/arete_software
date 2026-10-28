@@ -127,8 +127,11 @@ function marker(id: string, close: boolean, around: Mark[]): JSONNode {
   return json;
 }
 
-/** One textblock's inline content, with a marker at each Passage edge. */
-function withMarkers(block: PMNode): JSONNode[] {
+/**
+ * One textblock's inline content, with a marker at each Passage edge.
+ * With `markers` false, Passages are dropped and only their text stays.
+ */
+function withMarkers(block: PMNode, markers: boolean): JSONNode[] {
   const out: JSONNode[] = [];
   const children = [...block.children, null];
   let prev: PMNode | null = null;
@@ -137,7 +140,7 @@ function withMarkers(block: PMNode): JSONNode[] {
     const after = passageIds(child);
     const closed = before.filter((id) => !after.includes(id)).reverse();
     const opened = after.filter((id) => !before.includes(id));
-    if (closed.length || opened.length) {
+    if (markers && (closed.length || opened.length)) {
       // A marker takes the marks on both sides, so it does not split a bold
       // run. Inline code cannot hold a marker, so a code span splits instead.
       const next = marksWithout(child, [PASSAGE, "code"]);
@@ -158,11 +161,11 @@ function withMarkers(block: PMNode): JSONNode[] {
 }
 
 /** The document in the marker schema. */
-function toMarkerDoc(doc: PMNode): PMNode {
+function toMarkerDoc(doc: PMNode, markers: boolean): PMNode {
   const convert = (node: PMNode): JSONNode => {
     const json = node.toJSON() as JSONNode;
     if (node.isTextblock) {
-      if (node.childCount) json.content = withMarkers(node);
+      if (node.childCount) json.content = withMarkers(node, markers);
     } else if (node.childCount) {
       json.content = node.children.map(convert);
     }
@@ -190,7 +193,8 @@ function passageMarkers(md: ReturnType<typeof MarkdownIt>) {
   });
 }
 
-function markdownIt() {
+/** The Markdown reader for the file format. `export.ts` renders HTML with it. */
+export function markdownIt() {
   return MarkdownIt("commonmark", { html: false })
     .enable("strikethrough")
     .disable("image")
@@ -285,8 +289,11 @@ export function fromMarkdown(markdown: string, schema: Schema = documentSchema):
   return parserFor(schema).parse(markdown);
 }
 
-/** Writes a document as Markdown. Non-empty output ends with one newline. */
-export function toMarkdown(doc: PMNode): string {
-  const md = serializer.serialize(toMarkerDoc(doc), { tightLists: true });
+/**
+ * Writes a document as Markdown. Non-empty output ends with one newline.
+ * With `passages: false` it writes no Passage markers (for exports).
+ */
+export function toMarkdown(doc: PMNode, { passages = true }: { passages?: boolean } = {}): string {
+  const md = serializer.serialize(toMarkerDoc(doc, passages), { tightLists: true });
   return md === "" ? "" : md + "\n";
 }

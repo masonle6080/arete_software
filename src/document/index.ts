@@ -8,10 +8,13 @@
  * - `passagesIn(doc)`: the Passages present in a document and their text.
  *   The save report (spec #1) builds on it.
  * - Editor commands `setPassage()` and `unsetPassage(id)`.
+ * - `exportMarkdown(title, md)` and `exportHtml(title, md)`: the document
+ *   for use outside the app, with no Passage markers.
  *
  * A Passage is a mark carrying its ID in the editor, and a pair of
  * HTML-comment markers in Markdown (see `markdown.ts` and `passage.ts`).
  */
 export { documentExtensions, documentSchema } from "./extensions";
 export { fromMarkdown, toMarkdown } from "./markdown";
+export { exportHtml, exportMarkdown } from "./export";
 export { newPassageId, passageIdsAt, passagesIn, type PassageText } from "./passage";

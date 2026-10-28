@@ -17,6 +17,8 @@ mod style;
 mod media;
 mod moodboard;
 mod blank;
+mod documentary;
+mod export;
 
 use std::sync::Mutex;
 
@@ -60,6 +62,7 @@ pub fn run() {
         .setup(|app| {
             let dir = app.path().app_config_dir()?;
             app.manage(AppState::new(AppConfig::new(dir)));
+            app.manage(crate::export::PrintJobs::default());
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
@@ -123,6 +126,19 @@ pub fn run() {
             clip::import_clip,
             clip::set_clip_date_shot,
             clip::reveal_clip,
+            // documentary
+            documentary::create_documentary,
+            documentary::move_documentary,
+            documentary::thesis_documentary,
+            documentary::list_documentaries,
+            documentary::add_clip_to_documentary,
+            documentary::remove_clip_from_documentary,
+            documentary::documentary_clips,
+            documentary::clip_documentaries,
+            // export
+            export::save_export_file,
+            export::print_export,
+            export::take_print_job,
         ])
         .run(tauri::generate_context!())
         .expect("error while running Arete");
