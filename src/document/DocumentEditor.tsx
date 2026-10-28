@@ -1,7 +1,8 @@
-import { EditorContent, useEditor } from "@tiptap/react";
+import { EditorContent, useEditor, useEditorState, type Editor } from "@tiptap/react";
 import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from "react";
 import { documentExtensions } from "./extensions";
 import { fromMarkdown, toMarkdown } from "./markdown";
+import { passageIdsAt } from "./passage";
 import "./editor.css";
 
 export interface DocumentEditorProps {
@@ -107,6 +108,7 @@ export const DocumentEditor = forwardRef<DocumentEditorHandle, DocumentEditorPro
           }
         }}
       />
+      <PassageBar editor={editor} />
       <EditorContent editor={editor} className="document-body" />
       <div className="document-status" aria-live="polite">
         {typeof status === "object" ? (
@@ -120,3 +122,39 @@ export const DocumentEditor = forwardRef<DocumentEditorHandle, DocumentEditorPro
     </div>
   );
 });
+
+/**
+ * Quiet controls for Passages: mark the selected text, or remove the
+ * innermost Passage at the cursor. The text stays when a mark is removed.
+ */
+function PassageBar({ editor }: { editor: Editor }) {
+  const state = useEditorState({
+    editor,
+    selector: ({ editor }) => ({
+      canMark: editor.can().setPassage(),
+      under: passageIdsAt(editor.state.doc, editor.state.selection.from)[0] ?? null,
+    }),
+  });
+
+  return (
+    <div className="passage-bar">
+      <button
+        disabled={!state.canMark}
+        title="Mark the selected text as a Passage (⇧⌘P)"
+        onMouseDown={(e) => e.preventDefault()}
+        onClick={() => editor.chain().focus().setPassage().run()}
+      >
+        Mark Passage
+      </button>
+      {state.under && (
+        <button
+          title="Remove this Passage mark and keep the text"
+          onMouseDown={(e) => e.preventDefault()}
+          onClick={() => editor.chain().focus().unsetPassage(state.under!).run()}
+        >
+          Remove Passage
+        </button>
+      )}
+    </div>
+  );
+}
