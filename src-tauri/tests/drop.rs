@@ -5,7 +5,8 @@
 
 mod common;
 
-use arete_lib::drop::{self, DropStage};
+use arete_lib::documentary::{self, DocumentaryStatus};
+use arete_lib::drop::{self, DropStage, DropWarning};
 use arete_lib::error::CoreError;
 use arete_lib::thesis::{self, ThesisStatus};
 use common::TestEnv;
@@ -168,4 +169,83 @@ fn drop_stages_cannot_be_skipped_or_reversed() {
     assert!(matches!(err, CoreError::StatusMoveRefused { from: "Sampling", to: "Design", .. }), "{err:?}");
 
     assert_eq!(drop::get_drop(&lib, d.id).unwrap().stage, DropStage::Sampling);
+}
+
+/// A Drop of a fresh Thesis, moved to Production so it can be released.
+fn drop_ready_to_release(lib: &arete_lib::library::Library) -> (thesis::Thesis, drop::Drop) {
+    let t = thesis::create_thesis(lib, "Amor fati", "").unwrap();
+    let d = drop::create_drop(lib, t.id, "Amor fati").unwrap();
+    move_to(lib, d.id, DropStage::Sampling);
+    move_to(lib, d.id, DropStage::Production);
+    (t, d)
+}
+
+#[test]
+fn releasing_before_the_documentary_is_released_warns_and_changes_nothing() {
+    let env = TestEnv::new();
+    let lib = env.library();
+    let (t, d) = drop_ready_to_release(&lib);
+    let film = documentary::create_documentary(&lib, t.id, "Amor fati").unwrap();
+    documentary::move_documentary(&lib, film.id, DocumentaryStatus::Filming).unwrap();
+
+    let result = drop::move_drop(&lib, d.id, DropStage::Released, false).unwrap();
+
+    let drop::DropMove::NeedsConfirmation { drop: unchanged, warnings } = result else {
+        panic!("expected a warning: {result:?}")
+    };
+    assert_eq!(unchanged.stage, DropStage::Production);
+    assert_eq!(
+        warnings,
+        vec![DropWarning::DocumentaryNotReleased {
+            documentary_id: film.id,
+            title: "Amor fati".into(),
+            status: DocumentaryStatus::Filming,
+        }]
+    );
+    assert_eq!(drop::get_drop(&lib, d.id).unwrap().stage, DropStage::Production);
+    assert_eq!(thesis::get_thesis(&lib, t.id).unwrap().status, ThesisStatus::Committed);
+}
+
+#[test]
+fn a_confirmed_release_goes_through_past_the_documentary_warning() {
+    let env = TestEnv::new();
+    let lib = env.library();
+    let (t, d) = drop_ready_to_release(&lib);
+    documentary::create_documentary(&lib, t.id, "Amor fati").unwrap();
+    assert!(matches!(
+        drop::move_drop(&lib, d.id, DropStage::Released, false).unwrap(),
+        drop::DropMove::NeedsConfirmation { .. }
+    ));
+
+    let result = drop::move_drop(&lib, d.id, DropStage::Released, true).unwrap();
+
+    let drop::DropMove::Moved(released) = result else { panic!("expected the move: {result:?}") };
+    assert_eq!(released.stage, DropStage::Released);
+    assert_eq!(thesis::get_thesis(&lib, t.id).unwrap().status, ThesisStatus::Released);
+}
+
+#[test]
+fn releasing_after_the_documentary_is_released_needs_no_confirmation() {
+    let env = TestEnv::new();
+    let lib = env.library();
+    let (t, d) = drop_ready_to_release(&lib);
+    let film = documentary::create_documentary(&lib, t.id, "Amor fati").unwrap();
+    for to in [DocumentaryStatus::Filming, DocumentaryStatus::Editing, DocumentaryStatus::Released] {
+        documentary::move_documentary(&lib, film.id, to).unwrap();
+    }
+
+    assert_eq!(move_to(&lib, d.id, DropStage::Released).stage, DropStage::Released);
+}
+
+#[test]
+fn the_documentary_warning_applies_only_to_release() {
+    let env = TestEnv::new();
+    let lib = env.library();
+    let t = thesis::create_thesis(&lib, "Amor fati", "").unwrap();
+    documentary::create_documentary(&lib, t.id, "Amor fati").unwrap();
+    let d = drop::create_drop(&lib, t.id, "Amor fati").unwrap();
+
+    move_to(&lib, d.id, DropStage::Sampling);
+    move_to(&lib, d.id, DropStage::Production);
+    assert_eq!(move_to(&lib, d.id, DropStage::Cancelled).stage, DropStage::Cancelled);
 }

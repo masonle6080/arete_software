@@ -38,6 +38,9 @@ pub enum CoreError {
     /// `styles` names the others as "<name> (<color>)".
     #[error("approve or cut every Style before Production; not ready: {}", styles.join(", "))]
     StylesNotReady { styles: Vec<String> },
+    /// A Thesis has at most one Documentary.
+    #[error("this Thesis already has a Documentary")]
+    DocumentaryExists { thesis_id: i64 },
 
     #[error("the library at {path} is disconnected; reconnect its drive")]
     LibraryDisconnected { path: PathBuf },
@@ -79,6 +82,7 @@ impl CoreError {
             CoreError::StatusMoveRefused { .. } => "StatusMoveRefused",
             CoreError::ActiveDropExists { .. } => "ActiveDropExists",
             CoreError::StylesNotReady { .. } => "StylesNotReady",
+            CoreError::DocumentaryExists { .. } => "DocumentaryExists",
             CoreError::LibraryDisconnected { .. } => "LibraryDisconnected",
             CoreError::NotFound { .. } | CoreError::PassageNotFound { .. } => "NotFound",
             CoreError::InvalidInput { .. } => "InvalidInput",

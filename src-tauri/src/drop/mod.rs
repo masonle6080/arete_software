@@ -7,6 +7,7 @@ mod stage;
 
 use rusqlite::{params, OptionalExtension, Row};
 
+use crate::documentary::{self, DocumentaryId, DocumentaryStatus};
 use crate::error::{CoreError, CoreResult};
 use crate::library::Library;
 use crate::style;
@@ -43,7 +44,12 @@ fn from_row(row: &Row) -> rusqlite::Result<Drop> {
 /// before the Thesis's Documentary is Released).
 #[derive(Debug, Clone, PartialEq, Eq, serde::Serialize)]
 #[serde(rename_all = "camelCase", tag = "kind")]
-pub enum DropWarning {}
+pub enum DropWarning {
+    /// Releasing the Drop while its Thesis has a Documentary that is not
+    /// Released. The Documentary should come out before the Drop.
+    #[serde(rename_all = "camelCase")]
+    DocumentaryNotReleased { documentary_id: DocumentaryId, title: String, status: DocumentaryStatus },
+}
 
 /// The result of [`move_drop`].
 #[derive(Debug, Clone, PartialEq, Eq, serde::Serialize)]
@@ -84,6 +90,7 @@ pub fn move_drop(lib: &Library, id: DropId, to: DropStage, confirmed: bool) -> C
 /// Approved or Cut). A soft rule returns a warning the founder can confirm
 /// past. Add new guards here.
 fn guard_move(lib: &Library, drop: &Drop, to: DropStage) -> CoreResult<Vec<DropWarning>> {
+    let mut warnings = Vec::new();
     if to == DropStage::Production {
         let styles: Vec<String> = style::drop_styles(lib, drop.id)?
             .into_iter()
@@ -94,7 +101,18 @@ fn guard_move(lib: &Library, drop: &Drop, to: DropStage) -> CoreResult<Vec<DropW
             return Err(CoreError::StylesNotReady { styles });
         }
     }
-    Ok(Vec::new())
+    if to == DropStage::Released {
+        if let Some(film) = documentary::thesis_documentary(lib, drop.thesis_id)? {
+            if film.status != DocumentaryStatus::Released {
+                warnings.push(DropWarning::DocumentaryNotReleased {
+                    documentary_id: film.id,
+                    title: film.title,
+                    status: film.status,
+                });
+            }
+        }
+    }
+    Ok(warnings)
 }
 
 /// Creates a Drop from a Thesis and sets the Thesis to Committed. A new Drop

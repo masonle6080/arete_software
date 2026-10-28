@@ -5,6 +5,7 @@ import { DocumentEditor, type DocumentEditorHandle, type DocumentSave } from "..
 import { OrphanedPassages } from "../passage/OrphanedPassages";
 import { PassageView } from "../passage/PassageView";
 import { documentApi, type DocumentSummary, type StoredDocument } from "./api";
+import { EssayExport } from "./EssayExport";
 import { EssayTheses } from "./EssayTheses";
 import "./essays.css";
 
@@ -101,6 +102,7 @@ export function EssayScreen({ id, onClose, backLabel = "← Essays" }: EssayScre
         </button>
         {error && <p className="error">{error}</p>}
         {essay && <EssayTheses essayId={essay.id} />}
+        {essay && <EssayExport essayId={essay.id} flush={async () => editor.current?.flush()} />}
         {essay && <OrphanedPassages documentId={essay.id} version={saves} onOpen={openPassage} />}
         {essay && (
           <DocumentEditor

@@ -9,13 +9,15 @@ const MoodboardCanvas = lazy(() => import("./MoodboardCanvas"));
 
 interface Props {
   owner: MoodboardOwner;
+  /** The owner has at most one Moodboard (a Style): hide "Add" once it has one. */
+  single?: boolean;
 }
 
 /**
  * The Moodboards of one owner: create, pick, and edit them. Reusable for any
- * owner kind (a Thesis now, a Style later).
+ * owner kind (a Thesis or a Style).
  */
-export function Moodboards({ owner }: Props) {
+export function Moodboards({ owner, single = false }: Props) {
   const [boards, setBoards] = useState<Moodboard[]>([]);
   const [openId, setOpenId] = useState<number>();
   const [title, setTitle] = useState("");
@@ -53,15 +55,17 @@ export function Moodboards({ owner }: Props) {
             {b.title}
           </button>
         ))}
-        <form onSubmit={create}>
-          <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="New Moodboard title" />
-          <button type="submit" disabled={!title.trim()}>
-            Add Moodboard
-          </button>
-        </form>
+        {!(single && boards.length > 0) && (
+          <form onSubmit={create}>
+            <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="New Moodboard title" />
+            <button type="submit" disabled={!title.trim()}>
+              Add Moodboard
+            </button>
+          </form>
+        )}
       </div>
       {error && <p className="error">{error.message}</p>}
-      {boards.length === 0 && <p className="empty">No Moodboards yet.</p>}
+      {boards.length === 0 && <p className="empty">{single ? "No Moodboard yet." : "No Moodboards yet."}</p>}
       {openId !== undefined && (
         <Suspense fallback={<p className="empty">Loading canvas…</p>}>
           <MoodboardCanvas key={openId} moodboardId={openId} />
