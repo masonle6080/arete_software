@@ -22,6 +22,7 @@ pub mod drop;
 pub mod moodboard;
 pub mod clip;
 pub mod style;
+pub mod sample;
 pub mod documentary;
 pub mod export;
 
