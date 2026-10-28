@@ -13,6 +13,8 @@ mod note;
 mod vendor;
 mod thesis;
 mod drop;
+mod media;
+mod moodboard;
 
 use std::sync::Mutex;
 
@@ -82,6 +84,14 @@ pub fn run() {
             drop::create_drop,
             drop::move_drop,
             drop::thesis_drops,
+            // media
+            media::import_media_bytes,
+            media::read_media,
+            // moodboard
+            moodboard::create_moodboard,
+            moodboard::list_moodboards,
+            moodboard::load_moodboard_scene,
+            moodboard::save_moodboard_scene,
             // document
             document::create_document,
             document::open_document,
