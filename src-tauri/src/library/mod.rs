@@ -99,6 +99,19 @@ impl Library {
         &self.conn
     }
 
+    /// Fails with `LibraryDisconnected` when the library folder is not
+    /// reachable (for example, its drive is unplugged). Every write checks
+    /// this first, so a write to a missing library changes nothing. File
+    /// writes outside the database (for example media import) call it
+    /// directly.
+    pub(crate) fn ensure_reachable(&self) -> CoreResult<()> {
+        if self.root.join(DATABASE_FILE).is_file() {
+            Ok(())
+        } else {
+            Err(CoreError::LibraryDisconnected { path: self.root.clone() })
+        }
+    }
+
     /// The database, for writes by domain modules. Every write must go
     /// through here, so library-wide write guards (for example the
     /// "library disconnected" check) live in one place.
