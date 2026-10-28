@@ -38,3 +38,8 @@ pub fn attach_style_files(state: State<AppState>, id: StyleId, sources: Vec<Path
 pub fn style_files(state: State<AppState>, id: StyleId) -> CoreResult<Vec<StyleFile>> {
     state.with_library(|lib| style::style_files(lib, id))
 }
+
+#[tauri::command]
+pub fn style_sizes(state: State<AppState>, id: StyleId) -> CoreResult<Vec<String>> {
+    state.with_library(|lib| style::style_sizes(lib, id))
+}

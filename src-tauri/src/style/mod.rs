@@ -147,6 +147,13 @@ pub fn drop_styles(lib: &Library, drop_id: DropId) -> CoreResult<Vec<Style>> {
     Ok(styles)
 }
 
+/// The sizes a Style is offered in. A Tech Pack Style takes them from its
+/// Point of Measure table. A Style with no base has none.
+pub fn style_sizes(lib: &Library, id: StyleId) -> CoreResult<Vec<String>> {
+    get_style(lib, id)?;
+    crate::tech_pack::tech_pack_sizes(lib, id)
+}
+
 /// Reads one Style.
 pub fn get_style(lib: &Library, id: StyleId) -> CoreResult<Style> {
     lib.db()

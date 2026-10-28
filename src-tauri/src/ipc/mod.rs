@@ -14,6 +14,7 @@ mod vendor;
 mod thesis;
 mod drop;
 mod style;
+mod tech_pack;
 mod media;
 mod moodboard;
 
@@ -92,6 +93,19 @@ pub fn run() {
             style::drop_styles,
             style::attach_style_files,
             style::style_files,
+            style::style_sizes,
+            // tech pack
+            tech_pack::set_tech_pack_base,
+            tech_pack::get_tech_pack,
+            tech_pack::add_tech_pack_size,
+            tech_pack::rename_tech_pack_size,
+            tech_pack::remove_tech_pack_size,
+            tech_pack::add_point_of_measure,
+            tech_pack::update_point_of_measure,
+            tech_pack::set_point_of_measure_value,
+            tech_pack::remove_point_of_measure,
+            tech_pack::update_tech_pack_details,
+            tech_pack::attach_tech_pack_flats,
             // media
             media::import_media_bytes,
             media::read_media,

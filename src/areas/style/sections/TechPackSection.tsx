@@ -1,0 +1,314 @@
+import { useCallback, useEffect, useState, type FormEvent } from "react";
+import { open } from "@tauri-apps/plugin-dialog";
+import { toCoreError, type CoreError } from "../../../shell/coreError";
+import { vendorApi, type Vendor } from "../../vendor/api";
+import { techPackApi, type TechPack, type TechPackDetails } from "../techPack";
+import type { StyleSection, StyleSectionProps } from ".";
+import "./techPack.css";
+
+/**
+ * The Style's Tech Pack: the Point of Measure table (which also sets the
+ * Style's sizes), fabric, trims, construction notes, label placement, and
+ * flats. A Style without a base can start one here.
+ */
+function TechPackSectionView({ style }: StyleSectionProps) {
+  const [techPack, setTechPack] = useState<TechPack | null>();
+  const [error, setError] = useState<CoreError>();
+
+  useEffect(() => {
+    techPackApi.getTechPack(style.id).then(setTechPack, (raw) => setError(toCoreError(raw)));
+  }, [style.id]);
+
+  /** Runs one core change and shows the Tech Pack it returns. */
+  const run = useCallback(async (change: () => Promise<TechPack>) => {
+    setError(undefined);
+    try {
+      setTechPack(await change());
+    } catch (raw) {
+      setError(toCoreError(raw));
+    }
+  }, []);
+
+  if (techPack === undefined) return error ? <p className="error">{error.message}</p> : null;
+
+  return (
+    <div className="tech-pack">
+      {error && <p className="error">{error.message}</p>}
+      {techPack === null ? (
+        <>
+          <p className="empty">This Style is not built on a Tech Pack.</p>
+          <button onClick={() => run(() => techPackApi.setTechPackBase(style.id))}>Use a Tech Pack</button>
+        </>
+      ) : (
+        <>
+          <MeasureTable techPack={techPack} run={run} />
+          <Details techPack={techPack} run={run} />
+          <Flats techPack={techPack} run={run} />
+        </>
+      )}
+    </div>
+  );
+}
+
+interface PartProps {
+  techPack: TechPack;
+  run(change: () => Promise<TechPack>): Promise<void>;
+}
+
+/** Parses a cell. Empty text is an empty cell (`null`); other text must be a number. */
+function parseNumber(text: string): number | null | undefined {
+  const t = text.trim();
+  if (t === "") return null;
+  const n = Number(t);
+  return Number.isFinite(n) ? n : undefined;
+}
+
+/** An input that keeps its own text and reports it on blur or Enter. */
+function CellInput(props: { value: string; label: string; className?: string; onCommit(text: string): void }) {
+  return (
+    <input
+      key={props.value}
+      className={props.className}
+      aria-label={props.label}
+      defaultValue={props.value}
+      onBlur={(e) => {
+        if (e.currentTarget.value !== props.value) props.onCommit(e.currentTarget.value);
+      }}
+      onKeyDown={(e) => {
+        if (e.key === "Enter") e.currentTarget.blur();
+      }}
+    />
+  );
+}
+
+function MeasureTable({ techPack, run }: PartProps) {
+  const { sizes, pointsOfMeasure, details, styleId } = techPack;
+  const [newSize, setNewSize] = useState("");
+  const [newName, setNewName] = useState("");
+  const [newTolerance, setNewTolerance] = useState("");
+
+  async function addSize(e: FormEvent) {
+    e.preventDefault();
+    await run(() => techPackApi.addSize(styleId, newSize));
+    setNewSize("");
+  }
+
+  async function addPointOfMeasure(e: FormEvent) {
+    e.preventDefault();
+    const tolerance = parseNumber(newTolerance) ?? 0;
+    await run(() => techPackApi.addPointOfMeasure(styleId, newName, tolerance));
+    setNewName("");
+    setNewTolerance("");
+  }
+
+  return (
+    <div className="tech-pack-part">
+      <h3>Points of Measure ({details.unit})</h3>
+      <p className="hint">The size columns are this Style's sizes.</p>
+      <div className="pom-scroll">
+        <table className="pom-table">
+          <thead>
+            <tr>
+              <th>Point of Measure</th>
+              <th>Tolerance ±</th>
+              {sizes.map((size) => (
+                <th key={size.id}>
+                  <CellInput
+                    className="size-name"
+                    label="Size name"
+                    value={size.name}
+                    onCommit={(name) => run(() => techPackApi.renameSize(size.id, name))}
+                  />
+                  <button
+                    className="remove"
+                    title={`Remove size ${size.name} and its values`}
+                    onClick={() => run(() => techPackApi.removeSize(size.id))}
+                  >
+                    ×
+                  </button>
+                </th>
+              ))}
+              <th />
+            </tr>
+          </thead>
+          <tbody>
+            {pointsOfMeasure.map((pom) => (
+              <tr key={pom.id}>
+                <td>
+                  <CellInput
+                    label="Point of Measure name"
+                    value={pom.name}
+                    onCommit={(name) => run(() => techPackApi.updatePointOfMeasure(pom.id, name, pom.tolerance))}
+                  />
+                </td>
+                <td>
+                  <CellInput
+                    className="number"
+                    label={`Tolerance of ${pom.name}`}
+                    value={String(pom.tolerance)}
+                    onCommit={(text) => {
+                      const tolerance = parseNumber(text);
+                      if (tolerance === undefined || tolerance === null) return;
+                      run(() => techPackApi.updatePointOfMeasure(pom.id, pom.name, tolerance));
+                    }}
+                  />
+                </td>
+                {sizes.map((size, i) => (
+                  <td key={size.id}>
+                    <CellInput
+                      className="number"
+                      label={`${pom.name} in ${size.name}`}
+                      value={pom.values[i] === null ? "" : String(pom.values[i])}
+                      onCommit={(text) => {
+                        const value = parseNumber(text);
+                        if (value === undefined) return;
+                        run(() => techPackApi.setPointOfMeasureValue(pom.id, size.id, value));
+                      }}
+                    />
+                  </td>
+                ))}
+                <td>
+                  <button
+                    className="remove"
+                    title={`Remove ${pom.name}`}
+                    onClick={() => run(() => techPackApi.removePointOfMeasure(pom.id))}
+                  >
+                    ×
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <div className="tech-pack-add">
+        <form onSubmit={addPointOfMeasure}>
+          <input placeholder="Point of Measure, e.g. Chest width" value={newName} onChange={(e) => setNewName(e.target.value)} />
+          <input
+            className="number"
+            placeholder="Tolerance"
+            value={newTolerance}
+            onChange={(e) => setNewTolerance(e.target.value)}
+          />
+          <button type="submit" disabled={!newName.trim()}>
+            Add Point of Measure
+          </button>
+        </form>
+        <form onSubmit={addSize}>
+          <input placeholder="Size, e.g. M" value={newSize} onChange={(e) => setNewSize(e.target.value)} />
+          <button type="submit" disabled={!newSize.trim()}>
+            Add size
+          </button>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+function Details({ techPack, run }: PartProps) {
+  const [draft, setDraft] = useState<TechPackDetails>(techPack.details);
+  const [vendors, setVendors] = useState<Vendor[]>([]);
+  useEffect(() => setDraft(techPack.details), [techPack.details]);
+  useEffect(() => {
+    vendorApi.listVendors().then(setVendors, () => setVendors([]));
+  }, []);
+
+  const changed = JSON.stringify(draft) !== JSON.stringify(techPack.details);
+  const setFabric = (patch: Partial<TechPackDetails["fabric"]>) =>
+    setDraft((d) => ({ ...d, fabric: { ...d.fabric, ...patch } }));
+
+  function save(e: FormEvent) {
+    e.preventDefault();
+    run(() => techPackApi.updateDetails(techPack.styleId, draft));
+  }
+
+  return (
+    <form className="tech-pack-part tech-pack-details" onSubmit={save}>
+      <h3>Fabric and construction</h3>
+      <label>
+        Unit of measure
+        <input value={draft.unit} onChange={(e) => setDraft({ ...draft, unit: e.target.value })} />
+      </label>
+      <label>
+        Fabric composition
+        <input value={draft.fabric.composition} onChange={(e) => setFabric({ composition: e.target.value })} />
+      </label>
+      <label>
+        Fabric weight
+        <input value={draft.fabric.weight} onChange={(e) => setFabric({ weight: e.target.value })} />
+      </label>
+      <label>
+        Fabric color
+        <input value={draft.fabric.color} onChange={(e) => setFabric({ color: e.target.value })} />
+      </label>
+      <label>
+        Fabric Vendor
+        <select
+          value={draft.fabric.vendorId ?? ""}
+          onChange={(e) => setFabric({ vendorId: e.target.value === "" ? null : Number(e.target.value) })}
+        >
+          <option value="">None</option>
+          {vendors.map((v) => (
+            <option key={v.id} value={v.id}>
+              {v.name}
+            </option>
+          ))}
+        </select>
+      </label>
+      <label>
+        Trims
+        <textarea rows={2} value={draft.trims} onChange={(e) => setDraft({ ...draft, trims: e.target.value })} />
+      </label>
+      <label>
+        Construction notes
+        <textarea
+          rows={4}
+          value={draft.constructionNotes}
+          onChange={(e) => setDraft({ ...draft, constructionNotes: e.target.value })}
+        />
+      </label>
+      <label>
+        Label placement
+        <textarea
+          rows={2}
+          value={draft.labelPlacement}
+          onChange={(e) => setDraft({ ...draft, labelPlacement: e.target.value })}
+        />
+      </label>
+      <div>
+        <button type="submit" disabled={!changed}>
+          Save
+        </button>
+      </div>
+    </form>
+  );
+}
+
+function Flats({ techPack, run }: PartProps) {
+  async function attach() {
+    const picked = await open({ multiple: true, title: "Attach flats" });
+    if (!picked) return;
+    const paths = Array.isArray(picked) ? picked : [picked];
+    await run(() => techPackApi.attachFlats(techPack.styleId, paths));
+  }
+
+  return (
+    <div className="tech-pack-part">
+      <h3>Flats</h3>
+      {techPack.flats.length === 0 ? (
+        <p className="empty">No flats yet.</p>
+      ) : (
+        <ul className="tech-pack-flats">
+          {techPack.flats.map((f) => (
+            <li key={f.id} title={f.path}>
+              {f.fileName}
+            </li>
+          ))}
+        </ul>
+      )}
+      <button onClick={attach}>Attach flats</button>
+    </div>
+  );
+}
+
+export const techPackSection: StyleSection = { id: "tech-pack", title: "Tech Pack", Component: TechPackSectionView };
