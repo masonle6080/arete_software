@@ -15,6 +15,44 @@ npm test                          # TypeScript unit tests (Vitest)
 npm run build                     # type-check and build the webview
 ```
 
+## ffmpeg (Clips)
+
+The Clip pool uses `ffprobe` to read duration and date shot and `ffmpeg` to
+make thumbnails. Both run locally; nothing uses the network.
+
+In development, the app finds them in this order: `ARETE_FFMPEG` and
+`ARETE_FFPROBE`, next to the app executable, `/opt/homebrew/bin`,
+`/usr/local/bin`, then `PATH`. Install them with `brew install ffmpeg`. The
+Clip tests that need ffmpeg skip when it is not found.
+
+A release build bundles both as Tauri sidecars. The repo does not hold the
+binaries (`src-tauri/binaries/` is ignored). To make a release build:
+
+1. Get static macOS builds of `ffmpeg` and `ffprobe` (no Homebrew dylibs).
+   Do not copy Homebrew's ffmpeg: it links to Homebrew libraries and breaks on
+   other Macs. Check the license terms (GPL or LGPL) of the build you ship.
+2. Copy them into `src-tauri/binaries/` with the target triple as a suffix
+   (`rustc --print host-tuple` prints it):
+
+   ```sh
+   mkdir -p src-tauri/binaries
+   cp /path/to/ffmpeg  src-tauri/binaries/ffmpeg-aarch64-apple-darwin
+   cp /path/to/ffprobe src-tauri/binaries/ffprobe-aarch64-apple-darwin
+   chmod +x src-tauri/binaries/*
+   ```
+
+   For an Intel or universal build, also add the `-x86_64-apple-darwin` files.
+3. Check that each one is self-contained: `otool -L <file>` must list only
+   system libraries (`/usr/lib/...`, `/System/...`).
+4. Build with the release config, which adds `bundle.externalBin`:
+
+   ```sh
+   npm run tauri build -- --config src-tauri/tauri.release.conf.json
+   ```
+
+Tauri puts the sidecars in `Arete.app/Contents/MacOS/`, next to the app
+executable, where the app finds them.
+
 ## Layout
 
 - `src-tauri/src/<area>/`: Library core, one module per domain area

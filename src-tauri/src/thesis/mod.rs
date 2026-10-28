@@ -6,7 +6,7 @@
 
 mod status;
 
-use rusqlite::{params, OptionalExtension, Row};
+use rusqlite::{params, Connection, OptionalExtension, Row};
 
 use crate::error::{CoreError, CoreResult};
 use crate::library::Library;
@@ -67,6 +67,14 @@ pub fn move_thesis(lib: &Library, id: ThesisId, to: ThesisStatus) -> CoreResult<
     }
     lib.writer()?.execute("UPDATE thesis SET status = ?1 WHERE id = ?2", params![to.as_db(), id])?;
     get_thesis(lib, id)
+}
+
+/// Sets a Thesis status as a cascade from its Drop (Committed, Released, or
+/// back to Developing). Only the Drop area calls this, inside its own
+/// transaction; the founder's moves go through [`move_thesis`].
+pub(crate) fn set_status_from_drop(conn: &Connection, id: ThesisId, to: ThesisStatus) -> CoreResult<()> {
+    conn.execute("UPDATE thesis SET status = ?1 WHERE id = ?2", params![to.as_db(), id])?;
+    Ok(())
 }
 
 /// One status group of the Thesis list.

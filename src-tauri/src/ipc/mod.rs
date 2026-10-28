@@ -6,10 +6,15 @@
 //! commands in `generate_handler!` under a `// <area>` comment, one command
 //! per line.
 
+mod clip;
 mod document;
 mod library;
+mod note;
 mod vendor;
 mod thesis;
+mod drop;
+mod media;
+mod moodboard;
 
 use std::sync::Mutex;
 
@@ -67,16 +72,40 @@ pub fn run() {
             vendor::list_vendors,
             vendor::create_vendor,
             vendor::update_vendor,
+            // note
+            note::list_notes,
+            note::add_note,
             // thesis
             thesis::create_thesis,
             thesis::move_thesis,
             thesis::list_theses,
             thesis::get_thesis,
+            // drop
+            drop::create_drop,
+            drop::move_drop,
+            drop::thesis_drops,
+            // media
+            media::import_media_bytes,
+            media::read_media,
+            // moodboard
+            moodboard::create_moodboard,
+            moodboard::list_moodboards,
+            moodboard::load_moodboard_scene,
+            moodboard::save_moodboard_scene,
             // document
             document::create_document,
             document::open_document,
             document::save_document,
             document::list_documents,
+            document::link_essay_to_thesis,
+            document::unlink_essay_from_thesis,
+            document::theses_of_essay,
+            document::essays_of_thesis,
+            // clip
+            clip::list_clips,
+            clip::import_clip,
+            clip::set_clip_date_shot,
+            clip::reveal_clip,
         ])
         .run(tauri::generate_context!())
         .expect("error while running Arete");

@@ -16,7 +16,11 @@ pub mod library;
 pub mod thesis;
 pub mod document;
 pub mod media;
+pub mod note;
 pub mod vendor;
+pub mod drop;
+pub mod moodboard;
+pub mod clip;
 
 pub fn run() {
     ipc::run()

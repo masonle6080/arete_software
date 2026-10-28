@@ -1,7 +1,10 @@
 node_modules/
 dist/
+# Copied from node_modules by scripts/copy-excalidraw-fonts.mjs
+public/fonts/
 target/
 src-tauri/gen/schemas/
 .DS_Store
 *.log
 *.tsbuildinfo
+src-tauri/binaries/

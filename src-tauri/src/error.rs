@@ -30,6 +30,10 @@ pub enum CoreError {
     #[error("a {what} cannot move from {from} to {to}")]
     StatusMoveRefused { what: &'static str, from: &'static str, to: &'static str },
 
+    /// A Thesis has at most one Drop that is not Cancelled.
+    #[error("this Thesis already has a Drop; cancel it before you make a new one")]
+    ActiveDropExists { thesis_id: i64 },
+
     #[error("the library at {path} is disconnected; reconnect its drive")]
     LibraryDisconnected { path: PathBuf },
 
@@ -40,6 +44,12 @@ pub enum CoreError {
     /// empty title. `reason` says what to fix.
     #[error("{reason}")]
     InvalidInput { reason: String },
+
+    #[error("{path} is not a video Arete can read")]
+    NotAVideo { path: PathBuf },
+
+    #[error("ffmpeg was not found; the app bundle should include it")]
+    VideoToolMissing,
 
     #[error("file system error: {0}")]
     Io(#[from] std::io::Error),
@@ -58,9 +68,12 @@ impl CoreError {
             CoreError::NewerSchema { .. } => "NewerSchema",
             CoreError::NoLibraryOpen => "NoLibraryOpen",
             CoreError::StatusMoveRefused { .. } => "StatusMoveRefused",
+            CoreError::ActiveDropExists { .. } => "ActiveDropExists",
             CoreError::LibraryDisconnected { .. } => "LibraryDisconnected",
             CoreError::NotFound { .. } => "NotFound",
             CoreError::InvalidInput { .. } => "InvalidInput",
+            CoreError::NotAVideo { .. } => "NotAVideo",
+            CoreError::VideoToolMissing => "VideoToolMissing",
             CoreError::Io(_) => "Io",
             CoreError::Database(_) => "Database",
         }
