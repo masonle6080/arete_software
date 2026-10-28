@@ -9,6 +9,8 @@ export type CoreErrorKind =
   | "NewerSchema"
   | "NoLibraryOpen"
   | "LibraryDisconnected"
+  | "NotFound"
+  | "InvalidInput"
   | "Io"
   | "Database"
   | "Unknown";

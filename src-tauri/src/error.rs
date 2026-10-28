@@ -28,6 +28,12 @@ pub enum CoreError {
     #[error("the library at {path} is disconnected; reconnect its drive")]
     LibraryDisconnected { path: PathBuf },
 
+    #[error("{record} {id} does not exist")]
+    NotFound { record: &'static str, id: i64 },
+
+    #[error("{reason}")]
+    InvalidInput { reason: String },
+
     #[error("file system error: {0}")]
     Io(#[from] std::io::Error),
 
@@ -45,6 +51,8 @@ impl CoreError {
             CoreError::NewerSchema { .. } => "NewerSchema",
             CoreError::NoLibraryOpen => "NoLibraryOpen",
             CoreError::LibraryDisconnected { .. } => "LibraryDisconnected",
+            CoreError::NotFound { .. } => "NotFound",
+            CoreError::InvalidInput { .. } => "InvalidInput",
             CoreError::Io(_) => "Io",
             CoreError::Database(_) => "Database",
         }
