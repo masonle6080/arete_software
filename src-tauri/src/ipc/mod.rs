@@ -6,6 +6,7 @@
 //! commands in `generate_handler!` under a `// <area>` comment, one command
 //! per line.
 
+mod clip;
 mod document;
 mod library;
 mod vendor;
@@ -77,6 +78,11 @@ pub fn run() {
             document::open_document,
             document::save_document,
             document::list_documents,
+            // clip
+            clip::list_clips,
+            clip::import_clip,
+            clip::set_clip_date_shot,
+            clip::reveal_clip,
         ])
         .run(tauri::generate_context!())
         .expect("error while running Arete");

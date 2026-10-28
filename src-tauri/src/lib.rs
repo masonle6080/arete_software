@@ -17,6 +17,7 @@ pub mod thesis;
 pub mod document;
 pub mod media;
 pub mod vendor;
+pub mod clip;
 
 pub fn run() {
     ipc::run()

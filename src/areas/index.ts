@@ -3,6 +3,7 @@ import { essaysArea } from "./essays";
 import { libraryArea } from "./library";
 import { vendorArea } from "./vendor";
 import { thesisArea } from "./thesis";
+import { clipsArea } from "./clips";
 
 /**
  * Navigation: one entry per area, in sidebar order. To add an area, create
@@ -14,4 +15,5 @@ export const areas: Area[] = [
   essaysArea,
   vendorArea,
   thesisArea,
+  clipsArea,
 ];
