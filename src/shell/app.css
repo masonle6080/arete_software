@@ -38,6 +38,8 @@ button:disabled { opacity: 0.5; cursor: default; }
 .welcome { max-width: 520px; margin: 18vh auto 0; padding: 0 16px; }
 .welcome .actions { display: flex; gap: 8px; }
 .error { color: var(--error); }
+.welcome .path { font-family: ui-monospace, Menlo, monospace; overflow-wrap: anywhere; }
+.welcome .waiting { color: var(--muted); }
 
 .shell { display: flex; min-height: 100vh; }
 .sidebar {

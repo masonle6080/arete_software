@@ -11,6 +11,7 @@ export type CoreErrorKind =
   | "NotFound"
   | "InvalidInput"
   | "StatusMoveRefused"
+  | "LibraryDisconnected"
   | "Io"
   | "Database"
   | "Unknown";

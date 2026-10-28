@@ -37,6 +37,8 @@ pub enum CoreError {
     /// (for example "Thesis"); `from` and `to` are status labels.
     #[error("a {what} cannot move from {from} to {to}")]
     StatusMoveRefused { what: &'static str, from: &'static str, to: &'static str },
+    #[error("the library at {path} is disconnected; reconnect its drive")]
+    LibraryDisconnected { path: PathBuf },
 
     #[error("file system error: {0}")]
     Io(#[from] std::io::Error),
@@ -57,6 +59,7 @@ impl CoreError {
             CoreError::NotFound { .. } => "NotFound",
             CoreError::InvalidInput { .. } => "InvalidInput",
             CoreError::StatusMoveRefused { .. } => "StatusMoveRefused",
+            CoreError::LibraryDisconnected { .. } => "LibraryDisconnected",
             CoreError::Io(_) => "Io",
             CoreError::Database(_) => "Database",
         }

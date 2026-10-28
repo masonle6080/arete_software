@@ -13,6 +13,7 @@ export interface LibraryApi {
 
 export type SessionState =
   | { status: "open"; library: LibraryInfo }
+  | { status: "disconnected"; library: LibraryInfo }
   | { status: "welcome"; error?: CoreError };
 
 /** On launch: reopen the last library, else show the welcome screen. */
