@@ -18,6 +18,7 @@ pub mod document;
 pub mod media;
 pub mod note;
 pub mod vendor;
+pub mod drop;
 pub mod clip;
 
 pub fn run() {

@@ -12,6 +12,7 @@ mod library;
 mod note;
 mod vendor;
 mod thesis;
+mod drop;
 
 use std::sync::Mutex;
 
@@ -77,6 +78,10 @@ pub fn run() {
             thesis::move_thesis,
             thesis::list_theses,
             thesis::get_thesis,
+            // drop
+            drop::create_drop,
+            drop::move_drop,
+            drop::thesis_drops,
             // document
             document::create_document,
             document::open_document,
