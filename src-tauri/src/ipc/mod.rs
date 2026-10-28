@@ -6,6 +6,7 @@
 //! commands in `generate_handler!` under a `// <area>` comment, one command
 //! per line.
 
+mod clip;
 mod document;
 mod library;
 mod vendor;
@@ -81,6 +82,11 @@ pub fn run() {
             document::unlink_essay_from_thesis,
             document::theses_of_essay,
             document::essays_of_thesis,
+            // clip
+            clip::list_clips,
+            clip::import_clip,
+            clip::set_clip_date_shot,
+            clip::reveal_clip,
         ])
         .run(tauri::generate_context!())
         .expect("error while running Arete");

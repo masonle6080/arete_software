@@ -12,6 +12,8 @@ export type CoreErrorKind =
   | "LibraryDisconnected"
   | "NotFound"
   | "InvalidInput"
+  | "NotAVideo"
+  | "VideoToolMissing"
   | "Io"
   | "Database"
   | "Unknown";
