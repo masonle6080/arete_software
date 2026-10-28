@@ -14,6 +14,8 @@ mod vendor;
 mod thesis;
 mod drop;
 mod style;
+mod media;
+mod moodboard;
 
 use std::sync::Mutex;
 
@@ -90,11 +92,23 @@ pub fn run() {
             style::drop_styles,
             style::attach_style_files,
             style::style_files,
+            // media
+            media::import_media_bytes,
+            media::read_media,
+            // moodboard
+            moodboard::create_moodboard,
+            moodboard::list_moodboards,
+            moodboard::load_moodboard_scene,
+            moodboard::save_moodboard_scene,
             // document
             document::create_document,
             document::open_document,
             document::save_document,
             document::list_documents,
+            document::link_essay_to_thesis,
+            document::unlink_essay_from_thesis,
+            document::theses_of_essay,
+            document::essays_of_thesis,
             // clip
             clip::list_clips,
             clip::import_clip,
