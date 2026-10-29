@@ -28,6 +28,7 @@ pub mod decoration;
 pub mod blank;
 pub mod documentary;
 pub mod export;
+pub mod tech_pack;
 
 pub fn run() {
     ipc::run()

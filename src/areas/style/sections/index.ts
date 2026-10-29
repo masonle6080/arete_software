@@ -3,6 +3,7 @@ import type { Style } from "../types";
 import { filesSection } from "./FilesSection";
 import { samplesSection } from "./SamplesSection";
 import { baseSection } from "./BaseSection";
+import { techPackSection } from "./TechPackSection";
 import { moodboardSection } from "./MoodboardSection";
 import { designDecisionsSection } from "./DesignDecisionsSection";
 import { decorationsSection } from "./DecorationsSection";
@@ -31,6 +32,7 @@ export interface StyleSection {
 export const styleSections: StyleSection[] = [
   filesSection,
   baseSection,
+  techPackSection,
   decorationsSection,
   designDecisionsSection,
   moodboardSection,

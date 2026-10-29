@@ -110,3 +110,5 @@
   border-radius: 6px;
   padding: 6px 8px;
 }
+
+.style-trace-export { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 0 0 12px; font-size: 13px; }
