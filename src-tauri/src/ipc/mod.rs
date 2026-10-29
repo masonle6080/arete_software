@@ -24,6 +24,7 @@ mod blank;
 mod documentary;
 mod export;
 mod cost_sheet;
+mod production_order;
 
 use std::sync::Mutex;
 
@@ -204,6 +205,13 @@ pub fn run() {
             cost_sheet::set_home_currency,
             cost_sheet::set_exchange_rate,
             cost_sheet::remove_exchange_rate,
+            // production_order
+            production_order::create_production_order,
+            production_order::get_production_order,
+            production_order::drop_production_orders,
+            production_order::set_order_quantity,
+            production_order::set_delivery_date,
+            production_order::move_production_order,
         ])
         .run(tauri::generate_context!())
         .expect("error while running Arete");
