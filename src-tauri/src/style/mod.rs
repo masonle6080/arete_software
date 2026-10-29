@@ -1,7 +1,9 @@
 //! Style: a single garment design in a single color, on one Drop.
 //!
 //! Domain command functions for this area: [`create_style`], [`move_style`],
-//! [`get_style`], [`drop_styles`], [`attach_style_files`], [`style_files`].
+//! [`get_style`], [`drop_styles`], [`attach_style_files`], [`style_files`],
+//! and, for the base and sizes (`base.rs`), [`style_base`], [`set_style_base`],
+//! [`style_sizes`], [`set_style_sizes`].
 //! The status rules live on [`StyleStatus`]. The Drop's Production guard
 //! reads Style statuses (see `guard_move` in `drop/mod.rs`).
 //!
@@ -9,6 +11,7 @@
 //! Moodboard, Samples, Cost Sheet). Give each its own module and table with a
 //! `style_id`, not new columns here.
 
+mod base;
 mod status;
 
 use std::path::{Path, PathBuf};
@@ -20,6 +23,8 @@ use crate::error::{CoreError, CoreResult};
 use crate::library::Library;
 use crate::media::{self, MediaRef};
 
+pub use base::{set_style_base, set_style_sizes, style_base, style_sizes, StyleBase};
+pub(crate) use base::{blank_sizes_in_use, read_base};
 pub use status::StyleStatus;
 
 pub type StyleId = i64;
@@ -145,13 +150,6 @@ pub fn drop_styles(lib: &Library, drop_id: DropId) -> CoreResult<Vec<Style>> {
     let mut stmt = lib.db().prepare(&format!("SELECT {COLUMNS} FROM style WHERE drop_id = ?1 ORDER BY id"))?;
     let styles = stmt.query_map([drop_id], from_row)?.collect::<Result<_, _>>()?;
     Ok(styles)
-}
-
-/// The sizes a Style is offered in. A Tech Pack Style takes them from its
-/// Point of Measure table. A Style with no base has none.
-pub fn style_sizes(lib: &Library, id: StyleId) -> CoreResult<Vec<String>> {
-    get_style(lib, id)?;
-    crate::tech_pack::tech_pack_sizes(lib, id)
 }
 
 /// Reads one Style.

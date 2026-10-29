@@ -1,0 +1,32 @@
+.blanks header { display: flex; align-items: center; justify-content: space-between; }
+.blanks .muted { color: var(--muted); }
+
+.blank-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-width: 520px;
+  padding: 16px;
+  margin-bottom: 16px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+.blank-form label { display: flex; flex-direction: column; gap: 4px; }
+.blank-form input,
+.blank-form select,
+.blank-form textarea {
+  font: inherit;
+  color: var(--fg);
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 6px 8px;
+}
+.blank-form .cost-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.blank-form .actions { display: flex; gap: 8px; }
+
+.blank-list { width: 100%; border-collapse: collapse; }
+.blank-list th { text-align: left; font-weight: 500; color: var(--muted); }
+.blank-list th,
+.blank-list td { padding: 8px 12px 8px 0; border-bottom: 1px solid var(--line); }
+.blank-list .name { font-weight: 500; }

@@ -170,12 +170,13 @@ fn read_attachments(lib: &Library, note_id: NoteId) -> CoreResult<Vec<Attachment
         .collect())
 }
 
-/// True when the owner record exists. Samples and Production Orders do not
-/// exist until their areas are built, so for now no such owner exists.
+/// True when the owner record exists. Production Orders do not exist until
+/// their area is built, so for now no such owner exists.
 fn owner_exists(conn: &Connection, owner: NoteOwner) -> CoreResult<bool> {
     match owner {
         NoteOwner::Vendor(id) => crate::vendor::vendor_exists(conn, id),
-        NoteOwner::Sample(_) | NoteOwner::ProductionOrder(_) => Ok(false),
+        NoteOwner::Sample(id) => crate::sample::sample_exists(conn, id),
+        NoteOwner::ProductionOrder(_) => Ok(false),
     }
 }
 

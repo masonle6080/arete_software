@@ -4,7 +4,7 @@
 use tauri::State;
 
 use super::AppState;
-use crate::document::{self, Document, DocumentEdit, DocumentKind, DocumentSummary};
+use crate::document::{self, Document, DocumentEdit, DocumentKind, DocumentSummary, Passage, PassageText};
 use crate::error::CoreResult;
 use crate::thesis::{Thesis, ThesisId};
 
@@ -18,9 +18,29 @@ pub fn open_document(state: State<AppState>, id: i64) -> CoreResult<Document> {
     state.with_library(|lib| document::open_document(lib, id))
 }
 
+/// `passages` is the save report. The editor always sends it; without it the
+/// core saves the text and leaves the Passage records as they are.
 #[tauri::command]
-pub fn save_document(state: State<AppState>, id: i64, edit: DocumentEdit) -> CoreResult<DocumentSummary> {
-    state.with_library(|lib| document::save_document(lib, id, &edit))
+pub fn save_document(
+    state: State<AppState>,
+    id: i64,
+    edit: DocumentEdit,
+    passages: Option<Vec<PassageText>>,
+) -> CoreResult<DocumentSummary> {
+    state.with_library(|lib| match &passages {
+        Some(report) => document::save_document_with_passages(lib, id, &edit, report),
+        None => document::save_document(lib, id, &edit),
+    })
+}
+
+#[tauri::command]
+pub fn get_passage(state: State<AppState>, id: String) -> CoreResult<Passage> {
+    state.with_library(|lib| document::get_passage(lib, &id))
+}
+
+#[tauri::command]
+pub fn passages_of_document(state: State<AppState>, document_id: i64) -> CoreResult<Vec<Passage>> {
+    state.with_library(|lib| document::passages_of_document(lib, document_id))
 }
 
 #[tauri::command]

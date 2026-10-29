@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState, type FormEvent } from "react";
 import { open } from "@tauri-apps/plugin-dialog";
 import { toCoreError, type CoreError } from "../../../shell/coreError";
 import { vendorApi, type Vendor } from "../../vendor/api";
+import { styleApi } from "../api";
 import { techPackApi, type TechPack, type TechPackDetails } from "../techPack";
 import type { StyleSection, StyleSectionProps } from ".";
 import "./techPack.css";
@@ -11,23 +12,43 @@ import "./techPack.css";
  * Style's sizes), fabric, trims, construction notes, label placement, and
  * flats. A Style without a base can start one here.
  */
-function TechPackSectionView({ style }: StyleSectionProps) {
+function TechPackSectionView({ style, onStyleChanged }: StyleSectionProps) {
   const [techPack, setTechPack] = useState<TechPack | null>();
   const [error, setError] = useState<CoreError>();
 
+  // `style` (not only its id): the Base section reports a base change
+  // through `onStyleChanged`, which hands every section a fresh Style.
   useEffect(() => {
     techPackApi.getTechPack(style.id).then(setTechPack, (raw) => setError(toCoreError(raw)));
-  }, [style.id]);
+  }, [style]);
 
-  /** Runs one core change and shows the Tech Pack it returns. */
-  const run = useCallback(async (change: () => Promise<TechPack>) => {
+  /**
+   * Runs one core change and shows the Tech Pack it returns. Pass
+   * `sizesChanged` when the change adds, renames, or removes a size, so the
+   * Base section shows the Style's new sizes.
+   */
+  const run = useCallback(
+    async (change: () => Promise<TechPack>, sizesChanged = false) => {
+      setError(undefined);
+      try {
+        setTechPack(await change());
+        if (sizesChanged) onStyleChanged();
+      } catch (raw) {
+        setError(toCoreError(raw));
+      }
+    },
+    [onStyleChanged],
+  );
+
+  async function useTechPack() {
     setError(undefined);
     try {
-      setTechPack(await change());
+      await styleApi.setStyleBase(style.id, { kind: "techPack" });
+      onStyleChanged();
     } catch (raw) {
       setError(toCoreError(raw));
     }
-  }, []);
+  }
 
   if (techPack === undefined) return error ? <p className="error">{error.message}</p> : null;
 
@@ -37,7 +58,7 @@ function TechPackSectionView({ style }: StyleSectionProps) {
       {techPack === null ? (
         <>
           <p className="empty">This Style is not built on a Tech Pack.</p>
-          <button onClick={() => run(() => techPackApi.setTechPackBase(style.id))}>Use a Tech Pack</button>
+          <button onClick={useTechPack}>Use a Tech Pack as the base</button>
         </>
       ) : (
         <>
@@ -52,7 +73,7 @@ function TechPackSectionView({ style }: StyleSectionProps) {
 
 interface PartProps {
   techPack: TechPack;
-  run(change: () => Promise<TechPack>): Promise<void>;
+  run(change: () => Promise<TechPack>, sizesChanged?: boolean): Promise<void>;
 }
 
 /** Parses a cell. Empty text is an empty cell (`null`); other text must be a number. */
@@ -89,7 +110,7 @@ function MeasureTable({ techPack, run }: PartProps) {
 
   async function addSize(e: FormEvent) {
     e.preventDefault();
-    await run(() => techPackApi.addSize(styleId, newSize));
+    await run(() => techPackApi.addSize(styleId, newSize), true);
     setNewSize("");
   }
 
@@ -117,12 +138,12 @@ function MeasureTable({ techPack, run }: PartProps) {
                     className="size-name"
                     label="Size name"
                     value={size.name}
-                    onCommit={(name) => run(() => techPackApi.renameSize(size.id, name))}
+                    onCommit={(name) => run(() => techPackApi.renameSize(size.id, name), true)}
                   />
                   <button
                     className="remove"
                     title={`Remove size ${size.name} and its values`}
-                    onClick={() => run(() => techPackApi.removeSize(size.id))}
+                    onClick={() => run(() => techPackApi.removeSize(size.id), true)}
                   >
                     ×
                   </button>
@@ -208,12 +229,15 @@ function MeasureTable({ techPack, run }: PartProps) {
 function Details({ techPack, run }: PartProps) {
   const [draft, setDraft] = useState<TechPackDetails>(techPack.details);
   const [vendors, setVendors] = useState<Vendor[]>([]);
-  useEffect(() => setDraft(techPack.details), [techPack.details]);
+  // Reset the draft only when the saved details change, not on every reload
+  // (a table edit reloads the Tech Pack and must keep unsaved text here).
+  const saved = JSON.stringify(techPack.details);
+  useEffect(() => setDraft(JSON.parse(saved) as TechPackDetails), [saved]);
   useEffect(() => {
     vendorApi.listVendors().then(setVendors, () => setVendors([]));
   }, []);
 
-  const changed = JSON.stringify(draft) !== JSON.stringify(techPack.details);
+  const changed = JSON.stringify(draft) !== saved;
   const setFabric = (patch: Partial<TechPackDetails["fabric"]>) =>
     setDraft((d) => ({ ...d, fabric: { ...d.fabric, ...patch } }));
 

@@ -22,6 +22,10 @@ pub mod drop;
 pub mod moodboard;
 pub mod clip;
 pub mod style;
+pub mod sample;
+pub mod blank;
+pub mod documentary;
+pub mod export;
 pub mod tech_pack;
 
 pub fn run() {

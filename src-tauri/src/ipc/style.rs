@@ -7,7 +7,7 @@ use tauri::State;
 use super::AppState;
 use crate::drop::DropId;
 use crate::error::CoreResult;
-use crate::style::{self, Style, StyleFile, StyleId, StyleStatus};
+use crate::style::{self, Style, StyleBase, StyleFile, StyleId, StyleStatus};
 
 #[tauri::command]
 pub fn create_style(state: State<AppState>, drop_id: DropId, name: String, color: String) -> CoreResult<Style> {
@@ -40,6 +40,21 @@ pub fn style_files(state: State<AppState>, id: StyleId) -> CoreResult<Vec<StyleF
 }
 
 #[tauri::command]
+pub fn style_base(state: State<AppState>, id: StyleId) -> CoreResult<Option<StyleBase>> {
+    state.with_library(|lib| style::style_base(lib, id))
+}
+
+#[tauri::command]
+pub fn set_style_base(state: State<AppState>, id: StyleId, base: StyleBase) -> CoreResult<StyleBase> {
+    state.with_library(|lib| style::set_style_base(lib, id, base))
+}
+
+#[tauri::command]
 pub fn style_sizes(state: State<AppState>, id: StyleId) -> CoreResult<Vec<String>> {
     state.with_library(|lib| style::style_sizes(lib, id))
+}
+
+#[tauri::command]
+pub fn set_style_sizes(state: State<AppState>, id: StyleId, sizes: Vec<String>) -> CoreResult<Vec<String>> {
+    state.with_library(|lib| style::set_style_sizes(lib, id, &sizes))
 }

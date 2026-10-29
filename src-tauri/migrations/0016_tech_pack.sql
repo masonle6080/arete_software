@@ -1,6 +1,8 @@
 -- Tech Pack: the full specification for a Style that is not built on a
 -- Blank (GLOSSARY: Tech Pack, Point of Measure). A Style has at most one
--- Tech Pack; a row here means the Style's base is a Tech Pack.
+-- Tech Pack, keyed by the Style. The Style's base is the Tech Pack only
+-- while `style_base.tech_pack_id` (below) points to it. A Style that moves
+-- to a Blank keeps its Tech Pack row, so moving back restores it.
 CREATE TABLE tech_pack (
     style_id           INTEGER PRIMARY KEY REFERENCES style (id) ON DELETE CASCADE,
     -- The unit of every Point of Measure value and tolerance, for example "cm".
@@ -53,3 +55,8 @@ CREATE TABLE tech_pack_flat (
     file_name TEXT NOT NULL,
     added_at  TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
 );
+
+-- Style base (spec #1): exactly one of a Blank or a Tech Pack. This adds the
+-- Tech Pack reference beside `blank_id` (0015_blank.sql). The core sets
+-- exactly one of the two on every row (see src/style/base.rs).
+ALTER TABLE style_base ADD COLUMN tech_pack_id INTEGER REFERENCES tech_pack (style_id);

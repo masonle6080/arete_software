@@ -1,5 +1,5 @@
 //! Moodboard: a freeform canvas of visual references, text, and color
-//! swatches, attached to a Thesis or (later) a single Style.
+//! swatches, attached to a Thesis or a single Style.
 //!
 //! The owner is generic ([`MoodboardOwner`]), so other owner kinds reuse
 //! this module unchanged except for one enum variant and its existence check.
@@ -15,6 +15,7 @@ use rusqlite::{params, OptionalExtension, Row};
 
 use crate::error::{CoreError, CoreResult};
 use crate::library::Library;
+use crate::style::{self, StyleId};
 use crate::thesis::{self, ThesisId};
 
 pub type MoodboardId = i64;
@@ -27,25 +28,35 @@ pub type MoodboardId = i64;
 #[serde(tag = "kind", content = "id", rename_all = "camelCase")]
 pub enum MoodboardOwner {
     Thesis(ThesisId),
+    /// A Style has at most one Moodboard.
+    Style(StyleId),
 }
 
 impl MoodboardOwner {
     fn parts(self) -> (&'static str, i64) {
         match self {
             MoodboardOwner::Thesis(id) => ("thesis", id),
+            MoodboardOwner::Style(id) => ("style", id),
         }
     }
 
     fn from_parts(kind: &str, id: i64) -> Option<Self> {
         match kind {
             "thesis" => Some(MoodboardOwner::Thesis(id)),
+            "style" => Some(MoodboardOwner::Style(id)),
             _ => None,
         }
+    }
+
+    /// Whether this owner kind has at most one Moodboard.
+    fn single_board(self) -> bool {
+        matches!(self, MoodboardOwner::Style(_))
     }
 
     fn ensure_exists(self, lib: &Library) -> CoreResult<()> {
         match self {
             MoodboardOwner::Thesis(id) => thesis::get_thesis(lib, id).map(drop),
+            MoodboardOwner::Style(id) => style::get_style(lib, id).map(drop),
         }
     }
 }
@@ -69,13 +80,17 @@ fn from_row(row: &Row) -> rusqlite::Result<Moodboard> {
 }
 
 /// Creates an empty Moodboard on `owner`. The title must not be blank. Fails
-/// with `NotFound` when the owner does not exist.
+/// with `NotFound` when the owner does not exist, and with `InvalidInput`
+/// when a Style already has its one Moodboard.
 pub fn create_moodboard(lib: &Library, owner: MoodboardOwner, title: &str) -> CoreResult<Moodboard> {
     let title = title.trim();
     if title.is_empty() {
         return Err(CoreError::InvalidInput { reason: "a Moodboard needs a title".into() });
     }
     owner.ensure_exists(lib)?;
+    if owner.single_board() && !list_moodboards(lib, owner)?.is_empty() {
+        return Err(CoreError::InvalidInput { reason: "this Style already has a Moodboard".into() });
+    }
     let (kind, owner_id) = owner.parts();
     let db = lib.writer()?;
     db.execute(

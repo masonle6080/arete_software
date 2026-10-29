@@ -1,15 +1,28 @@
 import { EditorContent, useEditor, useEditorState, type Editor } from "@tiptap/react";
 import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from "react";
 import { documentExtensions } from "./extensions";
-import { fromMarkdown, toMarkdown } from "./markdown";
-import { passageIdsAt } from "./passage";
+import { fromMarkdown } from "./markdown";
+import { passageIdsAt, type PassageText } from "./passage";
+import { saveReport } from "./saveReport";
 import "./editor.css";
 
 export interface DocumentEditorProps {
   title: string;
   markdown: string;
-  /** Called after edits pause, and once more on close if edits are unsaved. */
-  onSave(edit: { title: string; markdown: string }): Promise<void>;
+  /**
+   * Called after edits pause, and once more on close if edits are unsaved.
+   * `passages` is the save report: every Passage present and its text.
+   */
+  onSave(edit: DocumentSave): Promise<void>;
+  /** When set, the Passage bar offers to open the Passage at the cursor. */
+  onOpenPassage?(id: string): void;
+}
+
+/** What one save sends: the title and the save report. */
+export interface DocumentSave {
+  title: string;
+  markdown: string;
+  passages: PassageText[];
 }
 
 type SaveStatus = "saved" | "unsaved" | "saving" | { error: string };
@@ -26,13 +39,13 @@ export interface DocumentEditorHandle {
  * Markdown and saves Markdown. Remount it (with `key`) to open another one.
  */
 export const DocumentEditor = forwardRef<DocumentEditorHandle, DocumentEditorProps>(function DocumentEditor(
-  { title: initialTitle, markdown, onSave },
+  { title: initialTitle, markdown, onSave, onOpenPassage },
   ref,
 ) {
   const [title, setTitle] = useState(initialTitle);
   const [status, setStatus] = useState<SaveStatus>("saved");
-  const lastSaved = useRef({ title: initialTitle, markdown });
-  const pending = useRef<{ title: string; markdown: string } | null>(null);
+  const lastSaved = useRef<{ title: string; markdown: string }>({ title: initialTitle, markdown });
+  const pending = useRef<DocumentSave | null>(null);
   const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const titleRef = useRef(initialTitle);
   const inflight = useRef<Promise<void>>(Promise.resolve());
@@ -69,11 +82,11 @@ export const DocumentEditor = forwardRef<DocumentEditorHandle, DocumentEditorPro
     content: fromMarkdown(markdown).toJSON(),
     immediatelyRender: true,
     autofocus: "end",
-    onUpdate: ({ editor }) => schedule(titleRef.current, toMarkdown(editor.state.doc)),
+    onUpdate: ({ editor }) => schedule({ title: titleRef.current, ...saveReport(editor.state.doc) }),
   });
 
-  const schedule = (nextTitle: string, nextMarkdown: string) => {
-    pending.current = { title: nextTitle, markdown: nextMarkdown };
+  const schedule = (edit: DocumentSave) => {
+    pending.current = edit;
     setStatus("unsaved");
     clearTimeout(timer.current);
     timer.current = setTimeout(flush, SAVE_DELAY_MS);
@@ -91,7 +104,8 @@ export const DocumentEditor = forwardRef<DocumentEditorHandle, DocumentEditorPro
   const onTitle = (next: string) => {
     setTitle(next);
     titleRef.current = next;
-    schedule(next, editor ? toMarkdown(editor.state.doc) : lastSaved.current.markdown);
+    // The editor exists from the first render (`immediatelyRender`).
+    schedule({ title: next, ...saveReport(editor.state.doc) });
   };
 
   return (
@@ -108,7 +122,7 @@ export const DocumentEditor = forwardRef<DocumentEditorHandle, DocumentEditorPro
           }
         }}
       />
-      <PassageBar editor={editor} />
+      <PassageBar editor={editor} onOpenPassage={onOpenPassage} />
       <EditorContent editor={editor} className="document-body" />
       <div className="document-status" aria-live="polite">
         {typeof status === "object" ? (
@@ -127,7 +141,7 @@ export const DocumentEditor = forwardRef<DocumentEditorHandle, DocumentEditorPro
  * Quiet controls for Passages: mark the selected text, or remove the
  * innermost Passage at the cursor. The text stays when a mark is removed.
  */
-function PassageBar({ editor }: { editor: Editor }) {
+function PassageBar({ editor, onOpenPassage }: { editor: Editor; onOpenPassage?(id: string): void }) {
   const state = useEditorState({
     editor,
     selector: ({ editor }) => ({
@@ -153,6 +167,15 @@ function PassageBar({ editor }: { editor: Editor }) {
           onClick={() => editor.chain().focus().unsetPassage(state.under!).run()}
         >
           Remove Passage
+        </button>
+      )}
+      {state.under && onOpenPassage && (
+        <button
+          title="Show this Passage and everything linked to it"
+          onMouseDown={(e) => e.preventDefault()}
+          onClick={() => onOpenPassage(state.under!)}
+        >
+          Passage details
         </button>
       )}
     </div>

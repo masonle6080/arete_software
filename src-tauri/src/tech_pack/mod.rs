@@ -1,19 +1,31 @@
 //! Tech Pack: the full specification for a Style that is not built on a
 //! Blank (GLOSSARY: Tech Pack, Point of Measure).
 //!
-//! A Style's base is a Tech Pack once [`set_tech_pack_base`] has run for it.
+//! A Style's base is a Tech Pack after
+//! `style::set_style_base(.., StyleBase::TechPack)` (see `style/base.rs`,
+//! which enforces that a base is exactly one of a Blank or a Tech Pack).
+//! While the base is something else, [`get_tech_pack`] returns `None` and
+//! every edit here is refused; the stored Tech Pack comes back if the base
+//! returns to it.
+//!
 //! The Tech Pack holds a table of Points of Measure (rows) by sizes
 //! (columns), each cell a value, each row a tolerance. The Style takes its
-//! sizes from those columns (see [`tech_pack_sizes`]).
+//! sizes from those columns (`style::style_sizes`).
+//!
+//! Domain command functions: [`get_tech_pack`], [`add_size`],
+//! [`rename_size`], [`remove_size`], [`add_point_of_measure`],
+//! [`update_point_of_measure`], [`set_point_of_measure_value`],
+//! [`remove_point_of_measure`], [`update_tech_pack_details`],
+//! [`attach_flats`].
 
 use std::path::{Path, PathBuf};
 
-use rusqlite::{params, OptionalExtension};
+use rusqlite::{params, Connection, OptionalExtension};
 
 use crate::error::{CoreError, CoreResult};
 use crate::library::Library;
 use crate::media::{self, MediaRef};
-use crate::style::{self, StyleId};
+use crate::style::{self, StyleBase, StyleId};
 use crate::vendor::{self, VendorId};
 
 /// A Tech Pack as the founder sees it. Sizes and Points of Measure are in
@@ -95,17 +107,25 @@ pub struct PointOfMeasure {
     pub values: Vec<Option<f64>>,
 }
 
-/// Sets a Style's base to a Tech Pack and returns it. A new Tech Pack is
-/// empty. If the Style already has a Tech Pack, returns it unchanged.
-pub fn set_tech_pack_base(lib: &Library, style_id: StyleId) -> CoreResult<TechPack> {
-    style::get_style(lib, style_id)?;
-    lib.writer()?.execute("INSERT OR IGNORE INTO tech_pack (style_id) VALUES (?1)", [style_id])?;
-    require(lib, style_id)
+/// Starts an empty Tech Pack for a Style, unless it already has one. Only
+/// `style::set_style_base` calls this, inside its write.
+pub(crate) fn ensure_row(conn: &Connection, style_id: StyleId) -> CoreResult<()> {
+    conn.execute("INSERT OR IGNORE INTO tech_pack (style_id) VALUES (?1)", [style_id])?;
+    Ok(())
+}
+
+/// The size names of a Style's Tech Pack table, in table order. Empty when
+/// it has no Tech Pack. Callers use `style::style_sizes`.
+pub(crate) fn table_sizes(conn: &Connection, style_id: StyleId) -> CoreResult<Vec<String>> {
+    Ok(sizes(conn, style_id)?.into_iter().map(|z| z.name).collect())
 }
 
 /// The Tech Pack of a Style, or `None` when its base is not a Tech Pack.
 pub fn get_tech_pack(lib: &Library, style_id: StyleId) -> CoreResult<Option<TechPack>> {
     style::get_style(lib, style_id)?;
+    if style::read_base(lib.db(), style_id)? != Some(StyleBase::TechPack) {
+        return Ok(None);
+    }
     let details = lib
         .db()
         .query_row(
@@ -125,7 +145,7 @@ pub fn get_tech_pack(lib: &Library, style_id: StyleId) -> CoreResult<Option<Tech
         )
         .optional()?;
     let Some(details) = details else { return Ok(None) };
-    let sizes = sizes(lib, style_id)?;
+    let sizes = sizes(lib.db(), style_id)?;
     let points_of_measure = points_of_measure(lib, style_id, &sizes)?;
     let flats = flats(lib, style_id)?;
     Ok(Some(TechPack { style_id, sizes, points_of_measure, details, flats }))
@@ -274,11 +294,16 @@ fn valid_point_of_measure(name: &str, tolerance: f64) -> CoreResult<(&str, f64)>
     Ok((name, tolerance))
 }
 
+/// The Style of a Point of Measure. Refuses when that Style's base is no
+/// longer its Tech Pack.
 fn point_of_measure_owner(lib: &Library, id: PointOfMeasureId) -> CoreResult<StyleId> {
-    lib.db()
+    let style_id = lib
+        .db()
         .query_row("SELECT style_id FROM tech_pack_pom WHERE id = ?1", [id], |r| r.get(0))
         .optional()?
-        .ok_or(CoreError::NotFound { record: "Point of Measure", id })
+        .ok_or(CoreError::NotFound { record: "Point of Measure", id })?;
+    require(lib, style_id)?;
+    Ok(style_id)
 }
 
 fn points_of_measure(lib: &Library, style_id: StyleId, sizes: &[TechPackSize]) -> CoreResult<Vec<PointOfMeasure>> {
@@ -304,12 +329,6 @@ fn points_of_measure(lib: &Library, style_id: StyleId, sizes: &[TechPackSize]) -
     Ok(poms)
 }
 
-/// The size names of a Tech Pack Style, in table order. Empty when the
-/// Style's base is not a Tech Pack. Callers use [`crate::style::style_sizes`].
-pub fn tech_pack_sizes(lib: &Library, style_id: StyleId) -> CoreResult<Vec<String>> {
-    Ok(sizes(lib, style_id)?.into_iter().map(|z| z.name).collect())
-}
-
 /// Adds a size (a new column of the Point of Measure table) at the end.
 /// The name must not be blank and must differ from the other sizes.
 pub fn add_size(lib: &Library, style_id: StyleId, name: &str) -> CoreResult<TechPack> {
@@ -330,6 +349,7 @@ pub fn rename_size(lib: &Library, size_id: SizeId, name: &str) -> CoreResult<Tec
 /// Removes a size and its values from the table.
 pub fn remove_size(lib: &Library, size_id: SizeId) -> CoreResult<TechPack> {
     let style_id = size_owner(lib, size_id)?;
+    require(lib, style_id)?;
     lib.writer()?.execute("DELETE FROM tech_pack_size WHERE id = ?1", [size_id])?;
     require(lib, style_id)
 }
@@ -352,8 +372,8 @@ fn size_owner(lib: &Library, size_id: SizeId) -> CoreResult<StyleId> {
         .ok_or(CoreError::NotFound { record: "Tech Pack size", id: size_id })
 }
 
-fn sizes(lib: &Library, style_id: StyleId) -> CoreResult<Vec<TechPackSize>> {
-    let mut stmt = lib.db().prepare("SELECT id, name FROM tech_pack_size WHERE style_id = ?1 ORDER BY id")?;
+fn sizes(conn: &Connection, style_id: StyleId) -> CoreResult<Vec<TechPackSize>> {
+    let mut stmt = conn.prepare("SELECT id, name FROM tech_pack_size WHERE style_id = ?1 ORDER BY id")?;
     let sizes = stmt
         .query_map([style_id], |r| Ok(TechPackSize { id: r.get(0)?, name: r.get(1)? }))?
         .collect::<Result<_, _>>()?;

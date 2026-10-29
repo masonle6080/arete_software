@@ -54,7 +54,6 @@ export interface TechPack {
 
 /** IPC wrappers for `src-tauri/src/ipc/tech_pack.rs`. */
 export const techPackApi = {
-  setTechPackBase: (styleId: number) => call<TechPack>("set_tech_pack_base", { styleId }),
   /** `null` when the Style's base is not a Tech Pack. */
   getTechPack: (styleId: number) => call<TechPack | null>("get_tech_pack", { styleId }),
   addSize: (styleId: number, name: string) => call<TechPack>("add_tech_pack_size", { styleId, name }),

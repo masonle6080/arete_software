@@ -11,11 +11,6 @@ use crate::style::StyleId;
 use crate::tech_pack::{self, PointOfMeasureId, SizeId, TechPack, TechPackDetails};
 
 #[tauri::command]
-pub fn set_tech_pack_base(state: State<AppState>, style_id: StyleId) -> CoreResult<TechPack> {
-    state.with_library(|lib| tech_pack::set_tech_pack_base(lib, style_id))
-}
-
-#[tauri::command]
 pub fn get_tech_pack(state: State<AppState>, style_id: StyleId) -> CoreResult<Option<TechPack>> {
     state.with_library(|lib| tech_pack::get_tech_pack(lib, style_id))
 }

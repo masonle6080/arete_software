@@ -72,3 +72,7 @@ executable, where the app finds them.
 - `src/document/`: the document module (Markdown ⇄ editor document) and the
   shared editor, for Essays and Scripts. Vitest tests sit next to it.
 - `src/shell/`: app shell, navigation, and the IPC helper `call()`.
+- `src/export/`: shared exports. `exportPdf({ title, html, css })` opens a
+  print window (`#print=ID`) and the system print dialog ("Save as PDF").
+  `saveTextFile(...)` asks where to save and writes outside the library.
+  Every PDF export (Essay, Tech Pack, Style trace) goes through `exportPdf`.

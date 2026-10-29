@@ -15,8 +15,12 @@ mod thesis;
 mod drop;
 mod style;
 mod tech_pack;
+mod sample;
 mod media;
 mod moodboard;
+mod blank;
+mod documentary;
+mod export;
 
 use std::sync::Mutex;
 
@@ -60,6 +64,7 @@ pub fn run() {
         .setup(|app| {
             let dir = app.path().app_config_dir()?;
             app.manage(AppState::new(AppConfig::new(dir)));
+            app.manage(crate::export::PrintJobs::default());
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
@@ -93,9 +98,11 @@ pub fn run() {
             style::drop_styles,
             style::attach_style_files,
             style::style_files,
+            style::style_base,
+            style::set_style_base,
             style::style_sizes,
+            style::set_style_sizes,
             // tech pack
-            tech_pack::set_tech_pack_base,
             tech_pack::get_tech_pack,
             tech_pack::add_tech_pack_size,
             tech_pack::rename_tech_pack_size,
@@ -106,6 +113,16 @@ pub fn run() {
             tech_pack::remove_point_of_measure,
             tech_pack::update_tech_pack_details,
             tech_pack::attach_tech_pack_flats,
+            // sample
+            sample::request_sample,
+            sample::style_samples,
+            sample::set_sample_feedback,
+            sample::attach_sample_photos,
+            sample::decide_sample,
+            // blank
+            blank::list_blanks,
+            blank::create_blank,
+            blank::update_blank,
             // media
             media::import_media_bytes,
             media::read_media,
@@ -123,11 +140,26 @@ pub fn run() {
             document::unlink_essay_from_thesis,
             document::theses_of_essay,
             document::essays_of_thesis,
+            document::get_passage,
+            document::passages_of_document,
             // clip
             clip::list_clips,
             clip::import_clip,
             clip::set_clip_date_shot,
             clip::reveal_clip,
+            // documentary
+            documentary::create_documentary,
+            documentary::move_documentary,
+            documentary::thesis_documentary,
+            documentary::list_documentaries,
+            documentary::add_clip_to_documentary,
+            documentary::remove_clip_from_documentary,
+            documentary::documentary_clips,
+            documentary::clip_documentaries,
+            // export
+            export::save_export_file,
+            export::print_export,
+            export::take_print_job,
         ])
         .run(tauri::generate_context!())
         .expect("error while running Arete");

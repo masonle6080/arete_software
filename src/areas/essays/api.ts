@@ -1,5 +1,6 @@
 import { call } from "../../shell/invoke";
 import type { Thesis } from "../thesis/types";
+import type { PassageText } from "../../document";
 
 /** Mirrors `DocumentKind` in `src-tauri/src/document/mod.rs`. */
 export type DocumentKind = "essay" | "script";
@@ -29,7 +30,12 @@ export const documentApi = {
   create: (kind: DocumentKind, title: string) =>
     call<StoredDocument>("create_document", { kind, title }),
   open: (id: number) => call<StoredDocument>("open_document", { id }),
-  save: (id: number, edit: DocumentEdit) => call<DocumentSummary>("save_document", { id, edit }),
+  /**
+   * Saves the text. Pass `passages` (the save report, see `src/document`) so
+   * the core updates the document's Passages; the editor always does.
+   */
+  save: (id: number, edit: DocumentEdit, passages?: PassageText[]) =>
+    call<DocumentSummary>("save_document", { id, edit, passages: passages ?? null }),
   list: (kind: DocumentKind) => call<DocumentSummary[]>("list_documents", { kind }),
 };
 
