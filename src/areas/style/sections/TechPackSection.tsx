@@ -128,8 +128,8 @@ function MeasureTable({ techPack, run }: PartProps) {
     <div className="tech-pack-part">
       <h3>Points of Measure ({details.unit})</h3>
       <p className="hint">The size columns are this Style's sizes.</p>
-      <div className="pom-scroll">
-        <table className="pom-table">
+      <div className="point-of-measure-scroll">
+        <table className="point-of-measure-table">
           <thead>
             <tr>
               <th>Point of Measure</th>
@@ -155,24 +155,24 @@ function MeasureTable({ techPack, run }: PartProps) {
             </tr>
           </thead>
           <tbody>
-            {pointsOfMeasure.map((pom) => (
-              <tr key={pom.id}>
+            {pointsOfMeasure.map((pointOfMeasure) => (
+              <tr key={pointOfMeasure.id}>
                 <td>
                   <CellInput
                     label="Point of Measure name"
-                    value={pom.name}
-                    onCommit={(name) => run(() => techPackApi.updatePointOfMeasure(pom.id, name, pom.tolerance))}
+                    value={pointOfMeasure.name}
+                    onCommit={(name) => run(() => techPackApi.updatePointOfMeasure(pointOfMeasure.id, name, pointOfMeasure.tolerance))}
                   />
                 </td>
                 <td>
                   <CellInput
                     className="number"
-                    label={`Tolerance of ${pom.name}`}
-                    value={String(pom.tolerance)}
+                    label={`Tolerance of ${pointOfMeasure.name}`}
+                    value={String(pointOfMeasure.tolerance)}
                     onCommit={(text) => {
                       const tolerance = parseNumber(text);
                       if (tolerance === undefined || tolerance === null) return;
-                      run(() => techPackApi.updatePointOfMeasure(pom.id, pom.name, tolerance));
+                      run(() => techPackApi.updatePointOfMeasure(pointOfMeasure.id, pointOfMeasure.name, tolerance));
                     }}
                   />
                 </td>
@@ -180,12 +180,12 @@ function MeasureTable({ techPack, run }: PartProps) {
                   <td key={size.id}>
                     <CellInput
                       className="number"
-                      label={`${pom.name} in ${size.name}`}
-                      value={pom.values[i] === null ? "" : String(pom.values[i])}
+                      label={`${pointOfMeasure.name} in ${size.name}`}
+                      value={pointOfMeasure.values[i] === null ? "" : String(pointOfMeasure.values[i])}
                       onCommit={(text) => {
                         const value = parseNumber(text);
                         if (value === undefined) return;
-                        run(() => techPackApi.setPointOfMeasureValue(pom.id, size.id, value));
+                        run(() => techPackApi.setPointOfMeasureValue(pointOfMeasure.id, size.id, value));
                       }}
                     />
                   </td>
@@ -193,8 +193,8 @@ function MeasureTable({ techPack, run }: PartProps) {
                 <td>
                   <button
                     className="remove"
-                    title={`Remove ${pom.name}`}
-                    onClick={() => run(() => techPackApi.removePointOfMeasure(pom.id))}
+                    title={`Remove ${pointOfMeasure.name}`}
+                    onClick={() => run(() => techPackApi.removePointOfMeasure(pointOfMeasure.id))}
                   >
                     ×
                   </button>

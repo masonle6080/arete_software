@@ -201,15 +201,15 @@ fn a_duplicate_gets_its_own_copy_of_the_tech_pack() {
     assert_eq!(names, ["M", "L"]);
     assert!(copied.sizes.iter().all(|z| original.sizes.iter().all(|o| o.id != z.id)));
     assert_eq!(copied.points_of_measure.len(), 1);
-    let pom = &copied.points_of_measure[0];
-    assert_ne!(pom.id, chest);
-    assert_eq!((pom.name.as_str(), pom.tolerance), ("Chest width", 1.0));
-    assert_eq!(pom.values, vec![Some(56.0), Some(59.5)]);
+    let point_of_measure = &copied.points_of_measure[0];
+    assert_ne!(point_of_measure.id, chest);
+    assert_eq!((point_of_measure.name.as_str(), point_of_measure.tolerance), ("Chest width", 1.0));
+    assert_eq!(point_of_measure.values, vec![Some(56.0), Some(59.5)]);
     assert_eq!(copied.flats.len(), 1);
     assert_eq!(copied.flats[0].file_name, "front.pdf");
 
     // Edits to the copy's table leave the original alone.
-    tech_pack::set_point_of_measure_value(&lib, pom.id, copied.sizes[0].id, Some(60.0)).unwrap();
+    tech_pack::set_point_of_measure_value(&lib, point_of_measure.id, copied.sizes[0].id, Some(60.0)).unwrap();
     tech_pack::rename_size(&lib, copied.sizes[1].id, "XL").unwrap();
     tech_pack::add_point_of_measure(&lib, copy.id, "Body length", 1.0).unwrap();
     assert_eq!(tech_pack::get_tech_pack(&lib, id).unwrap().unwrap(), original);

@@ -218,11 +218,11 @@ fn a_point_of_measure_has_a_value_per_size_and_a_tolerance() {
     tech_pack::set_point_of_measure_value(&lib, chest, small, Some(54.0)).unwrap();
     let tp = tech_pack::set_point_of_measure_value(&lib, chest, large, Some(60.5)).unwrap();
 
-    let pom = &tp.points_of_measure[0];
-    assert_eq!(pom.name, "Chest width");
-    assert_eq!(pom.tolerance, 1.0);
+    let point_of_measure = &tp.points_of_measure[0];
+    assert_eq!(point_of_measure.name, "Chest width");
+    assert_eq!(point_of_measure.tolerance, 1.0);
     // One value per size, in the order of `sizes`; M is still empty.
-    assert_eq!(pom.values, vec![Some(54.0), None, Some(60.5)]);
+    assert_eq!(point_of_measure.values, vec![Some(54.0), None, Some(60.5)]);
     assert_eq!(tech_pack::get_tech_pack(&lib, s.id).unwrap(), Some(tp));
 }
 

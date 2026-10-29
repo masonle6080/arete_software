@@ -313,7 +313,7 @@ fn point_of_measure_owner(lib: &Library, id: PointOfMeasureId) -> CoreResult<Sty
 
 fn points_of_measure(lib: &Library, style_id: StyleId, sizes: &[TechPackSize]) -> CoreResult<Vec<PointOfMeasure>> {
     let mut stmt = lib.db().prepare("SELECT id, name, tolerance FROM tech_pack_pom WHERE style_id = ?1 ORDER BY id")?;
-    let mut poms: Vec<PointOfMeasure> = stmt
+    let mut points_of_measure: Vec<PointOfMeasure> = stmt
         .query_map([style_id], |r| {
             Ok(PointOfMeasure { id: r.get(0)?, name: r.get(1)?, tolerance: r.get(2)?, values: vec![None; sizes.len()] })
         })?
@@ -324,14 +324,14 @@ fn points_of_measure(lib: &Library, style_id: StyleId, sizes: &[TechPackSize]) -
     )?;
     let cells: Vec<(PointOfMeasureId, SizeId, f64)> =
         stmt.query_map([style_id], |r| Ok((r.get(0)?, r.get(1)?, r.get(2)?)))?.collect::<Result<_, _>>()?;
-    for (pom_id, size_id, value) in cells {
-        let row = poms.iter_mut().find(|p| p.id == pom_id);
+    for (point_of_measure_id, size_id, value) in cells {
+        let row = points_of_measure.iter_mut().find(|p| p.id == point_of_measure_id);
         let col = sizes.iter().position(|z| z.id == size_id);
         if let (Some(row), Some(col)) = (row, col) {
             row.values[col] = Some(value);
         }
     }
-    Ok(poms)
+    Ok(points_of_measure)
 }
 
 /// Adds a size (a new column of the Point of Measure table) at the end.
@@ -431,10 +431,10 @@ pub(crate) fn copy_tech_pack(conn: &Connection, from: StyleId, to: StyleId) -> C
         size_ids.insert(size.id, conn.last_insert_rowid());
     }
     let mut stmt = conn.prepare("SELECT id, name, tolerance FROM tech_pack_pom WHERE style_id = ?1 ORDER BY id")?;
-    let poms: Vec<(PointOfMeasureId, String, f64)> =
+    let points_of_measure: Vec<(PointOfMeasureId, String, f64)> =
         stmt.query_map([from], |r| Ok((r.get(0)?, r.get(1)?, r.get(2)?)))?.collect::<Result<_, _>>()?;
     let mut values = conn.prepare("SELECT size_id, value FROM tech_pack_pom_value WHERE pom_id = ?1")?;
-    for (old_id, name, tolerance) in poms {
+    for (old_id, name, tolerance) in points_of_measure {
         conn.execute(
             "INSERT INTO tech_pack_pom (style_id, name, tolerance) VALUES (?1, ?2, ?3)",
             params![to, name, tolerance],

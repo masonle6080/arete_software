@@ -29,7 +29,7 @@ function techPack(overrides: Partial<TechPack> = {}): TechPack {
   };
 }
 
-/** Parses the fragment so tests read it as a factory would: by section. */
+/** Parses the fragment so tests read it as a manufacturing Vendor would: by section. */
 function render(html: string): HTMLElement {
   const root = document.createElement("div");
   root.innerHTML = html;
@@ -104,7 +104,7 @@ describe("techPackExportHtml", () => {
     expect(flats.textContent).toContain("Image not available");
   });
 
-  it("marks empty parts as not specified, so a factory sees nothing is missing by mistake", () => {
+  it("marks empty parts as not specified, so a manufacturing Vendor sees nothing is missing by mistake", () => {
     const empty = techPack({
       sizes: [],
       pointsOfMeasure: [],

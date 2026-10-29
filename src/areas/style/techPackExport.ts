@@ -46,12 +46,13 @@ function measureTable(tp: TechPack): string {
     .map((h) => `<th>${escape(h)}</th>`)
     .join("");
   const rows = tp.pointsOfMeasure
-    .map((pom) => {
-      const cells = [pom.tolerance, ...pom.values].map((v) => `<td class="tp-num">${v === null ? "" : v}</td>`);
-      return `<tr><td>${escape(pom.name)}</td>${cells.join("")}</tr>`;
+    .map((pointOfMeasure) => {
+      const values = [pointOfMeasure.tolerance, ...pointOfMeasure.values];
+      const cells = values.map((v) => `<td class="tp-num">${v === null ? "" : v}</td>`);
+      return `<tr><td>${escape(pointOfMeasure.name)}</td>${cells.join("")}</tr>`;
     })
     .join("");
-  return `<table class="tp-pom"><thead><tr>${head}</tr></thead><tbody>${rows}</tbody></table>`;
+  return `<table class="tp-point-of-measure"><thead><tr>${head}</tr></thead><tbody>${rows}</tbody></table>`;
 }
 
 function fabric(tp: TechPack, vendorName: string | null): string {
@@ -79,7 +80,7 @@ function flats(tp: TechPack, images: Record<number, string>): string {
   return `<div class="tp-flats">${figures.join("")}</div>`;
 }
 
-/** The whole Tech Pack: every part a factory needs, in a fixed order. Escapes all user text. */
+/** The whole Tech Pack: every part a manufacturing Vendor needs, in a fixed order. Escapes all user text. */
 export function techPackExportHtml(input: TechPackExportInput): string {
   const { techPack: tp } = input;
   return [
@@ -102,7 +103,7 @@ export const techPackExportCss = `
 .print-page .tp-section h2 { font-size: 13pt; border-bottom: 1px solid #999; padding-bottom: 2pt; margin: 0 0 6pt; }
 .print-page .tp-none { color: #777; font-style: italic; }
 .print-page .tp-num { text-align: right; font-variant-numeric: tabular-nums; }
-.print-page .tp-pom th { background: #f0f0ee; }
+.print-page .tp-point-of-measure th { background: #f0f0ee; }
 .print-page .tp-fabric th { width: 30%; background: #f0f0ee; }
 .print-page .tp-flats { display: flex; flex-wrap: wrap; gap: 12pt; }
 .print-page .tp-flat { margin: 0; flex: 1 1 45%; break-inside: avoid; text-align: center; }
