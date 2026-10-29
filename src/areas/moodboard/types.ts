@@ -11,3 +11,17 @@ export interface Moodboard {
   owner: MoodboardOwner;
   title: string;
 }
+
+/** Mirrors `LinkedMoodboardItem` in `src-tauri/src/moodboard/passage_link.rs`. */
+export interface LinkedMoodboardItem {
+  moodboard: Moodboard;
+  /** The Excalidraw element ID. */
+  elementId: string;
+  /** The Excalidraw element type: "image", "text", "rectangle", ... */
+  elementType: string;
+  text: string | null;
+  /** The media name of an image element. */
+  media: string | null;
+  /** The fill color of a swatch. */
+  color: string | null;
+}

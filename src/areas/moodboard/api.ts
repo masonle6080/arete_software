@@ -1,6 +1,6 @@
 import { call } from "../../shell/invoke";
 import { importExtension } from "./mediaType";
-import type { Moodboard, MoodboardOwner } from "./types";
+import type { LinkedMoodboardItem, Moodboard, MoodboardOwner } from "./types";
 
 /** IPC wrappers for `src-tauri/src/ipc/moodboard.rs` and `ipc/media.rs`. */
 export const moodboardApi = {
@@ -9,7 +9,15 @@ export const moodboardApi = {
   listMoodboards: (owner: MoodboardOwner) => call<Moodboard[]>("list_moodboards", { owner }),
   /** The saved scene JSON, or null for a Moodboard never saved. */
   loadScene: (id: number) => call<string | null>("load_moodboard_scene", { id }),
+  /**
+   * Saves the scene. The scene owns Passage links: an element links to a
+   * Passage through `customData.passageId`, and each save updates the core's
+   * copy of those links.
+   */
   saveScene: (id: number, scene: string) => call<void>("save_moodboard_scene", { id, scene }),
+  /** The canvas items linked to a Passage, from every Moodboard. */
+  itemsOfPassage: (passageId: string) =>
+    call<LinkedMoodboardItem[]>("moodboard_items_of_passage", { passageId }),
 };
 
 /** IPC wrappers for media import and read (`src-tauri/src/ipc/media.rs`). */
