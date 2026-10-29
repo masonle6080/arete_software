@@ -3,21 +3,21 @@
 //! The copy is a new Draft Style on the same Drop, with the same name and
 //! the founder's new color. It gets a copy of the base and sizes, the Tech
 //! Pack (new Point of Measure and size IDs), the design files, the
-//! Decorations, the Design Decisions with their Passage links, and the
-//! Moodboard. It does not get Samples: they record what came back for the
-//! original color.
+//! Decorations, the Design Decisions with their Passage links, the
+//! Moodboard, and the Cost Sheet. It does not get Samples: they record what
+//! came back for the original color.
 //!
 //! Each area copies its own rows with a `copy_*` function in its module,
 //! and every step runs on one transaction, so a failed step leaves no
-//! partial copy. To copy another area (for example the Cost Sheet), add its
-//! `copy_*` function and one call in [`copy_areas`].
+//! partial copy. To copy another area, add its `copy_*` function and one
+//! call in [`copy_areas`].
 
 use rusqlite::{params, Connection};
 
 use super::{base, get_style, Style, StyleId, StyleStatus};
 use crate::error::{CoreError, CoreResult};
 use crate::library::Library;
-use crate::{decoration, design_decision, moodboard, tech_pack};
+use crate::{cost_sheet, decoration, design_decision, moodboard, tech_pack};
 
 /// Copies Style `id` into a new Draft Style in `color`, on the same Drop,
 /// and returns the copy. The color must not be blank. Samples stay with the
@@ -50,6 +50,7 @@ fn copy_areas(conn: &Connection, from: StyleId, to: StyleId) -> CoreResult<()> {
     let decorations = decoration::copy_decorations(conn, from, to)?;
     design_decision::copy_design_decisions(conn, from, to, &decorations)?;
     moodboard::copy_style_moodboard(conn, from, to)?;
+    cost_sheet::copy_cost_sheet(conn, from, to)?;
     Ok(())
 }
 

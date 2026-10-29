@@ -5,6 +5,7 @@ import { vendorArea } from "./vendor";
 import { blankArea } from "./blank";
 import { thesisArea } from "./thesis";
 import { clipsArea } from "./clips";
+import { settingsArea } from "./settings";
 
 /**
  * Navigation: one entry per area, in sidebar order. To add an area, create
@@ -18,4 +19,5 @@ export const areas: Area[] = [
   blankArea,
   thesisArea,
   clipsArea,
+  settingsArea,
 ];
