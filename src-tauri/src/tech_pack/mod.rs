@@ -26,6 +26,7 @@ use rusqlite::{params, Connection, OptionalExtension};
 use crate::error::{CoreError, CoreResult};
 use crate::library::Library;
 use crate::media::{self, MediaRef};
+use crate::sample;
 use crate::style::{self, StyleBase, StyleId};
 use crate::vendor::{self, VendorId};
 
@@ -277,9 +278,12 @@ pub fn set_point_of_measure_value(
     require(lib, style_id)
 }
 
-/// Removes a Point of Measure and its values from the table.
+/// Removes a Point of Measure and its values from the table. Refuses while
+/// a Sample has fit notes for it, so no recorded measurement goes silently;
+/// the founder clears those fit notes first.
 pub fn remove_point_of_measure(lib: &Library, id: PointOfMeasureId) -> CoreResult<TechPack> {
     let style_id = point_of_measure_owner(lib, id)?;
+    refuse_if_measured("Point of Measure", sample::rounds_measuring_point_of_measure(lib.db(), id)?)?;
     lib.writer()?.execute("DELETE FROM tech_pack_pom WHERE id = ?1", [id])?;
     require(lib, style_id)
 }
@@ -347,12 +351,30 @@ pub fn rename_size(lib: &Library, size_id: SizeId, name: &str) -> CoreResult<Tec
     require(lib, tp.style_id)
 }
 
-/// Removes a size and its values from the table.
+/// Removes a size and its values from the table. Refuses while a Sample
+/// has fit notes in it, so no recorded measurement goes silently; the
+/// founder clears those fit notes first.
 pub fn remove_size(lib: &Library, size_id: SizeId) -> CoreResult<TechPack> {
     let style_id = size_owner(lib, size_id)?;
     require(lib, style_id)?;
+    refuse_if_measured("size", sample::rounds_measuring_size(lib.db(), size_id)?)?;
     lib.writer()?.execute("DELETE FROM tech_pack_size WHERE id = ?1", [size_id])?;
     require(lib, style_id)
+}
+
+/// Refuses to remove a row or column that fit notes refer to. `rounds` are
+/// the Sample rounds that hold them.
+fn refuse_if_measured(what: &str, rounds: Vec<u32>) -> CoreResult<()> {
+    if rounds.is_empty() {
+        return Ok(());
+    }
+    let rounds = rounds.iter().map(|r| r.to_string()).collect::<Vec<_>>().join(", ");
+    let noun = if rounds.contains(',') { "rounds" } else { "round" };
+    Err(CoreError::InvalidInput {
+        reason: format!(
+            "Samples have fit notes for this {what} (Sample {noun} {rounds}); clear those fit notes before you remove it"
+        ),
+    })
 }
 
 fn valid_size_name<'a>(tp: &TechPack, name: &'a str, renaming: Option<SizeId>) -> CoreResult<&'a str> {
