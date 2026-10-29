@@ -1,5 +1,5 @@
 import { call } from "../../shell/invoke";
-import type { TechPackSize } from "../style/techPack";
+import type { TechPackSize } from "../techPack/api";
 
 /** Mirrors `SampleOutcome` in `src-tauri/src/sample/mod.rs`. */
 export type SampleOutcome = "pending" | "approved" | "revised" | "rejected";

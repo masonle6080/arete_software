@@ -1,5 +1,5 @@
 import { mimeTypeOf } from "../moodboard/mediaType";
-import type { TechPack } from "./techPack";
+import type { TechPack } from "./api";
 
 /*
  * A Tech Pack as an HTML fragment for the shared PDF export (`exportPdf`).

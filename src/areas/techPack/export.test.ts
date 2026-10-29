@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { describe, expect, it } from "vitest";
-import type { TechPack } from "./techPack";
-import { flatImageSrc, techPackExportHtml } from "./techPackExport";
+import type { TechPack } from "./api";
+import { flatImageSrc, techPackExportHtml } from "./export";
 
 function techPack(overrides: Partial<TechPack> = {}): TechPack {
   return {

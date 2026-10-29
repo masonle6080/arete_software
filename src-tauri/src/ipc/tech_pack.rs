@@ -1,4 +1,4 @@
-//! IPC for the Tech Pack area. See `src/areas/style/techPackApi.ts` for the
+//! IPC for the Tech Pack area. See `src/areas/techPack/api.ts` for the
 //! callers.
 
 use std::path::PathBuf;
