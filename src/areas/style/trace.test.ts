@@ -19,7 +19,7 @@ function passage(id: string, text: string, documentTitle: string, orphaned = fal
 }
 
 function decision(id: number, aspect: DesignDecision["aspect"], rationale: string, passages: Passage[] = []) {
-  return { id, styleId: 1, aspect, rationale, passages } satisfies DesignDecision;
+  return { id, styleId: 1, aspect, rationale, decorationId: null, passages } satisfies DesignDecision;
 }
 
 describe("styleTraceMarkdown", () => {

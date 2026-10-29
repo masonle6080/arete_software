@@ -7,6 +7,7 @@ import {
   type DesignAspect,
   type DesignDecision,
 } from "../../designDecision/api";
+import { decorationApi, decorationLabel, type Decoration } from "../../decoration/api";
 import { EssayScreen } from "../../essays";
 import { documentApi, type DocumentSummary } from "../../essays/api";
 import { passageApi, type Passage } from "../../passage/api";
@@ -15,10 +16,12 @@ import type { StyleSection, StyleSectionProps } from ".";
 
 /**
  * The Design Decisions of the Style, each with its rationale and linked
- * Passages. A linked Passage opens in its Essay, selected and in view.
+ * Passages, and the one Decoration it is about. A linked Passage opens in
+ * its Essay, selected and in view.
  */
 function DesignDecisionsSectionView({ style }: StyleSectionProps) {
   const [decisions, setDecisions] = useState<DesignDecision[]>([]);
+  const [decorations, setDecorations] = useState<Decoration[]>([]);
   const [aspect, setAspect] = useState<DesignAspect>("decoration");
   const [rationale, setRationale] = useState("");
   const [opened, setOpened] = useState<Passage>();
@@ -26,7 +29,13 @@ function DesignDecisionsSectionView({ style }: StyleSectionProps) {
 
   const reload = useCallback(() => {
     designDecisionApi.ofStyle(style.id).then(setDecisions, (raw) => setError(toCoreError(raw)));
+    reloadDecorations();
   }, [style.id]);
+
+  /** Decorations change in their own section, so reload them before a pick too. */
+  function reloadDecorations() {
+    decorationApi.ofStyle(style.id).then(setDecorations, (raw) => setError(toCoreError(raw)));
+  }
   useEffect(reload, [reload]);
 
   async function run(action: () => Promise<unknown>): Promise<boolean> {
@@ -71,6 +80,23 @@ function DesignDecisionsSectionView({ style }: StyleSectionProps) {
             <li key={d.id} className="design-decision">
               <p className="aspect">{designAspectLabel[d.aspect]}</p>
               <p className="rationale">{d.rationale}</p>
+              <label className="decoration-link">
+                Decoration
+                <select
+                  value={d.decorationId ?? ""}
+                  onFocus={reloadDecorations}
+                  onChange={(e) =>
+                    run(() => designDecisionApi.setDecoration(d.id, e.target.value ? Number(e.target.value) : null))
+                  }
+                >
+                  <option value="">None</option>
+                  {decorations.map((dec) => (
+                    <option key={dec.id} value={dec.id}>
+                      {decorationLabel(dec)}
+                    </option>
+                  ))}
+                </select>
+              </label>
               {d.passages.length > 0 && (
                 <ul className="linked-passages">
                   {d.passages.map((p) => (

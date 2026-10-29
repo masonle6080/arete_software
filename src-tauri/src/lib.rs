@@ -24,6 +24,7 @@ pub mod clip;
 pub mod style;
 pub mod sample;
 pub mod design_decision;
+pub mod decoration;
 pub mod blank;
 pub mod documentary;
 pub mod export;

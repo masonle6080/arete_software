@@ -4,12 +4,16 @@
 //!
 //! Domain command functions for this area: [`add_design_decision`],
 //! [`get_design_decision`], [`style_design_decisions`], [`link_passage`],
-//! [`unlink_passage`], and, for the Passage side, [`passage_design_decisions`].
+//! [`unlink_passage`], [`set_decoration`], and, for the Passage side,
+//! [`passage_design_decisions`].
 //!
-//! Later: an optional link to one Decoration on the same Style.
+//! A Design Decision links to at most one Decoration, on the same Style. The
+//! link is the `design_decision.decoration_id` column; removing the
+//! Decoration clears it.
 
 use rusqlite::{params, OptionalExtension, Row};
 
+use crate::decoration::{self, DecorationId};
 use crate::document::{self, Passage};
 use crate::error::{CoreError, CoreResult};
 use crate::library::Library;
@@ -47,7 +51,8 @@ impl DesignAspect {
     }
 }
 
-/// A Design Decision with its linked Passages, in the order linked.
+/// A Design Decision with its linked Decoration and Passages (in the order
+/// linked).
 #[derive(Debug, Clone, PartialEq, Eq, serde::Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct DesignDecision {
@@ -55,17 +60,26 @@ pub struct DesignDecision {
     pub style_id: StyleId,
     pub aspect: DesignAspect,
     pub rationale: String,
+    /// The one Decoration, on the same Style, this choice is about.
+    pub decoration_id: Option<DecorationId>,
     pub passages: Vec<Passage>,
 }
 
-const COLUMNS: &str = "id, style_id, aspect, rationale";
+const COLUMNS: &str = "id, style_id, aspect, rationale, decoration_id";
 
 fn from_row(row: &Row) -> rusqlite::Result<DesignDecision> {
     let raw: String = row.get(2)?;
     let aspect = DesignAspect::from_db(&raw).ok_or_else(|| {
         rusqlite::Error::FromSqlConversionFailure(2, rusqlite::types::Type::Text, format!("unknown aspect {raw}").into())
     })?;
-    Ok(DesignDecision { id: row.get(0)?, style_id: row.get(1)?, aspect, rationale: row.get(3)?, passages: Vec::new() })
+    Ok(DesignDecision {
+        id: row.get(0)?,
+        style_id: row.get(1)?,
+        aspect,
+        rationale: row.get(3)?,
+        decoration_id: row.get(4)?,
+        passages: Vec::new(),
+    })
 }
 
 /// Adds a Design Decision to a Style, with no Passages. The rationale must
@@ -132,6 +146,26 @@ pub fn unlink_passage(lib: &Library, id: DesignDecisionId, passage_id: &str) -> 
     get_design_decision(lib, id)
 }
 
+/// Links a Design Decision to one Decoration, in place of any earlier one,
+/// or clears the link with `None`. Refuses a Decoration on another Style.
+pub fn set_decoration(
+    lib: &Library,
+    id: DesignDecisionId,
+    decoration_id: Option<DecorationId>,
+) -> CoreResult<DesignDecision> {
+    let decision = get_design_decision(lib, id)?;
+    if let Some(decoration_id) = decoration_id {
+        if decoration::get_decoration(lib, decoration_id)?.style_id != decision.style_id {
+            return Err(CoreError::InvalidInput {
+                reason: "a Design Decision can link only to a Decoration on its own Style".into(),
+            });
+        }
+    }
+    lib.writer()?
+        .execute("UPDATE design_decision SET decoration_id = ?1 WHERE id = ?2", params![decoration_id, id])?;
+    get_design_decision(lib, id)
+}
+
 /// A Design Decision as a Passage lists it: with the Style it belongs to.
 #[derive(Debug, Clone, PartialEq, Eq, serde::Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -150,7 +184,7 @@ pub struct PassageDesignDecision {
 pub fn passage_design_decisions(lib: &Library, passage_id: &str) -> CoreResult<Vec<PassageDesignDecision>> {
     document::get_passage(lib, passage_id)?;
     let mut stmt = lib.db().prepare(
-        "SELECT d.id, d.style_id, d.aspect, d.rationale
+        "SELECT d.id, d.style_id, d.aspect, d.rationale, d.decoration_id
          FROM design_decision_passage l JOIN design_decision d ON d.id = l.design_decision_id
          WHERE l.passage_id = ?1 ORDER BY d.id",
     )?;
