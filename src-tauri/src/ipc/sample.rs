@@ -6,7 +6,8 @@ use tauri::State;
 
 use super::AppState;
 use crate::error::CoreResult;
-use crate::sample::{self, Sample, SampleId, SampleOutcome, SamplePhoto};
+use crate::sample::{self, Sample, SampleFit, SampleId, SampleOutcome, SamplePhoto};
+use crate::tech_pack::{PointOfMeasureId, SizeId};
 use crate::style::StyleId;
 use crate::vendor::VendorId;
 
@@ -33,4 +34,20 @@ pub fn attach_sample_photos(state: State<AppState>, id: SampleId, sources: Vec<P
 #[tauri::command]
 pub fn decide_sample(state: State<AppState>, id: SampleId, outcome: SampleOutcome) -> CoreResult<Sample> {
     state.with_library(|lib| sample::decide_sample(lib, id, outcome))
+}
+
+#[tauri::command]
+pub fn sample_fit(state: State<AppState>, id: SampleId) -> CoreResult<Option<SampleFit>> {
+    state.with_library(|lib| sample::sample_fit(lib, id))
+}
+
+#[tauri::command]
+pub fn set_fit_note(
+    state: State<AppState>,
+    id: SampleId,
+    point_of_measure_id: PointOfMeasureId,
+    size_id: SizeId,
+    measured: Option<f64>,
+) -> CoreResult<SampleFit> {
+    state.with_library(|lib| sample::set_fit_note(lib, id, point_of_measure_id, size_id, measured))
 }

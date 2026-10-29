@@ -121,6 +121,8 @@ pub fn run() {
             sample::set_sample_feedback,
             sample::attach_sample_photos,
             sample::decide_sample,
+            sample::sample_fit,
+            sample::set_fit_note,
             // design_decision
             design_decision::add_design_decision,
             design_decision::style_design_decisions,

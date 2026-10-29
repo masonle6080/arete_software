@@ -74,6 +74,10 @@ _Avoid_: Supplier, factory, manufacturer, mill
 A physical piece that a Vendor makes for a Style before production. It belongs to a numbered round and ends approved, revised, or rejected; a revised Sample leads to the next round.
 _Avoid_: Prototype, proto, test piece
 
+**Fit Note**:
+The value measured on a Sample for one Point of Measure in one size, shown beside the Tech Pack value and tolerance. Only Samples of Styles built on a Tech Pack have Fit Notes. A Point of Measure or size that a Fit Note refers to cannot be removed until the Fit Note is cleared.
+_Avoid_: Fit measurement, fit comment
+
 **Cost Sheet**:
 The itemized unit cost of a Style (base, Decoration, trims, labels, packaging, shipping, duties) at each Quantity Tier.
 _Avoid_: Costing, BOM, price breakdown

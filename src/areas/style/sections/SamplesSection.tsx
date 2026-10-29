@@ -4,6 +4,7 @@ import { toCoreError, type CoreError } from "../../../shell/coreError";
 import { sampleApi, sampleOutcomeLabel, type Sample, type SampleOutcome } from "../../sample/api";
 import { vendorApi, type Vendor } from "../../vendor/api";
 import { NotesPanel } from "../../note/NotesPanel";
+import { FitNotes } from "./FitNotes";
 import type { StyleSection, StyleSectionProps } from ".";
 
 const DECISIONS: SampleOutcome[] = ["approved", "revised", "rejected"];
@@ -85,7 +86,7 @@ interface DetailProps {
   run(action: () => Promise<unknown>): Promise<void>;
 }
 
-/** One Sample: photos, feedback, outcome, and Notes. */
+/** One Sample: photos, feedback, fit notes (Tech Pack Styles only), outcome, and Notes. */
 function SampleDetail({ sample, vendorName, run }: DetailProps) {
   const [feedback, setFeedback] = useState(sample.feedback);
 
@@ -114,6 +115,7 @@ function SampleDetail({ sample, vendorName, run }: DetailProps) {
         </ul>
       )}
       <button onClick={attachPhotos}>Attach photos</button>
+      <FitNotes sampleId={sample.id} />
       <h4>Feedback</h4>
       <textarea rows={4} value={feedback} onChange={(e) => setFeedback(e.target.value)} />
       <div className="actions">
