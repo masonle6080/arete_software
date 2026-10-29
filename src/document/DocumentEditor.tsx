@@ -2,7 +2,7 @@ import { EditorContent, useEditor, useEditorState, type Editor } from "@tiptap/r
 import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from "react";
 import { documentExtensions } from "./extensions";
 import { fromMarkdown } from "./markdown";
-import { passageIdsAt, type PassageText } from "./passage";
+import { passageIdsAt, passageRange, type PassageText } from "./passage";
 import { saveReport } from "./saveReport";
 import "./editor.css";
 
@@ -16,6 +16,8 @@ export interface DocumentEditorProps {
   onSave(edit: DocumentSave): Promise<void>;
   /** When set, the Passage bar offers to open the Passage at the cursor. */
   onOpenPassage?(id: string): void;
+  /** When set, the editor opens with this Passage selected and in view. */
+  focusPassage?: string;
 }
 
 /** What one save sends: the title and the save report. */
@@ -39,7 +41,7 @@ export interface DocumentEditorHandle {
  * Markdown and saves Markdown. Remount it (with `key`) to open another one.
  */
 export const DocumentEditor = forwardRef<DocumentEditorHandle, DocumentEditorProps>(function DocumentEditor(
-  { title: initialTitle, markdown, onSave, onOpenPassage },
+  { title: initialTitle, markdown, onSave, onOpenPassage, focusPassage },
   ref,
 ) {
   const [title, setTitle] = useState(initialTitle);
@@ -81,7 +83,7 @@ export const DocumentEditor = forwardRef<DocumentEditorHandle, DocumentEditorPro
     extensions: documentExtensions,
     content: fromMarkdown(markdown).toJSON(),
     immediatelyRender: true,
-    autofocus: "end",
+    autofocus: focusPassage ? false : "end",
     onUpdate: ({ editor }) => schedule({ title: titleRef.current, ...saveReport(editor.state.doc) }),
   });
 
@@ -91,6 +93,18 @@ export const DocumentEditor = forwardRef<DocumentEditorHandle, DocumentEditorPro
     clearTimeout(timer.current);
     timer.current = setTimeout(flush, SAVE_DELAY_MS);
   };
+
+  // Land on `focusPassage`: select it and scroll it into view. An orphaned
+  // Passage has no text in the document, so the editor opens at the end.
+  useEffect(() => {
+    if (!focusPassage) return;
+    const land = setTimeout(() => {
+      const range = passageRange(editor.state.doc, focusPassage);
+      if (range) editor.chain().focus().setTextSelection(range).scrollIntoView().run();
+      else editor.commands.focus("end");
+    }, 0);
+    return () => clearTimeout(land);
+  }, [editor, focusPassage]);
 
   // Save unsaved edits when the editor closes.
   // `flush` reads only refs, so the first render's copy is safe to keep.

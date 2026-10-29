@@ -53,6 +53,8 @@ interface EssayScreenProps {
   onClose(): void;
   /** Text of the back button, for example "← Essays". */
   backLabel?: string;
+  /** When set, the Essay opens with this Passage selected and in view. */
+  focusPassageId?: string;
 }
 
 /**
@@ -60,7 +62,7 @@ interface EssayScreenProps {
  * Other areas can open it too. A Passage opens in place over the editor; the
  * editor stays mounted, so undo still works after coming back.
  */
-export function EssayScreen({ id, onClose, backLabel = "← Essays" }: EssayScreenProps) {
+export function EssayScreen({ id, onClose, backLabel = "← Essays", focusPassageId }: EssayScreenProps) {
   const [essay, setEssay] = useState<StoredDocument | null>(null);
   const [error, setError] = useState<string | null>(null);
   const editor = useRef<DocumentEditorHandle>(null);
@@ -112,6 +114,7 @@ export function EssayScreen({ id, onClose, backLabel = "← Essays" }: EssayScre
             markdown={essay.markdown}
             onSave={save}
             onOpenPassage={openPassage}
+            focusPassage={focusPassageId}
           />
         )}
       </div>

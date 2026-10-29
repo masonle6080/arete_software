@@ -72,3 +72,18 @@
 .style-base .sizes { border: none; padding: 0; margin: 0; display: flex; flex-wrap: wrap; gap: 4px 16px; }
 .style-base .sizes legend { padding: 0; margin-bottom: 4px; }
 .style-base .size { display: flex; align-items: center; gap: 6px; }
+
+.design-decisions > ul { list-style: none; margin: 0 0 12px; padding: 0; max-width: 640px; }
+.design-decisions .empty { color: var(--muted); margin: 0 0 8px; }
+.design-decision { border-bottom: 1px solid var(--line); padding: 8px 0; }
+.design-decision .aspect { color: var(--muted); font-size: 12px; margin: 0; }
+.design-decision .rationale { margin: 4px 0; white-space: pre-wrap; }
+.design-decision .linked-passages { list-style: none; margin: 4px 0; padding: 0; }
+.design-decision .linked-passages li { display: flex; gap: 8px; align-items: baseline; }
+.design-decision .linked-passages .open { border: none; padding: 2px 0; text-align: left; font-style: italic; }
+.design-decision .linked-passages .source { margin-left: 8px; color: var(--muted); font-style: normal; font-size: 12px; }
+.design-decision .unlink { font-size: 12px; }
+.design-decision .passage-picker { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 4px; }
+.design-decision .link-passage { font-size: 12px; margin-top: 4px; }
+.design-decision-add { display: flex; flex-direction: column; gap: 8px; max-width: 640px; align-items: flex-start; }
+.design-decision-add textarea { width: 100%; }
