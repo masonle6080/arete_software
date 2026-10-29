@@ -17,6 +17,7 @@ mod style;
 mod tech_pack;
 mod sample;
 mod design_decision;
+mod decoration;
 mod media;
 mod moodboard;
 mod blank;
@@ -128,6 +129,14 @@ pub fn run() {
             design_decision::link_design_decision_passage,
             design_decision::unlink_design_decision_passage,
             design_decision::passage_design_decisions,
+            design_decision::set_design_decision_decoration,
+            // decoration
+            decoration::add_decoration,
+            decoration::update_decoration,
+            decoration::set_decoration_artwork,
+            decoration::clear_decoration_artwork,
+            decoration::remove_decoration,
+            decoration::style_decorations,
             // blank
             blank::list_blanks,
             blank::create_blank,

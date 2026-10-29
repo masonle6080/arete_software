@@ -4,6 +4,7 @@
 use tauri::State;
 
 use super::AppState;
+use crate::decoration::DecorationId;
 use crate::design_decision::{self, DesignAspect, DesignDecision, DesignDecisionId, PassageDesignDecision};
 use crate::error::CoreResult;
 use crate::style::StyleId;
@@ -44,4 +45,13 @@ pub fn unlink_design_decision_passage(
 #[tauri::command]
 pub fn passage_design_decisions(state: State<AppState>, passage_id: String) -> CoreResult<Vec<PassageDesignDecision>> {
     state.with_library(|lib| design_decision::passage_design_decisions(lib, &passage_id))
+}
+
+#[tauri::command]
+pub fn set_design_decision_decoration(
+    state: State<AppState>,
+    id: DesignDecisionId,
+    decoration_id: Option<DecorationId>,
+) -> CoreResult<DesignDecision> {
+    state.with_library(|lib| design_decision::set_decoration(lib, id, decoration_id))
 }

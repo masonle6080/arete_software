@@ -5,6 +5,7 @@ import { vendorApi, type Vendor } from "../../vendor/api";
 import { styleApi } from "../api";
 import { techPackApi, type TechPack, type TechPackDetails } from "../techPack";
 import type { StyleSection, StyleSectionProps } from ".";
+import { TechPackExport } from "./TechPackExport";
 import "./techPack.css";
 
 /**
@@ -65,6 +66,7 @@ function TechPackSectionView({ style, onStyleChanged }: StyleSectionProps) {
           <MeasureTable techPack={techPack} run={run} />
           <Details techPack={techPack} run={run} />
           <Flats techPack={techPack} run={run} />
+          <TechPackExport style={style} />
         </>
       )}
     </div>

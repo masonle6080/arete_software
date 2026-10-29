@@ -87,3 +87,28 @@
 .design-decision .link-passage { font-size: 12px; margin-top: 4px; }
 .design-decision-add { display: flex; flex-direction: column; gap: 8px; max-width: 640px; align-items: flex-start; }
 .design-decision-add textarea { width: 100%; }
+.decorations > ul { list-style: none; margin: 0 0 12px; padding: 0; max-width: 640px; }
+.decorations .empty { color: var(--muted); margin: 0 0 8px; }
+.decoration { border-bottom: 1px solid var(--line); padding: 8px 0; }
+.decoration .technique { font-weight: 600; margin: 0 0 4px; }
+.decoration dl { display: grid; grid-template-columns: max-content 1fr; gap: 2px 12px; margin: 0 0 8px; }
+.decoration dt { color: var(--muted); font-size: 12px; }
+.decoration dd { margin: 0; }
+.decoration .actions,
+.decoration-form .actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.decoration-form { display: flex; flex-direction: column; gap: 8px; max-width: 480px; }
+.decoration-form label,
+.design-decision .decoration-link { display: flex; flex-direction: column; gap: 4px; }
+.design-decision .decoration-link { font-size: 12px; color: var(--muted); margin: 4px 0; max-width: 320px; }
+.decoration-form input,
+.decoration-form select,
+.design-decision .decoration-link select {
+  font: inherit;
+  color: var(--fg);
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 6px 8px;
+}
+
+.style-trace-export { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 0 0 12px; font-size: 13px; }

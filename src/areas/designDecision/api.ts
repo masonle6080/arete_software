@@ -21,6 +21,8 @@ export interface DesignDecision {
   styleId: number;
   aspect: DesignAspect;
   rationale: string;
+  /** The one Decoration, on the same Style, this choice is about. */
+  decorationId: number | null;
   passages: Passage[];
 }
 
@@ -45,5 +47,8 @@ export const designDecisionApi = {
     call<DesignDecision>("link_design_decision_passage", { id, passageId }),
   unlinkPassage: (id: number, passageId: string) =>
     call<DesignDecision>("unlink_design_decision_passage", { id, passageId }),
+  /** `null` clears the link. The core refuses a Decoration on another Style. */
+  setDecoration: (id: number, decorationId: number | null) =>
+    call<DesignDecision>("set_design_decision_decoration", { id, decorationId }),
   ofPassage: (passageId: string) => call<PassageDesignDecision[]>("passage_design_decisions", { passageId }),
 };
