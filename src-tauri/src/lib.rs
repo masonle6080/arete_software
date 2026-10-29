@@ -30,6 +30,7 @@ pub mod documentary;
 pub mod export;
 pub mod tech_pack;
 pub mod cost_sheet;
+pub mod production_order;
 
 pub fn run() {
     ipc::run()

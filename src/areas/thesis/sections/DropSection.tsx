@@ -3,6 +3,7 @@ import { toCoreError, type CoreError } from "../../../shell/coreError";
 import { dropApi } from "../../drop/api";
 import { stageLabel, warningText, type Drop, type DropStage, type DropWarning, type ThesisDrops } from "../../drop/types";
 import { DropStyles } from "../../style/DropStyles";
+import { DropProductionOrders } from "../../productionOrder/DropProductionOrders";
 import type { ThesisSection, ThesisSectionProps } from ".";
 
 /** A move that the core stopped until the founder confirms it. */
@@ -91,6 +92,7 @@ function DropSectionView({ thesis, onThesisChanged, onOpenStyle }: ThesisSection
             </div>
           )}
           <DropStyles drop={active} onOpen={onOpenStyle} />
+          <DropProductionOrders drop={active} />
         </div>
       )}
 
