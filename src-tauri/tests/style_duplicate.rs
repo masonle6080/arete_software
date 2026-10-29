@@ -95,6 +95,24 @@ fn a_duplicate_needs_a_color_and_an_existing_style() {
 }
 
 #[test]
+fn a_style_is_not_duplicated_once_its_drop_is_in_production() {
+    let env = TestEnv::new();
+    let lib = env.library();
+    let id = a_style(&lib);
+    let drop_id = style::get_style(&lib, id).unwrap().drop_id;
+    style::move_style(&lib, id, StyleStatus::Sampling).unwrap();
+    style::move_style(&lib, id, StyleStatus::Approved).unwrap();
+    drop::move_drop(&lib, drop_id, drop::DropStage::Sampling, false).unwrap();
+    style::duplicate_style(&lib, id, "Black").map(|c| style::move_style(&lib, c.id, StyleStatus::Cut)).unwrap().unwrap();
+    drop::move_drop(&lib, drop_id, drop::DropStage::Production, false).unwrap();
+
+    let err = style::duplicate_style(&lib, id, "Olive").unwrap_err();
+
+    assert!(matches!(err, CoreError::InvalidInput { .. }), "{err:?}");
+    assert_eq!(style::drop_styles(&lib, drop_id).unwrap().len(), 2);
+}
+
+#[test]
 fn a_duplicate_keeps_the_blank_base_and_chosen_sizes() {
     let env = TestEnv::new();
     let lib = env.library();

@@ -6,4 +6,5 @@ export const dropApi = {
   createDrop: (thesisId: number, name: string) => call<Drop>("create_drop", { thesisId, name }),
   moveDrop: (id: number, to: DropStage, confirmed = false) => call<DropMove>("move_drop", { id, to, confirmed }),
   thesisDrops: (thesisId: number) => call<ThesisDrops>("thesis_drops", { thesisId }),
+  getDrop: (id: number) => call<Drop>("get_drop", { id }),
 };

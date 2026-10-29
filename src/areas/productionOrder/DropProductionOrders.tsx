@@ -3,7 +3,7 @@ import { toCoreError, type CoreError } from "../../shell/coreError";
 import type { Drop } from "../drop/types";
 import { NotesPanel } from "../note/NotesPanel";
 import { styleApi } from "../style/api";
-import type { Style } from "../style/types";
+import { styleStatusLabel, type Style } from "../style/types";
 import { vendorApi, type Vendor } from "../vendor/api";
 import { orderStatusLabel, productionOrderApi, type ProductionOrder, type ProductionOrderStatus } from "./api";
 import "./productionOrder.css";
@@ -114,15 +114,21 @@ function OrderDetail({ order, onChanged }: { order: ProductionOrder; onChanged()
   const [confirmCancel, setConfirmCancel] = useState(false);
   const draft = order.status === "draft";
 
+  /** The Styles with a quantity on the order, as a stable key for the effect below. */
+  const orderedIds = order.styles.map((s) => s.styleId).join(",");
+
   useEffect(() => {
     if (!draft) return;
+    const ordered = new Set(orderedIds.split(",").filter(Boolean).map(Number));
     styleApi.dropStyles(order.dropId).then(async (all) => {
-      const live = all.filter((s) => s.status !== "cut");
-      const entries = await Promise.all(live.map(async (s) => [s.id, await styleApi.styleSizes(s.id)] as const));
-      setStyles(live);
+      // The core takes quantities only for Approved Styles. A Style that left
+      // Approved while on the order stays listed so its quantities can be cleared.
+      const shown = all.filter((s) => s.status === "approved" || ordered.has(s.id));
+      const entries = await Promise.all(shown.map(async (s) => [s.id, await styleApi.styleSizes(s.id)] as const));
+      setStyles(shown);
       setSizes(Object.fromEntries(entries));
     }, (raw) => setError(toCoreError(raw)));
-  }, [order.dropId, draft]);
+  }, [order.dropId, draft, orderedIds]);
 
   async function run(action: () => Promise<unknown>) {
     setError(undefined);
@@ -189,11 +195,14 @@ function OrderDetail({ order, onChanged }: { order: ProductionOrder; onChanged()
 
       {draft && (
         <div className="order-grid">
-          {styles.length === 0 && <p className="empty">The Drop has no Styles to order.</p>}
+          {styles.length === 0 && <p className="empty">The Drop has no Approved Styles to order.</p>}
           {styles.map((s) => (
             <div key={s.id} className="order-grid-style">
               <span>
                 {s.name} <span className="muted">· {s.color}</span>
+                {s.status !== "approved" && (
+                  <span className="muted"> · {styleStatusLabel[s.status]}: clear its quantities</span>
+                )}
               </span>
               {(sizes[s.id] ?? []).length === 0 ? (
                 <span className="muted">Set the Style's base and sizes first.</span>

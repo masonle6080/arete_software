@@ -65,7 +65,8 @@ fn from_row(row: &Row) -> rusqlite::Result<Style> {
 }
 
 /// Adds a Style in one color to a Drop. A new Style starts as Draft. The
-/// name and the color must not be blank.
+/// name and the color must not be blank. The Drop must be in Design or
+/// Sampling ([`drop::DropStage::takes_new_styles`]).
 pub fn create_style(lib: &Library, drop_id: DropId, name: &str, color: &str) -> CoreResult<Style> {
     let (name, color) = (name.trim(), color.trim());
     if name.is_empty() {
@@ -74,7 +75,7 @@ pub fn create_style(lib: &Library, drop_id: DropId, name: &str, color: &str) -> 
     if color.is_empty() {
         return Err(CoreError::InvalidInput { reason: "a Style needs a color".into() });
     }
-    drop::get_drop(lib, drop_id)?;
+    drop::check_takes_new_styles(&drop::get_drop(lib, drop_id)?)?;
     let conn = lib.writer()?;
     conn.execute(
         "INSERT INTO style (drop_id, name, color, status) VALUES (?1, ?2, ?3, ?4)",

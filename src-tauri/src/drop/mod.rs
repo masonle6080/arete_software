@@ -27,6 +27,19 @@ pub struct Drop {
     /// The stages the lifecycle lets this Drop move to now, so the UI never
     /// repeats the rules. A move can still be refused by a guard.
     pub moves: Vec<DropStage>,
+    /// Whether the founder can add or duplicate Styles on this Drop now
+    /// ([`DropStage::takes_new_styles`]).
+    pub can_add_styles: bool,
+}
+
+/// Refuses new or duplicated Styles on a Drop past Sampling.
+pub(crate) fn check_takes_new_styles(drop: &Drop) -> CoreResult<()> {
+    if drop.can_add_styles {
+        return Ok(());
+    }
+    Err(CoreError::InvalidInput {
+        reason: format!("a Drop in {} takes no new Styles; add Styles only in Design or Sampling", drop.stage.label()),
+    })
 }
 
 const COLUMNS: &str = "id, thesis_id, name, stage";
@@ -36,7 +49,14 @@ fn from_row(row: &Row) -> rusqlite::Result<Drop> {
     let stage = DropStage::from_db(&raw).ok_or_else(|| {
         rusqlite::Error::FromSqlConversionFailure(3, rusqlite::types::Type::Text, format!("unknown stage {raw}").into())
     })?;
-    Ok(Drop { id: row.get(0)?, thesis_id: row.get(1)?, name: row.get(2)?, stage, moves: stage.moves() })
+    Ok(Drop {
+        id: row.get(0)?,
+        thesis_id: row.get(1)?,
+        name: row.get(2)?,
+        stage,
+        moves: stage.moves(),
+        can_add_styles: stage.takes_new_styles(),
+    })
 }
 
 /// A reason a Drop move needs the founder's explicit confirmation. Guards

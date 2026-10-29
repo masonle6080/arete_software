@@ -44,6 +44,13 @@ impl DropStage {
         DropStage::ALL.into_iter().filter(|to| self.move_allowed(*to)).collect()
     }
 
+    /// Whether a Drop in this stage takes new or duplicated Styles. Only
+    /// Design and Sampling do: from Production on, every Style must already
+    /// be Approved or Cut.
+    pub fn takes_new_styles(self) -> bool {
+        matches!(self, DropStage::Design | DropStage::Sampling)
+    }
+
     /// The Thesis status that reaching this stage sets, if any. Releasing the
     /// Drop releases the Thesis; cancelling it returns the Thesis to
     /// Developing so it can get a new Drop.

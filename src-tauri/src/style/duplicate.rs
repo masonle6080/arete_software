@@ -17,17 +17,18 @@ use rusqlite::{params, Connection};
 use super::{base, get_style, Style, StyleId, StyleStatus};
 use crate::error::{CoreError, CoreResult};
 use crate::library::Library;
-use crate::{cost_sheet, decoration, design_decision, moodboard, tech_pack};
+use crate::{cost_sheet, decoration, design_decision, drop, moodboard, tech_pack};
 
 /// Copies Style `id` into a new Draft Style in `color`, on the same Drop,
 /// and returns the copy. The color must not be blank. Samples stay with the
-/// original.
+/// original. The Drop must be in Design or Sampling.
 pub fn duplicate_style(lib: &Library, id: StyleId, color: &str) -> CoreResult<Style> {
     let color = color.trim();
     if color.is_empty() {
         return Err(CoreError::InvalidInput { reason: "the copy needs a color".into() });
     }
     let original = get_style(lib, id)?;
+    drop::check_takes_new_styles(&drop::get_drop(lib, original.drop_id)?)?;
     let conn = lib.writer()?;
     let tx = conn.unchecked_transaction()?;
     tx.execute(
