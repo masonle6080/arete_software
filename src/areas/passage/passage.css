@@ -27,3 +27,8 @@
   white-space: nowrap;
 }
 .orphaned-passages button:hover { color: var(--fg); }
+
+.passage-design-decisions { list-style: none; margin: 0; padding: 0; max-width: 680px; }
+.passage-design-decisions li { padding: 6px 0; border-bottom: 1px solid var(--line); }
+.passage-design-decisions .meta { margin: 0; font-size: 12px; }
+.passage-design-decisions .rationale { margin: 4px 0 0; white-space: pre-wrap; }
