@@ -10,6 +10,7 @@ import {
 import { EssayScreen } from "../../essays";
 import { documentApi, type DocumentSummary } from "../../essays/api";
 import { passageApi, type Passage } from "../../passage/api";
+import { StyleTraceExport } from "../StyleTraceExport";
 import type { StyleSection, StyleSectionProps } from ".";
 
 /**
@@ -60,6 +61,7 @@ function DesignDecisionsSectionView({ style }: StyleSectionProps) {
 
   return (
     <div className="design-decisions">
+      <StyleTraceExport style={style} />
       {error && <p className="error">{error.message}</p>}
       {decisions.length === 0 ? (
         <p className="empty">No Design Decisions yet.</p>
