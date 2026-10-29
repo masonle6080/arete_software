@@ -8,7 +8,13 @@
 //!
 //! Domain command functions for this area: [`request_sample`],
 //! [`get_sample`], [`style_samples`], [`set_sample_feedback`],
-//! [`attach_sample_photos`], [`decide_sample`].
+//! [`attach_sample_photos`], [`decide_sample`]. Fit notes on Samples of
+//! Tech Pack Styles are in [`fit`]: [`sample_fit`], [`set_fit_note`].
+
+mod fit;
+
+pub use fit::{sample_fit, set_fit_note, FitCell, FitRow, SampleFit};
+pub(crate) use fit::{rounds_measuring_point_of_measure, rounds_measuring_size};
 
 use std::path::{Path, PathBuf};
 
