@@ -24,7 +24,7 @@ use crate::library::Library;
 use crate::media::{self, MediaRef};
 
 pub use base::{set_style_base, set_style_sizes, style_base, style_sizes, StyleBase};
-pub(crate) use base::blank_sizes_in_use;
+pub(crate) use base::{blank_sizes_in_use, read_base};
 pub use status::StyleStatus;
 
 pub type StyleId = i64;

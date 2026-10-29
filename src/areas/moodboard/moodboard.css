@@ -24,5 +24,28 @@
   border: 1px solid var(--line);
   border-radius: 6px;
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
+/* Excalidraw fills what the error line and the Passage link panel leave. */
+.moodboard-canvas > .excalidraw { flex: 1; min-height: 0; height: auto; }
 .moodboard-canvas > .error { margin: 0; padding: 6px 8px; }
+
+/* Links the one selected canvas item to a Passage. */
+.passage-link-panel {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  border-bottom: 1px solid var(--line);
+  font-size: 13px;
+}
+.passage-link-panel select {
+  font: inherit;
+  color: var(--fg);
+  background: transparent;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 4px 6px;
+  max-width: 420px;
+}

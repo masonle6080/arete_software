@@ -34,4 +34,4 @@ export interface StyleFile {
  * Mirrors `StyleBase` in `src-tauri/src/style/base.rs`: what a Style is
  * built on. Exactly one of a Blank or a Tech Pack.
  */
-export type StyleBase = { kind: "blank"; blankId: number };
+export type StyleBase = { kind: "blank"; blankId: number } | { kind: "techPack" };

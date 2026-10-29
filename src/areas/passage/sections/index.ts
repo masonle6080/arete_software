@@ -1,6 +1,8 @@
 import type { ComponentType } from "react";
 import type { Passage } from "../api";
+import { clipsSection } from "./ClipsSection";
 import { designDecisionsSection } from "./DesignDecisionsSection";
+import { moodboardItemsSection } from "./MoodboardItemsSection";
 
 /** Props every Passage detail section receives. */
 export interface PassageSectionProps {
@@ -23,4 +25,6 @@ export interface PassageSection {
  */
 export const passageSections: PassageSection[] = [
   designDecisionsSection,
+  moodboardItemsSection,
+  clipsSection,
 ];

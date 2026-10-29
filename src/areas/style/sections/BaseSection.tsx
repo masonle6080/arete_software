@@ -6,11 +6,13 @@ import type { StyleBase } from "../types";
 import type { StyleSection, StyleSectionProps } from ".";
 
 /**
- * The Style's base and its sizes. A Blank-based Style picks its sizes from
- * the Blank's sizes. The core owns both rules; this view only offers the
- * choices and shows refusals.
+ * The Style's base and its sizes. A base is a Blank or a Tech Pack. A
+ * Blank-based Style picks its sizes from the Blank's sizes; a Tech Pack
+ * Style takes them from its Point of Measure table (edited in the Tech Pack
+ * section). The core owns these rules; this view only offers the choices
+ * and shows refusals.
  */
-function BaseSectionView({ style }: StyleSectionProps) {
+function BaseSectionView({ style, onStyleChanged }: StyleSectionProps) {
   const [base, setBase] = useState<StyleBase | null>(null);
   const [sizes, setSizes] = useState<string[]>([]);
   const [blanks, setBlanks] = useState<Blank[]>([]);
@@ -25,7 +27,9 @@ function BaseSectionView({ style }: StyleSectionProps) {
       },
       (raw) => setError(toCoreError(raw)),
     );
-  }, [style.id]);
+    // `style` (not only its id): the Tech Pack section reports size changes
+    // through `onStyleChanged`, which hands every section a fresh Style.
+  }, [style]);
   useEffect(reload, [reload]);
 
   async function run(action: () => Promise<unknown>) {
@@ -40,9 +44,12 @@ function BaseSectionView({ style }: StyleSectionProps) {
 
   const blank = base?.kind === "blank" ? blanks.find((b) => b.id === base.blankId) : undefined;
 
-  function chooseBlank(value: string) {
+  async function chooseBase(value: string) {
     if (value === "") return;
-    run(() => styleApi.setStyleBase(style.id, { kind: "blank", blankId: Number(value) }));
+    const next: StyleBase =
+      value === "techPack" ? { kind: "techPack" } : { kind: "blank", blankId: Number(value) };
+    await run(() => styleApi.setStyleBase(style.id, next));
+    onStyleChanged();
   }
 
   function toggleSize(size: string) {
@@ -54,16 +61,29 @@ function BaseSectionView({ style }: StyleSectionProps) {
     <div className="style-base">
       {error && <p className="error">{error.message}</p>}
       <label>
-        Blank
-        <select value={blank?.id ?? ""} onChange={(e) => chooseBlank(e.target.value)}>
-          <option value="">{blanks.length === 0 ? "No Blanks yet: add one under Blanks" : "Choose a Blank"}</option>
-          {blanks.map((b) => (
-            <option key={b.id} value={b.id}>
-              {blankLabel(b)} ({b.vendorName})
-            </option>
-          ))}
+        Base
+        <select
+          value={base?.kind === "techPack" ? "techPack" : (blank?.id ?? "")}
+          onChange={(e) => chooseBase(e.target.value)}
+        >
+          <option value="">Choose a Blank or a Tech Pack</option>
+          <option value="techPack">Tech Pack (custom)</option>
+          <optgroup label={blanks.length === 0 ? "No Blanks yet: add one under Blanks" : "Blanks"}>
+            {blanks.map((b) => (
+              <option key={b.id} value={b.id}>
+                {blankLabel(b)} ({b.vendorName})
+              </option>
+            ))}
+          </optgroup>
         </select>
       </label>
+      {base?.kind === "techPack" && (
+        <p className="empty">
+          {sizes.length === 0
+            ? "No sizes yet. Add size columns to the Point of Measure table in the Tech Pack."
+            : `Sizes from the Tech Pack's Point of Measure table: ${sizes.join(", ")}`}
+        </p>
+      )}
       {blank && (
         <>
           <p className="empty">

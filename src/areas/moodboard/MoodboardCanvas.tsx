@@ -1,10 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Excalidraw, getSceneVersion, serializeAsJSON } from "@excalidraw/excalidraw";
 import "@excalidraw/excalidraw/index.css";
-import type { ExcalidrawInitialDataState, BinaryFileData } from "@excalidraw/excalidraw/types";
+import type { ExcalidrawInitialDataState, BinaryFileData, ExcalidrawImperativeAPI } from "@excalidraw/excalidraw/types";
 import { toCoreError, type CoreError } from "../../shell/coreError";
 import { mediaApi, moodboardApi } from "./api";
 import { mimeTypeOf } from "./mediaType";
+import { PassageLinkPanel } from "./PassageLinkPanel";
 
 interface Props {
   moodboardId: number;
@@ -20,6 +21,7 @@ const SAVE_DELAY_MS = 500;
  * scene, saves changes after a short pause, and imports every dropped or
  * pasted image into the library; the scene keeps only the media name as the
  * image's `fileId`. It knows nothing about the owner, so any owner reuses it.
+ * With one item selected, a panel links it to a Passage or unlinks it.
  */
 export default function MoodboardCanvas({ moodboardId }: Props) {
   const [initial, setInitial] = useState<ExcalidrawInitialDataState>();
@@ -27,6 +29,8 @@ export default function MoodboardCanvas({ moodboardId }: Props) {
   const pending = useRef<{ elements: Elements; appState: AppStateArg }>();
   const savedVersion = useRef<number>();
   const timer = useRef<ReturnType<typeof setTimeout>>();
+  const [api, setApi] = useState<ExcalidrawImperativeAPI>();
+  const [selected, setSelected] = useState<{ id: string; passageId?: string }>();
 
   useEffect(() => {
     let live = true;
@@ -67,6 +71,10 @@ export default function MoodboardCanvas({ moodboardId }: Props) {
   const onChange = useCallback(
     (elements: Elements, appState: AppStateArg) => {
       pending.current = { elements, appState };
+      setSelected((current) => {
+        const next = selectedItem(elements, appState);
+        return current?.id === next?.id && current?.passageId === next?.passageId ? current : next;
+      });
       clearTimeout(timer.current);
       timer.current = setTimeout(flush, SAVE_DELAY_MS);
     },
@@ -85,9 +93,13 @@ export default function MoodboardCanvas({ moodboardId }: Props) {
   return (
     <div className="moodboard-canvas">
       {error && <p className="error">{error.message}</p>}
+      {api && selected && (
+        <PassageLinkPanel api={api} elementId={selected.id} passageId={selected.passageId} />
+      )}
       {initial && (
         <Excalidraw
           initialData={initial}
+          excalidrawAPI={setApi}
           onChange={onChange}
           generateIdForFile={importImage}
           UIOptions={{ canvasActions: { loadScene: false, saveToActiveFile: false, export: false } }}
@@ -95,6 +107,17 @@ export default function MoodboardCanvas({ moodboardId }: Props) {
       )}
     </div>
   );
+}
+
+/** The one selected element and its linked Passage, or undefined. */
+function selectedItem(elements: Elements, appState: AppStateArg) {
+  const chosen = appState.selectedElementIds ?? {};
+  const ids = Object.keys(chosen).filter((id) => chosen[id]);
+  if (ids.length !== 1) return undefined;
+  const el = elements.find((e) => e.id === ids[0] && !e.isDeleted);
+  if (!el) return undefined;
+  const passageId = el.customData?.passageId;
+  return { id: el.id, passageId: typeof passageId === "string" ? passageId : undefined };
 }
 
 /** The saved scene plus the image bytes it references, read from the library. */

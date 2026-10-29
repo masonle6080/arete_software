@@ -5,7 +5,8 @@ import type { Area } from "../../shell/area";
 import { toCoreError, type CoreError } from "../../shell/coreError";
 import { documentaryApi } from "../documentary/api";
 import type { Documentary } from "../documentary/types";
-import { clipApi, type Clip } from "./api";
+import { clipApi, type Clip, type ClipFilter } from "./api";
+import { ClipDetails, passageLabel, useAllPassages } from "./ClipDetails";
 import "./clips.css";
 
 const VIDEO_EXTENSIONS = ["mov", "mp4", "m4v", "avi", "mkv", "mts", "m2ts", "webm", "mxf", "3gp"];
@@ -131,10 +132,23 @@ function ClipsScreen() {
   const [docClips, setDocClips] = useState<Map<number, Clip[]>>(new Map());
   // The Documentary the pool is filtered by, or null for every Clip.
   const [filter, setFilter] = useState<number | null>(null);
+  // The tag and linked-Passage filters, applied by the core.
+  const [linkFilter, setLinkFilter] = useState<ClipFilter>({ tag: null, passageId: null });
+  const [tags, setTags] = useState<string[]>([]);
+  const passageGroups = useAllPassages(setError);
 
+  const reload = useCallback(async () => {
+    try {
+      const filtered = linkFilter.tag !== null || linkFilter.passageId !== null;
+      setClips(await (filtered ? clipApi.filterClips(linkFilter) : clipApi.listClips()));
+      setTags(await clipApi.allTags());
+    } catch (raw) {
+      setError(toCoreError(raw));
+    }
+  }, [linkFilter]);
   useEffect(() => {
-    clipApi.listClips().then(setClips, (raw) => setError(toCoreError(raw)));
-  }, []);
+    reload();
+  }, [reload]);
 
   const loadDocumentaries = useCallback(async () => {
     try {
@@ -180,7 +194,7 @@ function ClipsScreen() {
       }
     }
     setImporting(null);
-    if (paths.length > 0) setClips(await clipApi.listClips());
+    if (paths.length > 0) await reload();
   }
 
   function replace(updated: Clip) {
@@ -212,11 +226,62 @@ function ClipsScreen() {
           </select>
         </label>
       )}
-      {clips && clips.length === 0 && <p className="muted">No Clips yet. Import video to start the pool.</p>}
-      {clips && clips.length > 0 && shown?.length === 0 && <p className="muted">No Clips in this Documentary.</p>}
+      {tags.length > 0 && (
+        <label className="clips-filter">
+          Tag
+          <select
+            value={linkFilter.tag ?? ""}
+            onChange={(e) => setLinkFilter((f) => ({ ...f, tag: e.target.value === "" ? null : e.target.value }))}
+          >
+            <option value="">Any tag</option>
+            {tags.map((t) => (
+              <option key={t} value={t}>
+                {t}
+              </option>
+            ))}
+          </select>
+        </label>
+      )}
+      {passageGroups.length > 0 && (
+        <label className="clips-filter">
+          Passage
+          <select
+            value={linkFilter.passageId ?? ""}
+            onChange={(e) =>
+              setLinkFilter((f) => ({ ...f, passageId: e.target.value === "" ? null : e.target.value }))
+            }
+          >
+            <option value="">Any Passage</option>
+            {passageGroups.map((g, i) => (
+              <optgroup key={i} label={g.title}>
+                {g.passages.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {passageLabel(p)}
+                  </option>
+                ))}
+              </optgroup>
+            ))}
+          </select>
+        </label>
+      )}
+      {clips && clips.length === 0 && linkFilter.tag === null && linkFilter.passageId === null && (
+        <p className="muted">No Clips yet. Import video to start the pool.</p>
+      )}
+      {clips && shown?.length === 0 && (filter !== null || linkFilter.tag !== null || linkFilter.passageId !== null) && (
+        <p className="muted">No Clips match these filters.</p>
+      )}
       <ul className="clip-grid">
         {shown?.map((c) => (
           <ClipCard key={c.id} clip={c} onChange={replace} onError={setError}>
+            <ClipDetails
+              clip={c}
+              passageGroups={passageGroups}
+              onChanged={(updated) => {
+                if (updated) replace(updated);
+                reload();
+              }}
+              onError={setError}
+            />
             <ClipDocumentaries
               clip={c}
               all={documentaries}
