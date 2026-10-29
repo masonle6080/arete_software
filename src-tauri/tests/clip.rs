@@ -170,6 +170,19 @@ fn import_is_refused_when_the_library_is_disconnected() {
     assert_eq!(probe.calls.load(Ordering::SeqCst), 0, "nothing was probed");
 }
 
+#[test]
+fn a_clip_file_is_revealed_only_while_the_library_is_connected() {
+    let env = TestEnv::new();
+    let lib = env.library();
+    let src = source_file(&env, "take.mov", b"video");
+    let c = clip::import_clip(&lib, &src, &FakeProbe::new(None, None)).unwrap();
+
+    assert_eq!(clip::clip_file_to_reveal(&lib, c.id).unwrap(), c.path);
+    std::fs::rename(lib.root(), env.path("unplugged")).unwrap();
+    let err = clip::clip_file_to_reveal(&lib, c.id).unwrap_err();
+    assert!(matches!(err, CoreError::LibraryDisconnected { .. }), "{err:?}");
+}
+
 // --- The real ffmpeg probe. These skip when ffmpeg is not installed. ---
 
 fn ffmpeg_probe() -> Option<FfmpegProbe> {
