@@ -3,7 +3,8 @@
 //! Domain command functions for this area: [`create_style`], [`move_style`],
 //! [`get_style`], [`drop_styles`], [`attach_style_files`], [`style_files`],
 //! and, for the base and sizes (`base.rs`), [`style_base`], [`set_style_base`],
-//! [`style_sizes`], [`set_style_sizes`].
+//! [`style_sizes`], [`set_style_sizes`], and [`duplicate_style`]
+//! (`duplicate.rs`).
 //! The status rules live on [`StyleStatus`]. The Drop's Production guard
 //! reads Style statuses (see `guard_move` in `drop/mod.rs`).
 //!
@@ -12,6 +13,7 @@
 //! `style_id`, not new columns here.
 
 mod base;
+mod duplicate;
 mod status;
 
 use std::path::{Path, PathBuf};
@@ -25,6 +27,7 @@ use crate::media::{self, MediaRef};
 
 pub use base::{set_style_base, set_style_sizes, style_base, style_sizes, StyleBase};
 pub(crate) use base::{blank_sizes_in_use, read_base};
+pub use duplicate::duplicate_style;
 pub use status::StyleStatus;
 
 pub type StyleId = i64;

@@ -5,6 +5,8 @@ import type { Style, StyleBase, StyleFile, StyleStatus } from "./types";
 export const styleApi = {
   createStyle: (dropId: number, name: string, color: string) =>
     call<Style>("create_style", { dropId, name, color }),
+  /** The same design in another color: a new Draft Style on the same Drop. Samples are not copied. */
+  duplicateStyle: (id: number, color: string) => call<Style>("duplicate_style", { id, color }),
   moveStyle: (id: number, to: StyleStatus) => call<Style>("move_style", { id, to }),
   getStyle: (id: number) => call<Style>("get_style", { id }),
   dropStyles: (dropId: number) => call<Style[]>("drop_styles", { dropId }),

@@ -145,6 +145,21 @@ fn write_base(conn: &Connection, id: StyleId, base: StyleBase) -> CoreResult<()>
     Ok(())
 }
 
+/// Copies the base and chosen sizes of Style `from` onto the new Style
+/// `to`. A Tech Pack base points to `to`'s own Tech Pack, so copy the Tech
+/// Pack first (`tech_pack::copy_tech_pack`). Only `duplicate_style` calls
+/// this, inside its transaction.
+pub(super) fn copy_base(conn: &Connection, from: StyleId, to: StyleId) -> CoreResult<()> {
+    if let Some(base) = read_base(conn, from)? {
+        write_base(conn, to, base)?;
+    }
+    conn.execute(
+        "INSERT INTO style_size (style_id, size) SELECT ?2, size FROM style_size WHERE style_id = ?1",
+        params![from, to],
+    )?;
+    Ok(())
+}
+
 /// The sizes a base offers, in its order. Fails when the base record does
 /// not exist.
 fn offered_sizes(conn: &Connection, id: StyleId, base: StyleBase) -> CoreResult<Vec<String>> {

@@ -18,6 +18,7 @@
 //! [`remove_point_of_measure`], [`update_tech_pack_details`],
 //! [`attach_flats`].
 
+use std::collections::HashMap;
 use std::path::{Path, PathBuf};
 
 use rusqlite::{params, Connection, OptionalExtension};
@@ -385,4 +386,54 @@ fn require(lib: &Library, style_id: StyleId) -> CoreResult<TechPack> {
     get_tech_pack(lib, style_id)?.ok_or_else(|| CoreError::InvalidInput {
         reason: "set this Style's base to a Tech Pack first".into(),
     })
+}
+
+/// Copies the Tech Pack of Style `from`, if it has one, onto the new Style
+/// `to`, with new size and Point of Measure IDs. Only
+/// `style::duplicate_style` calls this, inside its transaction.
+pub(crate) fn copy_tech_pack(conn: &Connection, from: StyleId, to: StyleId) -> CoreResult<()> {
+    let copied = conn.execute(
+        "INSERT INTO tech_pack (style_id, unit, fabric_composition, fabric_weight, fabric_color, fabric_vendor_id,
+                                trims, construction_notes, label_placement)
+         SELECT ?2, unit, fabric_composition, fabric_weight, fabric_color, fabric_vendor_id,
+                trims, construction_notes, label_placement
+         FROM tech_pack WHERE style_id = ?1",
+        params![from, to],
+    )?;
+    if copied == 0 {
+        return Ok(());
+    }
+    let mut size_ids: HashMap<SizeId, SizeId> = HashMap::new();
+    for size in sizes(conn, from)? {
+        conn.execute("INSERT INTO tech_pack_size (style_id, name) VALUES (?1, ?2)", params![to, size.name])?;
+        size_ids.insert(size.id, conn.last_insert_rowid());
+    }
+    let mut stmt = conn.prepare("SELECT id, name, tolerance FROM tech_pack_pom WHERE style_id = ?1 ORDER BY id")?;
+    let poms: Vec<(PointOfMeasureId, String, f64)> =
+        stmt.query_map([from], |r| Ok((r.get(0)?, r.get(1)?, r.get(2)?)))?.collect::<Result<_, _>>()?;
+    let mut values = conn.prepare("SELECT size_id, value FROM tech_pack_pom_value WHERE pom_id = ?1")?;
+    for (old_id, name, tolerance) in poms {
+        conn.execute(
+            "INSERT INTO tech_pack_pom (style_id, name, tolerance) VALUES (?1, ?2, ?3)",
+            params![to, name, tolerance],
+        )?;
+        let new_id = conn.last_insert_rowid();
+        let cells: Vec<(SizeId, f64)> =
+            values.query_map([old_id], |r| Ok((r.get(0)?, r.get(1)?)))?.collect::<Result<_, _>>()?;
+        for (size_id, value) in cells {
+            if let Some(new_size) = size_ids.get(&size_id) {
+                conn.execute(
+                    "INSERT INTO tech_pack_pom_value (pom_id, size_id, value) VALUES (?1, ?2, ?3)",
+                    params![new_id, new_size, value],
+                )?;
+            }
+        }
+    }
+    // Flat drawings share their media: stored media never changes.
+    conn.execute(
+        "INSERT INTO tech_pack_flat (style_id, media, file_name, added_at)
+         SELECT ?2, media, file_name, added_at FROM tech_pack_flat WHERE style_id = ?1 ORDER BY id",
+        params![from, to],
+    )?;
+    Ok(())
 }

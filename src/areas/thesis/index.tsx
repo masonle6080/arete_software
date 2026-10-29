@@ -27,6 +27,7 @@ function ThesisScreen() {
           id={screen.id}
           backLabel="Thesis"
           onBack={() => setScreen({ kind: "thesis", id: screen.thesisId })}
+          onOpenStyle={(styleId) => setScreen({ kind: "style", thesisId: screen.thesisId, id: styleId })}
         />
       );
   }

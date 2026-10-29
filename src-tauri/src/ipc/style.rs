@@ -15,6 +15,11 @@ pub fn create_style(state: State<AppState>, drop_id: DropId, name: String, color
 }
 
 #[tauri::command]
+pub fn duplicate_style(state: State<AppState>, id: StyleId, color: String) -> CoreResult<Style> {
+    state.with_library(|lib| style::duplicate_style(lib, id, &color))
+}
+
+#[tauri::command]
 pub fn move_style(state: State<AppState>, id: StyleId, to: StyleStatus) -> CoreResult<Style> {
     state.with_library(|lib| style::move_style(lib, id, to))
 }

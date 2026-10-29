@@ -11,7 +11,9 @@
 //! link is the `design_decision.decoration_id` column; removing the
 //! Decoration clears it.
 
-use rusqlite::{params, OptionalExtension, Row};
+use std::collections::HashMap;
+
+use rusqlite::{params, Connection, OptionalExtension, Row};
 
 use crate::decoration::{self, DecorationId};
 use crate::document::{self, Passage};
@@ -212,4 +214,35 @@ fn complete(lib: &Library, mut decision: DesignDecision) -> CoreResult<DesignDec
     let ids: Vec<String> = stmt.query_map([decision.id], |r| r.get(0))?.collect::<Result<_, _>>()?;
     decision.passages = ids.iter().map(|pid| document::get_passage(lib, pid)).collect::<CoreResult<_>>()?;
     Ok(decision)
+}
+
+/// Copies every Design Decision of Style `from` onto the new Style `to`,
+/// with its Passage links. `decorations` maps each Decoration of `from` to
+/// its copy on `to`, so a copied Design Decision links to the copied
+/// Decoration. Only `style::duplicate_style` calls this, inside its
+/// transaction.
+pub(crate) fn copy_design_decisions(
+    conn: &Connection,
+    from: StyleId,
+    to: StyleId,
+    decorations: &HashMap<DecorationId, DecorationId>,
+) -> CoreResult<()> {
+    let mut stmt =
+        conn.prepare("SELECT id, aspect, rationale, decoration_id FROM design_decision WHERE style_id = ?1 ORDER BY id")?;
+    let rows: Vec<(DesignDecisionId, String, String, Option<DecorationId>)> =
+        stmt.query_map([from], |r| Ok((r.get(0)?, r.get(1)?, r.get(2)?, r.get(3)?)))?.collect::<Result<_, _>>()?;
+    for (old_id, aspect, rationale, decoration_id) in rows {
+        let decoration_id = decoration_id.and_then(|d| decorations.get(&d).copied());
+        conn.execute(
+            "INSERT INTO design_decision (style_id, aspect, rationale, decoration_id) VALUES (?1, ?2, ?3, ?4)",
+            params![to, aspect, rationale, decoration_id],
+        )?;
+        let new_id = conn.last_insert_rowid();
+        conn.execute(
+            "INSERT INTO design_decision_passage (design_decision_id, passage_id)
+             SELECT ?1, passage_id FROM design_decision_passage WHERE design_decision_id = ?2 ORDER BY id",
+            params![new_id, old_id],
+        )?;
+    }
+    Ok(())
 }
