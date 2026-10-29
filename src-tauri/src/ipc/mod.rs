@@ -156,6 +156,7 @@ pub fn run() {
             documentary::remove_clip_from_documentary,
             documentary::documentary_clips,
             documentary::clip_documentaries,
+            documentary::documentary_script,
             // export
             export::save_export_file,
             export::print_export,

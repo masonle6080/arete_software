@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState, type FormEvent } from "react";
 import { toCoreError, type CoreError } from "../../../shell/coreError";
 import { documentaryApi } from "../../documentary/api";
+import { ScriptScreen } from "../../documentary/ScriptScreen";
 import { documentaryStatusLabel, type Documentary, type DocumentaryStatus } from "../../documentary/types";
 import type { ThesisSection, ThesisSectionProps } from ".";
 
@@ -10,6 +11,7 @@ function DocumentarySectionView({ thesis }: ThesisSectionProps) {
   const [title, setTitle] = useState(thesis.title);
   const [error, setError] = useState<CoreError>();
   const [confirmAbandon, setConfirmAbandon] = useState(false);
+  const [scriptOpen, setScriptOpen] = useState(false);
 
   const reload = useCallback(() => {
     documentaryApi.thesisDocumentary(thesis.id).then(setDoc, (raw) => setError(toCoreError(raw)));
@@ -36,6 +38,10 @@ function DocumentarySectionView({ thesis }: ThesisSectionProps) {
 
   if (doc === undefined) return error ? <p className="error">{error.message}</p> : null;
 
+  if (doc && scriptOpen) {
+    return <ScriptScreen documentaryId={doc.id} backLabel={`← ${thesis.title}`} onClose={() => setScriptOpen(false)} />;
+  }
+
   return (
     <div className="documentary-section">
       {error && <p className="error">{error.message}</p>}
@@ -43,6 +49,7 @@ function DocumentarySectionView({ thesis }: ThesisSectionProps) {
         <div className="documentary-card">
           <p className="status">{documentaryStatusLabel[doc.status]}</p>
           <strong>{doc.title}</strong>
+          <button onClick={() => setScriptOpen(true)}>Open Script</button>
           {doc.moves.length > 0 && (
             <div className="actions">
               {doc.moves
