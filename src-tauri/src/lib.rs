@@ -29,6 +29,7 @@ pub mod blank;
 pub mod documentary;
 pub mod export;
 pub mod tech_pack;
+pub mod cost_sheet;
 
 pub fn run() {
     ipc::run()

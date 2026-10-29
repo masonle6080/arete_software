@@ -23,6 +23,7 @@ mod moodboard;
 mod blank;
 mod documentary;
 mod export;
+mod cost_sheet;
 
 use std::sync::Mutex;
 
@@ -190,6 +191,19 @@ pub fn run() {
             export::save_export_file,
             export::print_export,
             export::take_print_job,
+            // cost sheet
+            cost_sheet::cost_sheet,
+            cost_sheet::add_quantity_tier,
+            cost_sheet::set_quantity_tier,
+            cost_sheet::remove_quantity_tier,
+            cost_sheet::add_cost_line,
+            cost_sheet::update_cost_line,
+            cost_sheet::remove_cost_line,
+            cost_sheet::set_unit_cost,
+            cost_sheet::currency_settings,
+            cost_sheet::set_home_currency,
+            cost_sheet::set_exchange_rate,
+            cost_sheet::remove_exchange_rate,
         ])
         .run(tauri::generate_context!())
         .expect("error while running Arete");

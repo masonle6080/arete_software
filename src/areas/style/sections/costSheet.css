@@ -1,0 +1,32 @@
+.cost-sheet .hint { color: var(--muted); margin: 0 0 8px; }
+.cost-sheet input,
+.cost-sheet select {
+  font: inherit;
+  color: var(--fg);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  padding: 4px 6px;
+}
+.cost-sheet input:hover,
+.cost-sheet input:focus,
+.cost-sheet select:hover,
+.cost-sheet select:focus { border-color: var(--line); }
+.cost-sheet input.number { width: 6em; text-align: right; }
+.cost-sheet input.currency { width: 3.5em; text-transform: uppercase; }
+
+.cost-scroll { overflow-x: auto; max-width: 100%; }
+.cost-table { border-collapse: collapse; }
+.cost-table th,
+.cost-table td { padding: 2px 4px; text-align: left; white-space: nowrap; }
+.cost-table th { font-weight: 500; color: var(--muted); }
+.cost-table th.tier { text-align: right; }
+.cost-table .unit { color: var(--muted); font-size: 0.85rem; }
+.cost-table .remove { border: none; padding: 2px 6px; color: var(--muted); }
+.cost-table tfoot th,
+.cost-table tfoot td { border-top: 1px solid var(--line); padding-top: 6px; }
+.cost-table .total { text-align: right; font-weight: 600; padding-right: 10px; }
+
+.cost-add { display: flex; flex-wrap: wrap; gap: 16px; margin: 8px 0; }
+.cost-add form { display: flex; gap: 8px; }
+.cost-add input.number { border-color: var(--line); }
