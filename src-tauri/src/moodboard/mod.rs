@@ -9,7 +9,12 @@
 //!
 //! Domain command functions for this area: [`create_moodboard`],
 //! [`list_moodboards`], [`get_moodboard`], [`load_moodboard_scene`],
-//! [`save_moodboard_scene`].
+//! [`save_moodboard_scene`], and [`moodboard_items_of_passage`] (canvas items
+//! linked to a Passage, see [`passage_link`]).
+
+mod passage_link;
+
+pub use passage_link::{moodboard_items_of_passage, LinkedMoodboardItem};
 
 use rusqlite::{params, OptionalExtension, Row};
 
@@ -126,18 +131,23 @@ pub fn load_moodboard_scene(lib: &Library, id: MoodboardId) -> CoreResult<Option
         .ok_or(CoreError::NotFound { record: "Moodboard", id })
 }
 
-/// Replaces the canvas scene. Refuses with `InvalidInput` text that is not
-/// JSON, so a bad save cannot make the Moodboard unloadable.
+/// Replaces the canvas scene and, with it, the scene's Passage links (an
+/// element's `customData.passageId`). Refuses with `InvalidInput` text that
+/// is not JSON, so a bad save cannot make the Moodboard unloadable.
 pub fn save_moodboard_scene(lib: &Library, id: MoodboardId, scene: &str) -> CoreResult<()> {
-    if serde_json::from_str::<serde_json::Value>(scene).is_err() {
+    let Ok(value) = serde_json::from_str::<serde_json::Value>(scene) else {
         return Err(CoreError::InvalidInput { reason: "a Moodboard scene must be JSON".into() });
-    }
-    let changed = lib.writer()?.execute(
+    };
+    let db = lib.writer()?;
+    let tx = db.unchecked_transaction()?;
+    let changed = tx.execute(
         "UPDATE moodboard SET scene = ?1, updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now') WHERE id = ?2",
         params![scene, id],
     )?;
     if changed == 0 {
         return Err(CoreError::NotFound { record: "Moodboard", id });
     }
+    passage_link::reindex(&tx, id, &value)?;
+    tx.commit()?;
     Ok(())
 }

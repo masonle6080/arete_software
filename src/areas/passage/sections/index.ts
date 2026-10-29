@@ -1,5 +1,6 @@
 import type { ComponentType } from "react";
 import type { Passage } from "../api";
+import { moodboardItemsSection } from "./MoodboardItemsSection";
 
 /** Props every Passage detail section receives. */
 export interface PassageSectionProps {
@@ -20,4 +21,6 @@ export interface PassageSection {
  * `PassageSection`, then add one import and one line here. The view renders
  * each section under its title; the section owns its own data.
  */
-export const passageSections: PassageSection[] = [];
+export const passageSections: PassageSection[] = [
+  moodboardItemsSection,
+];

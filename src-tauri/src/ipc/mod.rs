@@ -119,6 +119,7 @@ pub fn run() {
             moodboard::list_moodboards,
             moodboard::load_moodboard_scene,
             moodboard::save_moodboard_scene,
+            moodboard::moodboard_items_of_passage,
             // document
             document::create_document,
             document::open_document,
