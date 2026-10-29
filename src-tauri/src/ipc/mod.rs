@@ -15,6 +15,7 @@ mod thesis;
 mod drop;
 mod style;
 mod sample;
+mod design_decision;
 mod media;
 mod moodboard;
 mod blank;
@@ -107,6 +108,12 @@ pub fn run() {
             sample::set_sample_feedback,
             sample::attach_sample_photos,
             sample::decide_sample,
+            // design_decision
+            design_decision::add_design_decision,
+            design_decision::style_design_decisions,
+            design_decision::link_design_decision_passage,
+            design_decision::unlink_design_decision_passage,
+            design_decision::passage_design_decisions,
             // blank
             blank::list_blanks,
             blank::create_blank,

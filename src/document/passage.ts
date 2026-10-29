@@ -66,6 +66,23 @@ export function passageIdsAt(doc: PMNode, pos: number): string[] {
   return ids.sort((a, b) => (size.get(a) ?? 0) - (size.get(b) ?? 0));
 }
 
+/**
+ * The document range a Passage covers, from its first character to its
+ * last, or `null` when the Passage is not in the document. Use it to land
+ * on a Passage (select it and scroll to it).
+ */
+export function passageRange(doc: PMNode, id: string): { from: number; to: number } | null {
+  let from = -1;
+  let to = -1;
+  doc.descendants((node, pos) => {
+    if (!node.isInline) return;
+    if (!node.marks.some((m) => m.type.name === PASSAGE && m.attrs.id === id)) return;
+    if (from < 0) from = pos;
+    to = pos + node.nodeSize;
+  });
+  return from < 0 ? null : { from, to };
+}
+
 declare module "@tiptap/core" {
   interface Commands<ReturnType> {
     passage: {
