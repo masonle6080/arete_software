@@ -23,6 +23,7 @@ use rusqlite::{params, OptionalExtension, Row};
 use crate::drop::{self, DropId};
 use crate::error::{CoreError, CoreResult};
 use crate::library::Library;
+use crate::lifecycle;
 use crate::media::{self, MediaRef};
 
 pub use base::{set_style_base, set_style_sizes, style_base, style_sizes, StyleBase};
@@ -87,11 +88,8 @@ pub fn create_style(lib: &Library, drop_id: DropId, name: &str, color: &str) -> 
 /// Moves a Style to `to`. The lifecycle ([`StyleStatus::move_allowed`])
 /// refuses skipped, reversed, and post-Cut moves.
 pub fn move_style(lib: &Library, id: StyleId, to: StyleStatus) -> CoreResult<Style> {
-    let style = get_style(lib, id)?;
-    if !style.status.move_allowed(to) {
-        return Err(CoreError::StatusMoveRefused { what: "Style", from: style.status.label(), to: to.label() });
-    }
-    lib.writer()?.execute("UPDATE style SET status = ?1 WHERE id = ?2", params![to.as_db(), id])?;
+    let from = get_style(lib, id)?.status;
+    lifecycle::move_status(lib, "style", id, from, to)?;
     get_style(lib, id)
 }
 

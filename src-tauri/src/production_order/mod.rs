@@ -27,6 +27,7 @@ use crate::cost_sheet::{self, HomeAmount, TierUnitCost};
 use crate::drop::{self, DropId, DropStage};
 use crate::error::{CoreError, CoreResult};
 use crate::library::Library;
+use crate::lifecycle;
 use crate::style::{self, StyleId, StyleStatus};
 use crate::vendor::{self, VendorId};
 
@@ -317,9 +318,7 @@ pub fn move_production_order(
     to: ProductionOrderStatus,
 ) -> CoreResult<ProductionOrder> {
     let order = get_production_order(lib, id)?;
-    if !order.status.move_allowed(to) {
-        return Err(CoreError::StatusMoveRefused { what: "Production Order", from: order.status.label(), to: to.label() });
-    }
+    lifecycle::check_move(order.status, to)?;
     let frozen = if to == ProductionOrderStatus::Placed { Some(costs_to_freeze(lib, &order)?) } else { None };
     let conn = lib.writer()?;
     let tx = conn.unchecked_transaction()?;

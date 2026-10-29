@@ -10,6 +10,7 @@ use rusqlite::{params, OptionalExtension, Row};
 use crate::documentary::{self, DocumentaryId, DocumentaryStatus};
 use crate::error::{CoreError, CoreResult};
 use crate::library::Library;
+use crate::lifecycle;
 use crate::style;
 use crate::thesis::{self, ThesisId, ThesisStatus};
 
@@ -88,9 +89,7 @@ pub enum DropMove {
 /// [`DropMove::NeedsConfirmation`] unless `confirmed` is true.
 pub fn move_drop(lib: &Library, id: DropId, to: DropStage, confirmed: bool) -> CoreResult<DropMove> {
     let drop = get_drop(lib, id)?;
-    if !drop.stage.move_allowed(to) {
-        return Err(CoreError::StatusMoveRefused { what: "Drop", from: drop.stage.label(), to: to.label() });
-    }
+    lifecycle::check_move(drop.stage, to)?;
     let warnings = guard_move(lib, &drop, to)?;
     if !warnings.is_empty() && !confirmed {
         return Ok(DropMove::NeedsConfirmation { drop, warnings });
