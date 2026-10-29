@@ -26,3 +26,13 @@
 .clip .documentaries { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; font-size: 13px; }
 .clip .documentaries .tag { border: 1px solid var(--line); border-radius: 999px; padding: 0 6px; display: inline-flex; gap: 4px; align-items: center; }
 .clip .documentaries .tag button { border: none; padding: 0; background: none; color: var(--muted); cursor: pointer; }
+
+.clip .clip-details { display: flex; flex-direction: column; gap: 4px; font-size: 13px; }
+.clip .clip-details .chips { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; }
+.clip .clip-details .tag { border: 1px solid var(--line); border-radius: 999px; padding: 0 6px; display: inline-flex; gap: 4px; align-items: center; max-width: 100%; }
+.clip .clip-details .tag button { border: none; padding: 0; background: none; color: var(--muted); cursor: pointer; }
+.clip .clip-details input,
+.clip .clip-details select,
+.clip .clip-details textarea { font: inherit; color: var(--fg); background: transparent; border: 1px solid var(--line); border-radius: 4px; }
+.clip .clip-details .new-tag { width: 80px; }
+.clip .clip-details .notes { resize: vertical; width: 100%; box-sizing: border-box; }

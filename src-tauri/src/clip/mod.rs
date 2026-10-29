@@ -7,9 +7,11 @@
 //! thumbnail. The real probe is [`FfmpegProbe`]; tests can pass a fake.
 //!
 //! Domain command functions for this area: [`import_clip`], [`list_clips`],
-//! [`get_clip`], [`set_date_shot`].
+//! [`get_clip`], [`set_date_shot`], and in [`links`] the tags, notes,
+//! Passage links, and filters.
 
 mod ffmpeg;
+mod links;
 
 use std::path::{Path, PathBuf};
 
@@ -20,6 +22,7 @@ use crate::library::Library;
 use crate::media::{self, MediaRef};
 
 pub use ffmpeg::FfmpegProbe;
+pub use links::*;
 
 /// What a probe reads from a video file.
 #[derive(Debug, Clone, PartialEq, Eq, Default)]
@@ -50,9 +53,13 @@ pub struct Clip {
     pub path: PathBuf,
     /// The JPEG thumbnail inside the library, if one was made.
     pub thumbnail_path: Option<PathBuf>,
+    /// Tags, in alphabetical order (case ignored).
+    pub tags: Vec<String>,
+    /// Free-text notes; empty when none.
+    pub notes: String,
 }
 
-const COLUMNS: &str = "id, media, original_name, duration_ms, date_shot, thumbnail";
+const COLUMNS: &str = "id, media, original_name, duration_ms, date_shot, thumbnail, notes";
 
 /// Imports the video at `source` into the Clip pool. Importing the same
 /// content again returns the existing Clip unchanged.
@@ -154,14 +161,17 @@ fn find_by_media(lib: &Library, video: &MediaRef) -> CoreResult<Option<Clip>> {
 fn from_row(lib: &Library, r: &Row) -> rusqlite::Result<Clip> {
     let video = MediaRef::from_stored(r.get::<_, String>(1)?);
     let thumbnail: Option<String> = r.get(5)?;
+    let id: i64 = r.get(0)?;
     Ok(Clip {
-        id: r.get(0)?,
+        id,
         path: media::media_path(lib, &video),
         media: video,
         original_name: r.get(2)?,
         duration_ms: r.get::<_, Option<i64>>(3)?.map(|d| d as u64),
         date_shot: r.get(4)?,
         thumbnail_path: thumbnail.map(|t| media::media_path(lib, &MediaRef::from_stored(t))),
+        tags: links::tags_of(lib, id)?,
+        notes: r.get(6)?,
     })
 }
 
