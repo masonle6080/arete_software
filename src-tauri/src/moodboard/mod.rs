@@ -16,7 +16,7 @@ mod passage_link;
 
 pub use passage_link::{moodboard_items_of_passage, LinkedMoodboardItem};
 
-use rusqlite::{params, OptionalExtension, Row};
+use rusqlite::{params, Connection, OptionalExtension, Row};
 
 use crate::error::{CoreError, CoreResult};
 use crate::library::Library;
@@ -149,5 +149,30 @@ pub fn save_moodboard_scene(lib: &Library, id: MoodboardId, scene: &str) -> Core
     }
     passage_link::reindex(&tx, id, &value)?;
     tx.commit()?;
+    Ok(())
+}
+
+/// Copies the Moodboard of Style `from`, if it has one, onto the new Style
+/// `to`: its title and scene, and, through the save path's reindex, its
+/// Passage links. Only `style::duplicate_style` calls this, inside its
+/// transaction.
+pub(crate) fn copy_style_moodboard(db: &Connection, from: StyleId, to: StyleId) -> CoreResult<()> {
+    let (kind, from_id) = MoodboardOwner::Style(from).parts();
+    let board: Option<(String, Option<String>)> = db
+        .query_row(
+            "SELECT title, scene FROM moodboard WHERE owner_kind = ?1 AND owner_id = ?2 ORDER BY id LIMIT 1",
+            params![kind, from_id],
+            |r| Ok((r.get(0)?, r.get(1)?)),
+        )
+        .optional()?;
+    let Some((title, scene)) = board else { return Ok(()) };
+    db.execute(
+        "INSERT INTO moodboard (owner_kind, owner_id, title, scene) VALUES (?1, ?2, ?3, ?4)",
+        params![kind, to, title, scene],
+    )?;
+    let id = db.last_insert_rowid();
+    if let Some(value) = scene.as_deref().and_then(|s| serde_json::from_str::<serde_json::Value>(s).ok()) {
+        passage_link::reindex(db, id, &value)?;
+    }
     Ok(())
 }

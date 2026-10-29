@@ -104,6 +104,7 @@ pub fn run() {
             style::set_style_base,
             style::style_sizes,
             style::set_style_sizes,
+            style::duplicate_style,
             // tech pack
             tech_pack::get_tech_pack,
             tech_pack::add_tech_pack_size,

@@ -14,6 +14,7 @@
 //! copy must map each old Decoration ID to its new one and set the copied
 //! Design Decision's `decoration_id` from that map.
 
+use std::collections::HashMap;
 use std::path::{Path, PathBuf};
 
 use rusqlite::{params, Connection, OptionalExtension, Row};
@@ -214,4 +215,34 @@ fn write_colors(conn: &Connection, id: DecorationId, colors: &[String]) -> CoreR
         )?;
     }
     Ok(())
+}
+
+/// Copies every Decoration of Style `from` onto the new Style `to`, with
+/// its colors and artwork. Returns each old Decoration ID with its copy's
+/// ID. Only `style::duplicate_style` calls this, inside its transaction.
+pub(crate) fn copy_decorations(
+    conn: &Connection,
+    from: StyleId,
+    to: StyleId,
+) -> CoreResult<HashMap<DecorationId, DecorationId>> {
+    let mut stmt = conn.prepare("SELECT id FROM decoration WHERE style_id = ?1 ORDER BY id")?;
+    let old_ids: Vec<DecorationId> = stmt.query_map([from], |r| r.get(0))?.collect::<Result<_, _>>()?;
+    let mut copies = HashMap::new();
+    for old_id in old_ids {
+        // The artwork media is shared: stored media never changes.
+        conn.execute(
+            "INSERT INTO decoration (style_id, technique, placement, size, artwork_media, artwork_file_name, vendor_id)
+             SELECT ?1, technique, placement, size, artwork_media, artwork_file_name, vendor_id
+             FROM decoration WHERE id = ?2",
+            params![to, old_id],
+        )?;
+        let new_id = conn.last_insert_rowid();
+        conn.execute(
+            "INSERT INTO decoration_color (decoration_id, position, color)
+             SELECT ?1, position, color FROM decoration_color WHERE decoration_id = ?2",
+            params![new_id, old_id],
+        )?;
+        copies.insert(old_id, new_id);
+    }
+    Ok(copies)
 }
