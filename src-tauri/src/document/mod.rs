@@ -18,7 +18,7 @@ mod thesis_link;
 
 use std::path::PathBuf;
 
-use rusqlite::{params, OptionalExtension, Row};
+use rusqlite::{params, Connection, OptionalExtension, Row};
 
 use crate::error::{CoreError, CoreResult};
 use crate::library::Library;
@@ -157,10 +157,25 @@ pub fn open_document(lib: &Library, id: i64) -> CoreResult<Document> {
 /// Saves a document's title and Markdown text. The file holds exactly
 /// `edit.markdown`, so the document reloads unchanged.
 pub fn save_document(lib: &Library, id: i64, edit: &DocumentEdit) -> CoreResult<DocumentSummary> {
+    save_with(lib, id, edit, |_| Ok(()))
+}
+
+/// Saves a document and runs `also` on the same transaction, so the file and
+/// the records change together or not at all. The order: every database
+/// write first, then the file (through a temporary file and a rename), then
+/// the commit. A failed database write leaves the file untouched. A failed
+/// commit puts the old text back.
+fn save_with(
+    lib: &Library,
+    id: i64,
+    edit: &DocumentEdit,
+    also: impl FnOnce(&Connection) -> CoreResult<()>,
+) -> CoreResult<DocumentSummary> {
     let db = lib.writer()?;
     let rec = find(lib, id)?;
-    write_atomically(&file_path(lib, &rec.file_name), &edit.markdown)?;
-    db.execute(
+    let path = file_path(lib, &rec.file_name);
+    let tx = db.unchecked_transaction()?;
+    tx.execute(
         "UPDATE document
          SET title = ?2,
              updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now'),
@@ -168,6 +183,14 @@ pub fn save_document(lib: &Library, id: i64, edit: &DocumentEdit) -> CoreResult<
          WHERE id = ?1",
         params![id, edit.title],
     )?;
+    also(&tx)?;
+    let old = std::fs::read_to_string(&path)?;
+    write_atomically(&path, &edit.markdown)?;
+    if let Err(e) = tx.commit() {
+        // Best effort: the commit error is the one the founder needs to see.
+        let _ = write_atomically(&path, &old);
+        return Err(e.into());
+    }
     Ok(find(lib, id)?.summary)
 }
 

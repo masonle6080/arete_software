@@ -154,6 +154,26 @@ fn a_save_report_with_a_malformed_or_repeated_id_is_refused() {
 }
 
 #[test]
+fn a_save_the_database_refuses_leaves_the_file_and_the_passages_as_they_were() {
+    let env = TestEnv::new();
+    let lib = env.library();
+    let essay = document::create_document(&lib, DocumentKind::Essay, "Essay").unwrap();
+    document::save_document_with_passages(&lib, essay.id, &edit(BRAVE), &report(&[("p-brave", "brave new")]))
+        .unwrap();
+    // Another process holds the database's write lock, so every write fails.
+    let other = rusqlite::Connection::open(lib.root().join("arete.sqlite")).unwrap();
+    other.execute_batch("BEGIN IMMEDIATE").unwrap();
+
+    let md = "Hello <!--passage:p-brave-->bold<!--/passage:p-brave--> world.\n";
+    let result = document::save_document_with_passages(&lib, essay.id, &edit(md), &report(&[("p-brave", "bold")]));
+    other.execute_batch("ROLLBACK").unwrap();
+
+    assert!(result.is_err(), "{result:?}");
+    assert_eq!(document::open_document(&lib, essay.id).unwrap().markdown, BRAVE);
+    assert_eq!(document::get_passage(&lib, "p-brave").unwrap().last_known_text, "brave new");
+}
+
+#[test]
 fn an_unknown_passage_is_not_found() {
     let env = TestEnv::new();
     let lib = env.library();
