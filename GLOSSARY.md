@@ -15,7 +15,7 @@ A long-form written piece, authored in the app, that explores one idea. An Essay
 _Avoid_: Article, post, writing
 
 **Passage**:
-A selected span of text within an Essay that motivates one or more Design Decisions.
+A selected span of text within an Essay or a Script that motivates one or more Design Decisions.
 _Avoid_: Quote, excerpt, highlight
 
 **Moodboard**:

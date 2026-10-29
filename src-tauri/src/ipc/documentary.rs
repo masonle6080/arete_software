@@ -4,6 +4,7 @@ use tauri::State;
 
 use super::AppState;
 use crate::clip::Clip;
+use crate::document::Document;
 use crate::documentary::{self, Documentary, DocumentaryId, DocumentaryStatus};
 use crate::error::CoreResult;
 use crate::thesis::ThesisId;
@@ -46,4 +47,10 @@ pub fn documentary_clips(state: State<AppState>, id: DocumentaryId) -> CoreResul
 #[tauri::command]
 pub fn clip_documentaries(state: State<AppState>, clip_id: i64) -> CoreResult<Vec<Documentary>> {
     state.with_library(|lib| documentary::clip_documentaries(lib, clip_id))
+}
+
+/// Opens the Script of a Documentary, creating it on first open.
+#[tauri::command]
+pub fn documentary_script(state: State<AppState>, id: DocumentaryId) -> CoreResult<Document> {
+    state.with_library(|lib| documentary::documentary_script(lib, id))
 }
