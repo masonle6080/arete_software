@@ -3,7 +3,8 @@
 //! Domain command functions for this area: [`create_documentary`],
 //! [`move_documentary`], [`get_documentary`], [`thesis_documentary`],
 //! [`list_documentaries`], and the Clip links [`add_clip`], [`remove_clip`],
-//! [`documentary_clips`], [`clip_documentaries`]. The lifecycle rules live on
+//! [`documentary_clips`], [`clip_documentaries`], and the Script
+//! [`documentary_script`]. The lifecycle rules live on
 //! [`DocumentaryStatus`]. Releasing a Drop before its Thesis's Documentary
 //! is Released warns (see `guard_move` in `drop/mod.rs`).
 
@@ -12,6 +13,7 @@ mod status;
 use rusqlite::{params, OptionalExtension, Row};
 
 use crate::clip::{self, Clip};
+use crate::document::{self, Document, DocumentKind};
 use crate::error::{CoreError, CoreResult};
 use crate::library::Library;
 use crate::thesis::{self, ThesisId};
@@ -140,4 +142,20 @@ pub fn get_documentary(lib: &Library, id: DocumentaryId) -> CoreResult<Documenta
         .query_row(&format!("SELECT {COLUMNS} FROM documentary WHERE id = ?1"), [id], from_row)
         .optional()?
         .ok_or(CoreError::NotFound { record: "Documentary", id })
+}
+
+/// The Script of a Documentary: a document of kind Script, written and saved
+/// like an Essay (Markdown, Passages, save reports) through the document
+/// module. Each Documentary has exactly one. The first call creates it, empty
+/// and titled like the Documentary; later calls open the same one.
+pub fn documentary_script(lib: &Library, id: DocumentaryId) -> CoreResult<Document> {
+    let doc = get_documentary(lib, id)?;
+    let script_id: Option<i64> =
+        lib.db().query_row("SELECT script_id FROM documentary WHERE id = ?1", [id], |r| r.get(0))?;
+    if let Some(script_id) = script_id {
+        return document::open_document(lib, script_id);
+    }
+    let script = document::create_document(lib, DocumentKind::Script, &doc.title)?;
+    lib.writer()?.execute("UPDATE documentary SET script_id = ?1 WHERE id = ?2", params![script.id, id])?;
+    Ok(script)
 }
