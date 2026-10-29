@@ -5,6 +5,7 @@ import { samplesSection } from "./SamplesSection";
 import { baseSection } from "./BaseSection";
 import { moodboardSection } from "./MoodboardSection";
 import { designDecisionsSection } from "./DesignDecisionsSection";
+import { decorationsSection } from "./DecorationsSection";
 
 /** Props every Style view section receives. */
 export interface StyleSectionProps {
@@ -30,6 +31,7 @@ export interface StyleSection {
 export const styleSections: StyleSection[] = [
   filesSection,
   baseSection,
+  decorationsSection,
   designDecisionsSection,
   moodboardSection,
   samplesSection,
