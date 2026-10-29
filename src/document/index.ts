@@ -1,0 +1,23 @@
+/**
+ * The document module: Markdown <-> editor document for Essays and Scripts.
+ *
+ * - `documentExtensions`: give these to the TipTap editor.
+ * - `fromMarkdown(md, schema?)`: file text -> editor document.
+ * - `toMarkdown(doc)`: editor document -> file text.
+ *
+ * - `passagesIn(doc)`: the Passages present in a document and their text.
+ * - `passageRange(doc, id)`: the range one Passage covers, to land on it.
+ * - `saveReport(doc)`: the Markdown plus `passagesIn(doc)`. The editor sends
+ *   it to the core on every save (spec #1).
+ * - Editor commands `setPassage()` and `unsetPassage(id)`.
+ * - `exportMarkdown(title, md)` and `exportHtml(title, md)`: the document
+ *   for use outside the app, with no Passage markers.
+ *
+ * A Passage is a mark carrying its ID in the editor, and a pair of
+ * HTML-comment markers in Markdown (see `markdown.ts` and `passage.ts`).
+ */
+export { documentExtensions, documentSchema } from "./extensions";
+export { fromMarkdown, toMarkdown } from "./markdown";
+export { exportHtml, exportMarkdown } from "./export";
+export { newPassageId, passageIdsAt, passageRange, passagesIn, type PassageText } from "./passage";
+export { saveReport, type SaveReport } from "./saveReport";

@@ -1,0 +1,22 @@
+.essay-list-header { display: flex; align-items: center; justify-content: space-between; }
+.essay-list { list-style: none; padding: 0; margin: 0; }
+.essay-list li { border-bottom: 1px solid var(--line); }
+.essay-list button {
+  width: 100%;
+  border: none;
+  border-radius: 0;
+  padding: 12px 4px;
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  text-align: left;
+}
+.essay-list time { color: var(--muted); font-size: 13px; }
+.essay-back { border: none; color: var(--muted); padding-left: 0; }
+.muted { color: var(--muted); }
+
+.essay-theses { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 8px 0 16px; font-size: 13px; }
+.essay-thesis-chip { display: inline-flex; align-items: center; gap: 4px; border: 1px solid var(--line); border-radius: 999px; padding: 2px 4px 2px 10px; }
+.essay-thesis-chip button { border: none; padding: 0 6px; color: var(--muted); }
+.essay-theses select { font: inherit; color: var(--fg); background: transparent; border: 1px solid var(--line); border-radius: 6px; padding: 2px 6px; }
+.essay-export { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 0 0 16px; font-size: 13px; }

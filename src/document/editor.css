@@ -1,0 +1,72 @@
+.document-editor {
+  max-width: 680px;
+  margin: 0 auto;
+  padding: 24px 0 96px;
+  font-family: "Iowan Old Style", Georgia, serif;
+  font-size: 19px;
+  line-height: 1.6;
+}
+
+.document-title {
+  width: 100%;
+  border: none;
+  outline: none;
+  background: transparent;
+  color: var(--fg);
+  font: inherit;
+  font-size: 32px;
+  font-weight: 600;
+  margin-bottom: 16px;
+}
+
+.document-body .ProseMirror {
+  outline: none;
+  min-height: 60vh;
+}
+.document-body .ProseMirror > :first-child { margin-top: 0; }
+.document-body blockquote {
+  margin-left: 0;
+  padding-left: 16px;
+  border-left: 3px solid var(--line);
+  color: var(--muted);
+}
+.document-body pre {
+  font-size: 14px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  overflow-x: auto;
+}
+.document-body a { color: inherit; }
+
+.document-status {
+  position: fixed;
+  right: 24px;
+  bottom: 16px;
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+/* Passages: a faint tint. Nested and overlapping Passages stack the tint. */
+.document-body .passage {
+  background: rgba(214, 170, 40, 0.13);
+  border-radius: 2px;
+}
+@media (prefers-color-scheme: dark) {
+  .document-body .passage { background: rgba(230, 190, 80, 0.14); }
+}
+
+.passage-bar {
+  display: flex;
+  gap: 8px;
+  min-height: 28px;
+  margin-bottom: 8px;
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+}
+.passage-bar button {
+  font-size: 12px;
+  padding: 3px 10px;
+  color: var(--muted);
+}
+.passage-bar button:disabled { opacity: 0.4; }

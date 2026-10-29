@@ -1,0 +1,34 @@
+.drop-orders { margin-top: 24px; }
+.drop-orders h3 { font-size: 0.9rem; margin: 0 0 6px; }
+.drop-orders .empty,
+.drop-orders .muted { color: var(--muted); }
+.drop-orders .empty { margin: 0; }
+.drop-orders table { border-collapse: collapse; max-width: 720px; width: 100%; }
+.drop-orders th,
+.drop-orders td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--line); }
+.drop-orders th { font-weight: 500; color: var(--muted); font-size: 0.85rem; }
+.drop-orders .num { text-align: right; font-variant-numeric: tabular-nums; }
+.order-table tbody tr { cursor: pointer; }
+.order-table tbody tr:hover,
+.order-table tbody tr.open { background: var(--line); }
+.order-create { display: flex; gap: 8px; margin-top: 8px; }
+.drop-orders select,
+.drop-orders input {
+  font: inherit;
+  color: var(--fg);
+  background: transparent;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 6px 8px;
+}
+.order-detail { margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--line); max-width: 720px; }
+.order-detail .status { color: var(--muted); margin: 0; font-size: 0.85rem; }
+.order-detail .actions { display: flex; gap: 8px; margin-top: 8px; }
+.order-date { display: block; margin-top: 12px; }
+.order-grid { margin-top: 12px; display: grid; gap: 8px; }
+.order-grid-style { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
+.order-sizes { display: flex; flex-wrap: wrap; gap: 8px; }
+.order-sizes label { display: flex; align-items: center; gap: 4px; }
+.order-sizes input { width: 72px; }
+.order-costs { margin-top: 12px; }
+.order-costs tfoot td { font-weight: 500; border-bottom: none; }

@@ -1,0 +1,23 @@
+.fit-notes .empty { color: var(--muted); margin: 0 0 8px; }
+.fit-scroll { overflow-x: auto; max-width: 100%; }
+.fit-table { border-collapse: collapse; }
+.fit-table th,
+.fit-table td { padding: 2px 6px; text-align: left; white-space: nowrap; }
+.fit-table th { font-weight: 500; color: var(--muted); }
+.fit-table th[scope="row"] { color: var(--fg); }
+.fit-cell .spec { color: var(--muted); display: inline-block; min-width: 2.5em; text-align: right; }
+.fit-cell input.measured {
+  font: inherit;
+  color: var(--fg);
+  background: transparent;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 2px 4px;
+  margin: 0 4px;
+  width: 5em;
+  text-align: right;
+}
+.fit-cell .deviation { font-size: 0.85rem; }
+.fit-cell.within .deviation { color: var(--muted); }
+.fit-cell.outside .deviation { color: var(--error); font-weight: 600; }
+.fit-cell.outside input.measured { border-color: var(--error); }

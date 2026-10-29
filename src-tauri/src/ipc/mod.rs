@@ -1,0 +1,219 @@
+//! Thin Tauri IPC layer.
+//!
+//! Each area has one file here (`ipc/<area>.rs`). Its commands only unpack
+//! arguments, call the area's domain functions, and return the result. No
+//! rules live here. To add an area: add `mod <area>;` below and list its
+//! commands in `generate_handler!` under a `// <area>` comment, one command
+//! per line.
+
+mod clip;
+mod document;
+mod library;
+mod note;
+mod vendor;
+mod thesis;
+mod drop;
+mod style;
+mod tech_pack;
+mod sample;
+mod design_decision;
+mod decoration;
+mod media;
+mod moodboard;
+mod blank;
+mod documentary;
+mod export;
+mod cost_sheet;
+mod production_order;
+
+use std::sync::Mutex;
+
+use tauri::Manager;
+
+use crate::error::{CoreError, CoreResult};
+use crate::library::{AppConfig, Library};
+
+/// Shared app state behind every command.
+pub struct AppState {
+    pub config: AppConfig,
+    library: Mutex<Option<Library>>,
+}
+
+impl AppState {
+    pub fn new(config: AppConfig) -> Self {
+        AppState { config, library: Mutex::new(None) }
+    }
+
+    /// Runs `f` with the open library, or fails with `NoLibraryOpen`.
+    pub fn with_library<T>(&self, f: impl FnOnce(&Library) -> CoreResult<T>) -> CoreResult<T> {
+        let guard = self.library.lock().expect("library lock poisoned");
+        f(guard.as_ref().ok_or(CoreError::NoLibraryOpen)?)
+    }
+
+    /// Like [`AppState::with_library`], for commands that change the library.
+    pub fn with_library_mut<T>(&self, f: impl FnOnce(&mut Library) -> CoreResult<T>) -> CoreResult<T> {
+        let mut guard = self.library.lock().expect("library lock poisoned");
+        f(guard.as_mut().ok_or(CoreError::NoLibraryOpen)?)
+    }
+
+    /// Replaces the open library.
+    pub fn set_library(&self, lib: Library) {
+        *self.library.lock().expect("library lock poisoned") = Some(lib);
+    }
+}
+
+pub fn run() {
+    tauri::Builder::default()
+        .plugin(tauri_plugin_dialog::init())
+        .setup(|app| {
+            let dir = app.path().app_config_dir()?;
+            app.manage(AppState::new(AppConfig::new(dir)));
+            app.manage(crate::export::PrintJobs::default());
+            Ok(())
+        })
+        .invoke_handler(tauri::generate_handler![
+            // library
+            library::create_library,
+            library::open_library,
+            library::reopen_last_library,
+            library::current_library,
+            library::library_connected,
+            library::reconnect_library,
+            // vendor
+            vendor::list_vendors,
+            vendor::create_vendor,
+            vendor::update_vendor,
+            // note
+            note::list_notes,
+            note::add_note,
+            // thesis
+            thesis::create_thesis,
+            thesis::move_thesis,
+            thesis::list_theses,
+            thesis::get_thesis,
+            // drop
+            drop::create_drop,
+            drop::move_drop,
+            drop::thesis_drops,
+            drop::get_drop,
+            // style
+            style::create_style,
+            style::move_style,
+            style::get_style,
+            style::drop_styles,
+            style::attach_style_files,
+            style::style_files,
+            style::style_base,
+            style::set_style_base,
+            style::style_sizes,
+            style::set_style_sizes,
+            style::duplicate_style,
+            // tech pack
+            tech_pack::get_tech_pack,
+            tech_pack::add_tech_pack_size,
+            tech_pack::rename_tech_pack_size,
+            tech_pack::remove_tech_pack_size,
+            tech_pack::add_point_of_measure,
+            tech_pack::update_point_of_measure,
+            tech_pack::set_point_of_measure_value,
+            tech_pack::remove_point_of_measure,
+            tech_pack::update_tech_pack_details,
+            tech_pack::attach_tech_pack_flats,
+            // sample
+            sample::request_sample,
+            sample::style_samples,
+            sample::set_sample_feedback,
+            sample::attach_sample_photos,
+            sample::decide_sample,
+            sample::sample_fit,
+            sample::set_fit_note,
+            // design_decision
+            design_decision::add_design_decision,
+            design_decision::style_design_decisions,
+            design_decision::link_design_decision_passage,
+            design_decision::unlink_design_decision_passage,
+            design_decision::passage_design_decisions,
+            design_decision::set_design_decision_decoration,
+            // decoration
+            decoration::add_decoration,
+            decoration::update_decoration,
+            decoration::set_decoration_artwork,
+            decoration::clear_decoration_artwork,
+            decoration::remove_decoration,
+            decoration::style_decorations,
+            // blank
+            blank::list_blanks,
+            blank::create_blank,
+            blank::update_blank,
+            // media
+            media::import_media_bytes,
+            media::read_media,
+            // moodboard
+            moodboard::create_moodboard,
+            moodboard::list_moodboards,
+            moodboard::load_moodboard_scene,
+            moodboard::save_moodboard_scene,
+            moodboard::moodboard_items_of_passage,
+            // document
+            document::create_document,
+            document::open_document,
+            document::save_document,
+            document::list_documents,
+            document::link_essay_to_thesis,
+            document::unlink_essay_from_thesis,
+            document::theses_of_essay,
+            document::essays_of_thesis,
+            document::get_passage,
+            document::passages_of_document,
+            // clip
+            clip::list_clips,
+            clip::import_clip,
+            clip::set_clip_date_shot,
+            clip::reveal_clip,
+            clip::add_clip_tag,
+            clip::remove_clip_tag,
+            clip::set_clip_notes,
+            clip::all_clip_tags,
+            clip::filter_clips,
+            clip::link_clip_to_passage,
+            clip::unlink_clip_from_passage,
+            clip::clip_passages,
+            clip::passage_clips,
+            // documentary
+            documentary::create_documentary,
+            documentary::move_documentary,
+            documentary::thesis_documentary,
+            documentary::list_documentaries,
+            documentary::add_clip_to_documentary,
+            documentary::remove_clip_from_documentary,
+            documentary::documentary_clips,
+            documentary::clip_documentaries,
+            documentary::documentary_script,
+            // export
+            export::save_export_file,
+            export::print_export,
+            export::take_print_job,
+            // cost sheet
+            cost_sheet::cost_sheet,
+            cost_sheet::add_quantity_tier,
+            cost_sheet::set_quantity_tier,
+            cost_sheet::remove_quantity_tier,
+            cost_sheet::add_cost_line,
+            cost_sheet::update_cost_line,
+            cost_sheet::remove_cost_line,
+            cost_sheet::set_unit_cost,
+            cost_sheet::currency_settings,
+            cost_sheet::set_home_currency,
+            cost_sheet::set_exchange_rate,
+            cost_sheet::remove_exchange_rate,
+            // production_order
+            production_order::create_production_order,
+            production_order::get_production_order,
+            production_order::drop_production_orders,
+            production_order::set_order_quantity,
+            production_order::set_delivery_date,
+            production_order::move_production_order,
+        ])
+        .run(tauri::generate_context!())
+        .expect("error while running Arete");
+}

@@ -1,0 +1,43 @@
+/* Base print style for every PDF export. Paper is always light. */
+body:has(.print-screen) { background: #fff; }
+.print-screen { color: #111; background: #fff; min-height: 100vh; }
+
+.print-toolbar {
+  position: sticky;
+  top: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  background: #f4f4f2;
+  border-bottom: 1px solid #e2e2de;
+}
+.print-toolbar button { color: #111; border-color: #ccc; }
+.print-hint { color: #6b6b6b; font-size: 13px; }
+.print-missing { padding: 24px; }
+
+.print-page {
+  max-width: 680px;
+  margin: 0 auto;
+  padding: 40px 24px 64px;
+  font-family: "Iowan Old Style", Georgia, serif;
+  font-size: 12pt;
+  line-height: 1.5;
+}
+.print-page h1, .print-page h2, .print-page h3 { line-height: 1.2; break-after: avoid; }
+.print-page h1 { font-size: 22pt; margin: 0 0 18pt; }
+.print-page p, .print-page li, .print-page blockquote { orphans: 3; widows: 3; }
+.print-page blockquote { margin: 0 0 0 1em; padding-left: 1em; border-left: 2px solid #ccc; color: #333; }
+.print-page pre { white-space: pre-wrap; font-size: 10pt; background: #f4f4f2; padding: 8pt; break-inside: avoid; }
+.print-page code { font-size: 0.9em; }
+.print-page a { color: inherit; }
+.print-page img { max-width: 100%; break-inside: avoid; }
+.print-page table { border-collapse: collapse; width: 100%; break-inside: auto; }
+.print-page th, .print-page td { border: 1px solid #ccc; padding: 4pt 6pt; text-align: left; }
+.print-page tr { break-inside: avoid; }
+
+@page { margin: 18mm 16mm; }
+@media print {
+  .print-toolbar { display: none; }
+  .print-page { max-width: none; padding: 0; }
+}
