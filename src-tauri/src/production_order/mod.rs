@@ -21,7 +21,7 @@ pub use status::ProductionOrderStatus;
 
 use std::collections::HashMap;
 
-use rusqlite::{params, Connection, OptionalExtension, Row};
+use rusqlite::{params, OptionalExtension, Row};
 
 use crate::cost_sheet::{self, HomeAmount, TierUnitCost};
 use crate::drop::{self, DropId, DropStage};
@@ -208,11 +208,6 @@ pub fn set_delivery_date(lib: &Library, id: ProductionOrderId, date: Option<&str
     }
     lib.writer()?.execute("UPDATE production_order SET delivery_date = ?1 WHERE id = ?2", params![date, id])?;
     get_production_order(lib, id)
-}
-
-/// True when a Production Order with this ID exists.
-pub(crate) fn production_order_exists(conn: &Connection, id: ProductionOrderId) -> CoreResult<bool> {
-    Ok(conn.query_row("SELECT 1 FROM production_order WHERE id = ?1", [id], |_| Ok(())).optional()?.is_some())
 }
 
 /// Refuses anything that is not a real calendar date as `YYYY-MM-DD`.

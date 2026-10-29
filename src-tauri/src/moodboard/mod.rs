@@ -19,9 +19,9 @@ pub use passage_link::{moodboard_items_of_passage, LinkedMoodboardItem};
 use rusqlite::{params, Connection, OptionalExtension, Row};
 
 use crate::error::{CoreError, CoreResult};
-use crate::library::Library;
-use crate::style::{self, StyleId};
-use crate::thesis::{self, ThesisId};
+use crate::library::{self, Library};
+use crate::style::StyleId;
+use crate::thesis::ThesisId;
 
 pub type MoodboardId = i64;
 
@@ -60,8 +60,8 @@ impl MoodboardOwner {
 
     fn ensure_exists(self, lib: &Library) -> CoreResult<()> {
         match self {
-            MoodboardOwner::Thesis(id) => thesis::get_thesis(lib, id).map(drop),
-            MoodboardOwner::Style(id) => style::get_style(lib, id).map(drop),
+            MoodboardOwner::Thesis(id) => library::require_row(lib.db(), "thesis", "Thesis", id),
+            MoodboardOwner::Style(id) => library::require_row(lib.db(), "style", "Style", id),
         }
     }
 }
