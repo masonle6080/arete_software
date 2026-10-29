@@ -21,3 +21,8 @@ pub fn move_drop(state: State<AppState>, id: DropId, to: DropStage, confirmed: b
 pub fn thesis_drops(state: State<AppState>, thesis_id: ThesisId) -> CoreResult<ThesisDrops> {
     state.with_library(|lib| drop::thesis_drops(lib, thesis_id))
 }
+
+#[tauri::command]
+pub fn get_drop(state: State<AppState>, id: DropId) -> CoreResult<Drop> {
+    state.with_library(|lib| drop::get_drop(lib, id))
+}

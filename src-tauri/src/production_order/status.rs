@@ -4,33 +4,23 @@
 //! any status before Shipped. Placing freezes unit costs (see
 //! `production_order::move_production_order`).
 
-use std::fmt;
+use crate::lifecycle::status_enum;
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, serde::Serialize, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub enum ProductionOrderStatus {
-    Draft,
-    Placed,
-    InProduction,
-    Shipped,
-    Received,
-    Cancelled,
+status_enum! {
+    pub enum ProductionOrderStatus for "Production Order" {
+        Draft = ("Draft", "draft"),
+        Placed = ("Placed", "placed"),
+        InProduction = ("In Production", "in_production"),
+        Shipped = ("Shipped", "shipped"),
+        Received = ("Received", "received"),
+        Cancelled = ("Cancelled", "cancelled"),
+    }
 }
 
 impl ProductionOrderStatus {
-    /// Every status, in lifecycle order.
-    pub const ALL: [ProductionOrderStatus; 6] = [
-        ProductionOrderStatus::Draft,
-        ProductionOrderStatus::Placed,
-        ProductionOrderStatus::InProduction,
-        ProductionOrderStatus::Shipped,
-        ProductionOrderStatus::Received,
-        ProductionOrderStatus::Cancelled,
-    ];
-
     /// Whether the lifecycle lets an order move from `self` to `to`. The
-    /// guard on Placed (every Style has a Quantity Tier) lives in
-    /// `production_order/mod.rs`.
+    /// guards on Placed (every Style Approved and with a Quantity Tier) live
+    /// in `production_order/mod.rs`.
     pub fn move_allowed(self, to: ProductionOrderStatus) -> bool {
         use ProductionOrderStatus::*;
         matches!(
@@ -43,43 +33,5 @@ impl ProductionOrderStatus {
                 | (Placed, Cancelled)
                 | (InProduction, Cancelled)
         )
-    }
-
-    /// Every status the lifecycle lets an order move to from `self`.
-    pub fn moves(self) -> Vec<ProductionOrderStatus> {
-        ProductionOrderStatus::ALL.into_iter().filter(|to| self.move_allowed(*to)).collect()
-    }
-
-    /// The founder-facing name, for example "In Production".
-    pub fn label(self) -> &'static str {
-        match self {
-            ProductionOrderStatus::Draft => "Draft",
-            ProductionOrderStatus::Placed => "Placed",
-            ProductionOrderStatus::InProduction => "In Production",
-            ProductionOrderStatus::Shipped => "Shipped",
-            ProductionOrderStatus::Received => "Received",
-            ProductionOrderStatus::Cancelled => "Cancelled",
-        }
-    }
-
-    pub(crate) fn as_db(self) -> &'static str {
-        match self {
-            ProductionOrderStatus::Draft => "draft",
-            ProductionOrderStatus::Placed => "placed",
-            ProductionOrderStatus::InProduction => "in_production",
-            ProductionOrderStatus::Shipped => "shipped",
-            ProductionOrderStatus::Received => "received",
-            ProductionOrderStatus::Cancelled => "cancelled",
-        }
-    }
-
-    pub(crate) fn from_db(s: &str) -> Option<ProductionOrderStatus> {
-        ProductionOrderStatus::ALL.into_iter().find(|st| st.as_db() == s)
-    }
-}
-
-impl fmt::Display for ProductionOrderStatus {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.write_str(self.label())
     }
 }

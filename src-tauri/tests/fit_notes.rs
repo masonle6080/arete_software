@@ -155,12 +155,12 @@ fn a_fit_note_needs_a_point_of_measure_and_size_of_the_samples_own_tech_pack() {
     let f = fixture(&lib);
     let other = fixture(&lib);
 
-    let wrong_pom = sample::set_fit_note(&lib, f.sample.id, other.chest, f.m, Some(1.0));
+    let wrong_point_of_measure = sample::set_fit_note(&lib, f.sample.id, other.chest, f.m, Some(1.0));
     let wrong_size = sample::set_fit_note(&lib, f.sample.id, f.chest, other.m, Some(1.0));
     let not_a_number = sample::set_fit_note(&lib, f.sample.id, f.chest, f.m, Some(f64::NAN));
     let no_sample = sample::set_fit_note(&lib, 9999, f.chest, f.m, Some(1.0));
 
-    assert!(matches!(wrong_pom, Err(CoreError::InvalidInput { .. })), "{wrong_pom:?}");
+    assert!(matches!(wrong_point_of_measure, Err(CoreError::InvalidInput { .. })), "{wrong_point_of_measure:?}");
     assert!(matches!(wrong_size, Err(CoreError::InvalidInput { .. })), "{wrong_size:?}");
     assert!(matches!(not_a_number, Err(CoreError::InvalidInput { .. })), "{not_a_number:?}");
     assert!(matches!(no_sample, Err(CoreError::NotFound { record: "Sample", .. })), "{no_sample:?}");

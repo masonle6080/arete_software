@@ -16,6 +16,7 @@ use crate::clip::{self, Clip};
 use crate::document::{self, Document, DocumentKind};
 use crate::error::{CoreError, CoreResult};
 use crate::library::Library;
+use crate::lifecycle;
 use crate::thesis::{self, ThesisId};
 
 pub use status::DocumentaryStatus;
@@ -69,10 +70,7 @@ pub fn create_documentary(lib: &Library, thesis_id: ThesisId, title: &str) -> Co
 /// [`DocumentaryStatus::move_allowed`] does not allow.
 pub fn move_documentary(lib: &Library, id: DocumentaryId, to: DocumentaryStatus) -> CoreResult<Documentary> {
     let from = get_documentary(lib, id)?.status;
-    if !from.move_allowed(to) {
-        return Err(CoreError::StatusMoveRefused { what: "Documentary", from: from.label(), to: to.label() });
-    }
-    lib.writer()?.execute("UPDATE documentary SET status = ?1 WHERE id = ?2", params![to.as_db(), id])?;
+    lifecycle::move_status(lib, "documentary", id, from, to)?;
     get_documentary(lib, id)
 }
 

@@ -4,7 +4,7 @@ import { toCoreError, type CoreError } from "../../../shell/coreError";
 import { sampleApi, sampleOutcomeLabel, type Sample, type SampleOutcome } from "../../sample/api";
 import { vendorApi, type Vendor } from "../../vendor/api";
 import { NotesPanel } from "../../note/NotesPanel";
-import { FitNotes } from "./FitNotes";
+import { FitNotes } from "../../sample/FitNotes";
 import type { StyleSection, StyleSectionProps } from ".";
 
 const DECISIONS: SampleOutcome[] = ["approved", "revised", "rejected"];

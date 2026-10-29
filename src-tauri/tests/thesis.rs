@@ -99,7 +99,7 @@ fn the_manual_moves_are_exactly_the_four_the_founder_makes_by_hand() {
     let allowed: Vec<(ThesisStatus, ThesisStatus)> = ThesisStatus::ALL
         .into_iter()
         .flat_map(|from| ThesisStatus::ALL.into_iter().map(move |to| (from, to)))
-        .filter(|(from, to)| from.manual_move_allowed(*to))
+        .filter(|(from, to)| from.move_allowed(*to))
         .collect();
 
     assert_eq!(

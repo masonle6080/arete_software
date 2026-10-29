@@ -10,6 +10,7 @@
 pub mod error;
 pub mod ipc;
 pub mod migrations;
+mod lifecycle;
 
 // Domain areas. One module per area; add yours on its own line.
 pub mod library;

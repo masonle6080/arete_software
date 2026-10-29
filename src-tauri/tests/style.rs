@@ -208,3 +208,40 @@ fn a_style_needs_a_name_a_color_and_an_existing_drop() {
     assert!(matches!(err, CoreError::NotFound { record: "Style", id: 999 }), "{err:?}");
     assert_eq!(style::drop_styles(&lib, d.id).unwrap(), vec![]);
 }
+
+#[test]
+fn styles_are_added_only_while_the_drop_is_in_design_or_sampling() {
+    let env = TestEnv::new();
+    let lib = env.library();
+    let d = new_drop(&lib);
+    assert!(d.can_add_styles);
+    let tee = style::create_style(&lib, d.id, "Tee", "Bone").unwrap();
+    approve(&lib, tee.id);
+    drop::move_drop(&lib, d.id, DropStage::Sampling, false).unwrap();
+    assert!(drop::get_drop(&lib, d.id).unwrap().can_add_styles);
+    let hoodie = style::create_style(&lib, d.id, "Hoodie", "Black").unwrap();
+    style::move_style(&lib, hoodie.id, StyleStatus::Cut).unwrap();
+
+    drop::move_drop(&lib, d.id, DropStage::Production, false).unwrap();
+    assert!(!drop::get_drop(&lib, d.id).unwrap().can_add_styles);
+    let err = style::create_style(&lib, d.id, "Coat", "Black").unwrap_err();
+    assert!(matches!(err, CoreError::InvalidInput { .. }), "{err:?}");
+
+    drop::move_drop(&lib, d.id, DropStage::Released, true).unwrap();
+    let err = style::create_style(&lib, d.id, "Coat", "Black").unwrap_err();
+    assert!(matches!(err, CoreError::InvalidInput { .. }), "{err:?}");
+    assert_eq!(style::drop_styles(&lib, d.id).unwrap().len(), 2);
+}
+
+#[test]
+fn a_cancelled_drop_takes_no_new_styles() {
+    let env = TestEnv::new();
+    let lib = env.library();
+    let d = new_drop(&lib);
+    drop::move_drop(&lib, d.id, DropStage::Cancelled, false).unwrap();
+
+    let err = style::create_style(&lib, d.id, "Coat", "Black").unwrap_err();
+
+    assert!(matches!(err, CoreError::InvalidInput { .. }), "{err:?}");
+    assert!(!drop::get_drop(&lib, d.id).unwrap().can_add_styles);
+}

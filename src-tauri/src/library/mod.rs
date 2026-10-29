@@ -157,6 +157,24 @@ impl Library {
     }
 }
 
+/// True when `table` has a row with this `id`. Areas use it to check that a
+/// record they point to exists. `table` is always a table name from the code,
+/// never user input.
+pub(crate) fn row_exists(conn: &Connection, table: &'static str, id: i64) -> CoreResult<bool> {
+    let sql = format!("SELECT EXISTS (SELECT 1 FROM {table} WHERE id = ?1)");
+    Ok(conn.query_row(&sql, [id], |r| r.get(0))?)
+}
+
+/// Like [`row_exists`], but refuses a missing row with
+/// `NotFound { record, id }`.
+pub(crate) fn require_row(conn: &Connection, table: &'static str, record: &'static str, id: i64) -> CoreResult<()> {
+    if row_exists(conn, table, id)? {
+        Ok(())
+    } else {
+        Err(CoreError::NotFound { record, id })
+    }
+}
+
 /// The schema version that [`Library::create`] and [`Library::open`] produce.
 pub fn latest_schema_version() -> u32 {
     migrations::ALL.len() as u32

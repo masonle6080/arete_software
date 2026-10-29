@@ -95,6 +95,24 @@ fn a_duplicate_needs_a_color_and_an_existing_style() {
 }
 
 #[test]
+fn a_style_is_not_duplicated_once_its_drop_is_in_production() {
+    let env = TestEnv::new();
+    let lib = env.library();
+    let id = a_style(&lib);
+    let drop_id = style::get_style(&lib, id).unwrap().drop_id;
+    style::move_style(&lib, id, StyleStatus::Sampling).unwrap();
+    style::move_style(&lib, id, StyleStatus::Approved).unwrap();
+    drop::move_drop(&lib, drop_id, drop::DropStage::Sampling, false).unwrap();
+    style::duplicate_style(&lib, id, "Black").map(|c| style::move_style(&lib, c.id, StyleStatus::Cut)).unwrap().unwrap();
+    drop::move_drop(&lib, drop_id, drop::DropStage::Production, false).unwrap();
+
+    let err = style::duplicate_style(&lib, id, "Olive").unwrap_err();
+
+    assert!(matches!(err, CoreError::InvalidInput { .. }), "{err:?}");
+    assert_eq!(style::drop_styles(&lib, drop_id).unwrap().len(), 2);
+}
+
+#[test]
 fn a_duplicate_keeps_the_blank_base_and_chosen_sizes() {
     let env = TestEnv::new();
     let lib = env.library();
@@ -183,15 +201,15 @@ fn a_duplicate_gets_its_own_copy_of_the_tech_pack() {
     assert_eq!(names, ["M", "L"]);
     assert!(copied.sizes.iter().all(|z| original.sizes.iter().all(|o| o.id != z.id)));
     assert_eq!(copied.points_of_measure.len(), 1);
-    let pom = &copied.points_of_measure[0];
-    assert_ne!(pom.id, chest);
-    assert_eq!((pom.name.as_str(), pom.tolerance), ("Chest width", 1.0));
-    assert_eq!(pom.values, vec![Some(56.0), Some(59.5)]);
+    let point_of_measure = &copied.points_of_measure[0];
+    assert_ne!(point_of_measure.id, chest);
+    assert_eq!((point_of_measure.name.as_str(), point_of_measure.tolerance), ("Chest width", 1.0));
+    assert_eq!(point_of_measure.values, vec![Some(56.0), Some(59.5)]);
     assert_eq!(copied.flats.len(), 1);
     assert_eq!(copied.flats[0].file_name, "front.pdf");
 
     // Edits to the copy's table leave the original alone.
-    tech_pack::set_point_of_measure_value(&lib, pom.id, copied.sizes[0].id, Some(60.0)).unwrap();
+    tech_pack::set_point_of_measure_value(&lib, point_of_measure.id, copied.sizes[0].id, Some(60.0)).unwrap();
     tech_pack::rename_size(&lib, copied.sizes[1].id, "XL").unwrap();
     tech_pack::add_point_of_measure(&lib, copy.id, "Body length", 1.0).unwrap();
     assert_eq!(tech_pack::get_tech_pack(&lib, id).unwrap().unwrap(), original);

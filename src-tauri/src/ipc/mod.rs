@@ -95,6 +95,7 @@ pub fn run() {
             drop::create_drop,
             drop::move_drop,
             drop::thesis_drops,
+            drop::get_drop,
             // style
             style::create_style,
             style::move_style,

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
-import { toCoreError, type CoreError } from "../../../shell/coreError";
-import { sampleApi, type FitCell, type SampleFit } from "../../sample/api";
+import { toCoreError, type CoreError } from "../../shell/coreError";
+import { sampleApi, type FitCell, type SampleFit } from "./api";
 import "./fitNotes.css";
 
 /** Parses a measured value. Empty text clears it (`null`); other text must be a number. */

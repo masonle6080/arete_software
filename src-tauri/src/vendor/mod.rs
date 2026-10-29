@@ -144,11 +144,6 @@ pub fn list_vendors(lib: &Library) -> CoreResult<Vec<Vendor>> {
     rows.into_iter().map(|v| complete(conn, v)).collect()
 }
 
-/// True when a Vendor with this ID exists.
-pub(crate) fn vendor_exists(conn: &Connection, id: VendorId) -> CoreResult<bool> {
-    Ok(conn.query_row("SELECT 1 FROM vendor WHERE id = ?1", [id], |_| Ok(())).optional()?.is_some())
-}
-
 /// The Vendor row, without roles and contacts.
 fn read_vendor_row(r: &rusqlite::Row) -> rusqlite::Result<Vendor> {
     Ok(Vendor {

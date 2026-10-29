@@ -1,4 +1,4 @@
-//! Decoration: a treatment applied to a Style's base, such as a print,
+//! Decoration: something applied to a Style's base, such as a print,
 //! embroidery, dye, or label (GLOSSARY: Decoration). It records technique,
 //! placement, size, colors, an artwork file (imported through
 //! [`crate::media`]), and the Vendor that applies it. A Design Decision can

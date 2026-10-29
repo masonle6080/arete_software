@@ -1,11 +1,11 @@
 import { useState } from "react";
-import { exportPdf } from "../../../export";
-import { toCoreError } from "../../../shell/coreError";
-import { mediaApi } from "../../moodboard/api";
-import { vendorApi } from "../../vendor/api";
-import { techPackApi } from "../techPack";
-import { flatImageSrc, techPackExportCss, techPackExportHtml } from "../techPackExport";
-import type { Style } from "../types";
+import { exportPdf } from "../../export";
+import { toCoreError } from "../../shell/coreError";
+import { mediaApi } from "../moodboard/api";
+import { vendorApi } from "../vendor/api";
+import { techPackApi } from "./api";
+import { flatImageSrc, techPackExportCss, techPackExportHtml } from "./export";
+import type { Style } from "../style/types";
 
 /** The PDF export button for one Style's Tech Pack. It exports the saved Tech Pack. */
 export function TechPackExport({ style }: { style: Style }) {

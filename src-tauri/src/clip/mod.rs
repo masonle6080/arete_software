@@ -7,8 +7,8 @@
 //! thumbnail. The real probe is [`FfmpegProbe`]; tests can pass a fake.
 //!
 //! Domain command functions for this area: [`import_clip`], [`list_clips`],
-//! [`get_clip`], [`set_date_shot`], and in [`links`] the tags, notes,
-//! Passage links, and filters.
+//! [`get_clip`], [`clip_file_to_reveal`], [`set_date_shot`], and in [`links`]
+//! the tags, notes, Passage links, and filters.
 
 mod ffmpeg;
 mod links;
@@ -130,6 +130,14 @@ pub fn get_clip(lib: &Library, id: i64) -> CoreResult<Clip> {
         .query_row(&format!("SELECT {COLUMNS} FROM clip WHERE id = ?1"), [id], |r| from_row(lib, r))
         .optional()?
         .ok_or(CoreError::NotFound { record: "Clip", id })
+}
+
+/// The stored video file of a Clip, to show in Finder. Refuses with
+/// `LibraryDisconnected` when the library folder cannot be reached, since
+/// there is no file to show.
+pub fn clip_file_to_reveal(lib: &Library, id: i64) -> CoreResult<PathBuf> {
+    lib.ensure_reachable()?;
+    Ok(get_clip(lib, id)?.path)
 }
 
 /// Sets or clears (`None`) the date a Clip was shot. The date is `YYYY-MM-DD`.

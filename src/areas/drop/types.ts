@@ -19,6 +19,8 @@ export interface Drop {
   stage: DropStage;
   /** Stages the lifecycle allows next. The core owns this rule. */
   moves: DropStage[];
+  /** Whether the Drop takes new or duplicated Styles now. The core owns this rule. */
+  canAddStyles: boolean;
 }
 
 /** Mirrors `DropWarning`: a reason a move needs confirmation. Tagged by `kind`. */

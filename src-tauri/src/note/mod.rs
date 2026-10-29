@@ -14,7 +14,7 @@ use std::path::{Path, PathBuf};
 use rusqlite::{Connection, OptionalExtension};
 
 use crate::error::{CoreError, CoreResult};
-use crate::library::Library;
+use crate::library::{self, Library};
 use crate::media::{self, MediaRef};
 
 pub type NoteId = i64;
@@ -173,9 +173,9 @@ fn read_attachments(lib: &Library, note_id: NoteId) -> CoreResult<Vec<Attachment
 /// True when the owner record exists.
 fn owner_exists(conn: &Connection, owner: NoteOwner) -> CoreResult<bool> {
     match owner {
-        NoteOwner::Vendor(id) => crate::vendor::vendor_exists(conn, id),
-        NoteOwner::Sample(id) => crate::sample::sample_exists(conn, id),
-        NoteOwner::ProductionOrder(id) => crate::production_order::production_order_exists(conn, id),
+        NoteOwner::Vendor(id) => library::row_exists(conn, "vendor", id),
+        NoteOwner::Sample(id) => library::row_exists(conn, "sample", id),
+        NoteOwner::ProductionOrder(id) => library::row_exists(conn, "production_order", id),
     }
 }
 

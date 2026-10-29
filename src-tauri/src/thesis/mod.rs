@@ -10,6 +10,7 @@ use rusqlite::{params, Connection, OptionalExtension, Row};
 
 use crate::error::{CoreError, CoreResult};
 use crate::library::Library;
+use crate::lifecycle;
 
 pub use status::ThesisStatus;
 
@@ -39,7 +40,7 @@ fn from_row(row: &Row) -> rusqlite::Result<Thesis> {
         title: row.get(1)?,
         statement: row.get(2)?,
         status,
-        manual_moves: status.manual_moves(),
+        manual_moves: status.moves(),
     })
 }
 
@@ -59,13 +60,10 @@ pub fn create_thesis(lib: &Library, title: &str, statement: &str) -> CoreResult<
 }
 
 /// Moves a Thesis to `to` by hand. Refuses moves that
-/// [`ThesisStatus::manual_move_allowed`] does not allow.
+/// [`ThesisStatus::move_allowed`] does not allow.
 pub fn move_thesis(lib: &Library, id: ThesisId, to: ThesisStatus) -> CoreResult<Thesis> {
     let from = get_thesis(lib, id)?.status;
-    if !from.manual_move_allowed(to) {
-        return Err(CoreError::StatusMoveRefused { what: "Thesis", from: from.label(), to: to.label() });
-    }
-    lib.writer()?.execute("UPDATE thesis SET status = ?1 WHERE id = ?2", params![to.as_db(), id])?;
+    lifecycle::move_status(lib, "thesis", id, from, to)?;
     get_thesis(lib, id)
 }
 

@@ -8,9 +8,9 @@
 use rusqlite::{Connection, OptionalExtension};
 
 use crate::error::{CoreError, CoreResult};
-use crate::library::Library;
+use crate::library::{self, Library};
 use crate::style;
-use crate::vendor::{self, VendorId};
+use crate::vendor::VendorId;
 
 pub type BlankId = i64;
 
@@ -118,9 +118,7 @@ pub fn list_blanks(lib: &Library) -> CoreResult<Vec<Blank>> {
 
 /// The sizes a Blank comes in, in order. Fails when the Blank does not exist.
 pub(crate) fn blank_sizes(conn: &Connection, id: BlankId) -> CoreResult<Vec<String>> {
-    if conn.query_row("SELECT 1 FROM blank WHERE id = ?1", [id], |_| Ok(())).optional()?.is_none() {
-        return Err(CoreError::NotFound { record: "Blank", id });
-    }
+    library::require_row(conn, "blank", "Blank", id)?;
     read_list(conn, "SELECT size FROM blank_size WHERE blank_id = ?1 ORDER BY position", id)
 }
 
@@ -178,9 +176,7 @@ fn validate(conn: &Connection, input: BlankInput) -> CoreResult<BlankInput> {
     if model.is_empty() {
         return invalid("a Blank needs a model");
     }
-    if !vendor::vendor_exists(conn, input.vendor_id)? {
-        return Err(CoreError::NotFound { record: "Vendor", id: input.vendor_id });
-    }
+    library::require_row(conn, "vendor", "Vendor", input.vendor_id)?;
     let sizes = clean_list(&input.sizes);
     if sizes.is_empty() {
         return invalid("a Blank needs at least one size");

@@ -137,21 +137,23 @@ fn build(sample_id: SampleId, tp: TechPack, measured: &[(PointOfMeasureId, SizeI
     let rows = tp
         .points_of_measure
         .iter()
-        .map(|pom| FitRow {
-            point_of_measure_id: pom.id,
-            name: pom.name.clone(),
-            tolerance: pom.tolerance,
+        .map(|point_of_measure| FitRow {
+            point_of_measure_id: point_of_measure.id,
+            name: point_of_measure.name.clone(),
+            tolerance: point_of_measure.tolerance,
             cells: tp
                 .sizes
                 .iter()
-                .zip(&pom.values)
+                .zip(&point_of_measure.values)
                 .map(|(size, &spec)| {
-                    let measured =
-                        measured.iter().find(|(p, z, _)| *p == pom.id && *z == size.id).map(|&(_, _, v)| v);
+                    let measured = measured
+                        .iter()
+                        .find(|(p, z, _)| *p == point_of_measure.id && *z == size.id)
+                        .map(|&(_, _, v)| v);
                     let deviation = spec.zip(measured).map(|(s, m)| m - s);
                     // A small epsilon so that, for example, 57.0 against
                     // 56.0 with tolerance 1.0 counts as within.
-                    let within_tolerance = deviation.map(|d| d.abs() <= pom.tolerance + 1e-9);
+                    let within_tolerance = deviation.map(|d| d.abs() <= point_of_measure.tolerance + 1e-9);
                     FitCell { size_id: size.id, spec, measured, deviation, within_tolerance }
                 })
                 .collect(),

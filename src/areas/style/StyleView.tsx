@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState, type FormEvent } from "react";
 import { toCoreError, type CoreError } from "../../shell/coreError";
+import { dropApi } from "../drop/api";
 import { styleApi } from "./api";
 import { styleSections } from "./sections";
 import { styleStatusLabel, type Style, type StyleStatus } from "./types";
@@ -22,8 +23,17 @@ export function StyleView({ id, backLabel, onBack, onOpenStyle }: Props) {
   /** The color typed for a copy; `undefined` while the duplicate form is closed. */
   const [copyColor, setCopyColor] = useState<string>();
 
+  /** Whether the Style's Drop takes duplicated Styles now. */
+  const [canDuplicate, setCanDuplicate] = useState(false);
+
   const reload = useCallback(() => {
-    styleApi.getStyle(id).then(setStyle, (raw) => setError(toCoreError(raw)));
+    styleApi
+      .getStyle(id)
+      .then(async (s) => {
+        setStyle(s);
+        setCanDuplicate((await dropApi.getDrop(s.dropId)).canAddStyles);
+      })
+      .catch((raw) => setError(toCoreError(raw)));
   }, [id]);
   useEffect(reload, [reload]);
 
@@ -78,7 +88,7 @@ export function StyleView({ id, backLabel, onBack, onOpenStyle }: Props) {
                   ))}
               </div>
             )}
-            {copyColor === undefined ? (
+            {!canDuplicate ? null : copyColor === undefined ? (
               <div className="actions">
                 <button onClick={() => setCopyColor("")}>Duplicate in another color</button>
               </div>

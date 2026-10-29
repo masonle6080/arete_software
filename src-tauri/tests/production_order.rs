@@ -16,7 +16,7 @@ use arete_lib::error::CoreError;
 use arete_lib::library::Library;
 use arete_lib::note::{self, NoteInput, NoteOwner};
 use arete_lib::production_order::{self as po, ProductionOrderStatus as Status};
-use arete_lib::style::{self, StyleBase, StyleId};
+use arete_lib::style::{self, StyleBase, StyleId, StyleStatus};
 use arete_lib::thesis;
 use arete_lib::vendor::{self, VendorId, VendorInput, VendorRole};
 use common::TestEnv;
@@ -58,11 +58,20 @@ fn a_vendor(lib: &Library, name: &str) -> VendorId {
     .id
 }
 
-/// A Style on the Drop, built on the Blank, in sizes S, M, and L.
-fn a_style(lib: &Library, f: &Fixture, name: &str) -> StyleId {
+/// A Draft Style on the Drop, built on the Blank, in sizes S, M, and L.
+fn a_draft_style(lib: &Library, f: &Fixture, name: &str) -> StyleId {
     let id = style::create_style(lib, f.drop_id, name, "Bone").unwrap().id;
     style::set_style_base(lib, id, StyleBase::Blank { blank_id: f.blank_id }).unwrap();
     style::set_style_sizes(lib, id, &["S".into(), "M".into(), "L".into()]).unwrap();
+    id
+}
+
+/// Like [`a_draft_style`], moved through Sampling to Approved, so an order
+/// can take it.
+fn a_style(lib: &Library, f: &Fixture, name: &str) -> StyleId {
+    let id = a_draft_style(lib, f, name);
+    style::move_style(lib, id, StyleStatus::Sampling).unwrap();
+    style::move_style(lib, id, StyleStatus::Approved).unwrap();
     id
 }
 
@@ -146,6 +155,50 @@ fn an_order_refuses_bad_sizes_styles_and_dates() {
         assert!(matches!(po::set_delivery_date(&lib, order.id, Some(bad)), Err(CoreError::InvalidInput { .. })), "{bad}");
     }
     po::set_delivery_date(&lib, order.id, Some("2028-02-29")).unwrap();
+}
+
+#[test]
+fn an_order_takes_quantities_only_for_approved_styles() {
+    let env = TestEnv::new();
+    let lib = env.library();
+    let f = a_drop(&lib);
+    let draft = a_draft_style(&lib, &f, "Heavy tee");
+    let order = po::create_production_order(&lib, f.drop_id, f.vendor_id).unwrap();
+
+    let err = po::set_order_quantity(&lib, order.id, draft, "S", 5).unwrap_err();
+    assert!(matches!(err, CoreError::InvalidInput { .. }), "{err:?}");
+    style::move_style(&lib, draft, StyleStatus::Sampling).unwrap();
+    let err = po::set_order_quantity(&lib, order.id, draft, "S", 5).unwrap_err();
+    assert!(matches!(err, CoreError::InvalidInput { .. }), "{err:?}");
+
+    style::move_style(&lib, draft, StyleStatus::Approved).unwrap();
+    let order = po::set_order_quantity(&lib, order.id, draft, "S", 5).unwrap();
+    assert_eq!(order.total_quantity, 5);
+
+    style::move_style(&lib, draft, StyleStatus::Cut).unwrap();
+    let err = po::set_order_quantity(&lib, order.id, draft, "M", 5).unwrap_err();
+    assert!(matches!(err, CoreError::InvalidInput { .. }), "{err:?}");
+    // Zero still removes a size of a Style that is no longer Approved.
+    let order = po::set_order_quantity(&lib, order.id, draft, "S", 0).unwrap();
+    assert_eq!(order.total_quantity, 0);
+}
+
+#[test]
+fn placing_is_refused_while_a_style_on_the_order_is_not_approved() {
+    let env = TestEnv::new();
+    let lib = env.library();
+    let f = a_drop(&lib);
+    let tee = a_style(&lib, &f, "Heavy tee");
+    price(&lib, tee, "USD", &[(1, "10.00")]);
+    cost_sheet::set_home_currency(&lib, "USD").unwrap();
+    let order = po::create_production_order(&lib, f.drop_id, f.vendor_id).unwrap();
+    po::set_order_quantity(&lib, order.id, tee, "S", 5).unwrap();
+    style::move_style(&lib, tee, StyleStatus::Cut).unwrap();
+
+    let err = po::move_production_order(&lib, order.id, Status::Placed).unwrap_err();
+
+    assert!(matches!(&err, CoreError::InvalidInput { reason } if reason.contains("Heavy tee (Bone)")), "{err:?}");
+    assert_eq!(po::get_production_order(&lib, order.id).unwrap().status, Status::Draft);
 }
 
 /// Gives a Style a one-line Cost Sheet in `currency` with these

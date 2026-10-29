@@ -21,13 +21,14 @@ pub use status::ProductionOrderStatus;
 
 use std::collections::HashMap;
 
-use rusqlite::{params, Connection, OptionalExtension, Row};
+use rusqlite::{params, OptionalExtension, Row};
 
 use crate::cost_sheet::{self, HomeAmount, TierUnitCost};
 use crate::drop::{self, DropId, DropStage};
 use crate::error::{CoreError, CoreResult};
 use crate::library::Library;
-use crate::style::{self, StyleId};
+use crate::lifecycle;
+use crate::style::{self, StyleId, StyleStatus};
 use crate::vendor::{self, VendorId};
 
 pub type ProductionOrderId = i64;
@@ -152,8 +153,8 @@ pub fn drop_production_orders(lib: &Library, drop_id: DropId) -> CoreResult<Vec<
 }
 
 /// Sets the quantity of one size of one Style on a Draft order. Zero
-/// removes the size. The Style must be on the order's Drop, and the size one
-/// of the Style's sizes.
+/// removes the size. The Style must be on the order's Drop and Approved (zero
+/// removes a size of any Style), and the size one of the Style's sizes.
 pub fn set_order_quantity(
     lib: &Library,
     id: ProductionOrderId,
@@ -170,6 +171,11 @@ pub fn set_order_quantity(
     let style = style::get_style(lib, style_id)?;
     if style.drop_id != order.drop_id {
         return Err(CoreError::InvalidInput { reason: "the Style is on another Drop".into() });
+    }
+    if quantity > 0 && style.status != StyleStatus::Approved {
+        return Err(CoreError::InvalidInput {
+            reason: format!("{} ({}) is {}; order only Approved Styles", style.name, style.color, style.status.label()),
+        });
     }
     let size = size.trim();
     if quantity > 0 && !style::style_sizes(lib, style_id)?.iter().any(|s| s == size) {
@@ -203,11 +209,6 @@ pub fn set_delivery_date(lib: &Library, id: ProductionOrderId, date: Option<&str
     }
     lib.writer()?.execute("UPDATE production_order SET delivery_date = ?1 WHERE id = ?2", params![date, id])?;
     get_production_order(lib, id)
-}
-
-/// True when a Production Order with this ID exists.
-pub(crate) fn production_order_exists(conn: &Connection, id: ProductionOrderId) -> CoreResult<bool> {
-    Ok(conn.query_row("SELECT 1 FROM production_order WHERE id = ?1", [id], |_| Ok(())).optional()?.is_some())
 }
 
 /// Refuses anything that is not a real calendar date as `YYYY-MM-DD`.
@@ -308,18 +309,16 @@ fn complete(lib: &Library, mut order: ProductionOrder) -> CoreResult<ProductionO
 /// to Placed copies each Style's unit cost from its Cost Sheet, at the
 /// highest Quantity Tier that does not exceed the Style's quantity on the
 /// order (summed across sizes), and freezes it with the home currency.
-/// Placing is refused when the order has no quantities, when a Style has no
-/// such tier, or when a cost cannot be computed (home currency or exchange
-/// rate missing).
+/// Placing is refused when the order has no quantities, when a Style on it is
+/// no longer Approved, when a Style has no such tier, or when a cost cannot
+/// be computed (home currency or exchange rate missing).
 pub fn move_production_order(
     lib: &Library,
     id: ProductionOrderId,
     to: ProductionOrderStatus,
 ) -> CoreResult<ProductionOrder> {
     let order = get_production_order(lib, id)?;
-    if !order.status.move_allowed(to) {
-        return Err(CoreError::StatusMoveRefused { what: "Production Order", from: order.status.label(), to: to.label() });
-    }
+    lifecycle::check_move(order.status, to)?;
     let frozen = if to == ProductionOrderStatus::Placed { Some(costs_to_freeze(lib, &order)?) } else { None };
     let conn = lib.writer()?;
     let tx = conn.unchecked_transaction()?;
@@ -343,6 +342,18 @@ pub fn move_production_order(
 fn costs_to_freeze(lib: &Library, order: &ProductionOrder) -> CoreResult<(String, Vec<(StyleId, TierUnitCost)>)> {
     if order.styles.is_empty() {
         return Err(CoreError::InvalidInput { reason: "enter quantities before you place the order".into() });
+    }
+    let mut not_approved = Vec::new();
+    for s in &order.styles {
+        let current = style::get_style(lib, s.style_id)?;
+        if current.status != StyleStatus::Approved {
+            not_approved.push(format!("{} ({}) is {}", s.name, s.color, current.status.label()));
+        }
+    }
+    if !not_approved.is_empty() {
+        return Err(CoreError::InvalidInput {
+            reason: format!("order only Approved Styles; remove: {}", not_approved.join(", ")),
+        });
     }
     let mut costs = Vec::new();
     let mut no_tier = Vec::new();

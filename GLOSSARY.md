@@ -61,14 +61,14 @@ One named measurement in a Tech Pack, such as chest width, with a value for each
 _Avoid_: POM, measurement, spec point
 
 **Decoration**:
-A treatment applied to a Style's base, such as a print, embroidery, dye, or label.
+Something applied to a Style's base, such as a print, embroidery, dye, or label.
 _Avoid_: Embellishment, graphic, treatment
 
 ### Operations
 
 **Vendor**:
-A company that supplies Blanks, materials, Decoration, or manufacturing. One Vendor can fill several of these roles.
-_Avoid_: Supplier, factory, manufacturer, mill
+A company that supplies Blanks, materials, Decoration, or manufacturing. One Vendor can fill several of these roles. The roles are Blank supplier, decorator, manufacturer, and mill; use these words only as role names, never for the company itself.
+_Avoid_: Supplier (alone), factory
 
 **Sample**:
 A physical piece that a Vendor makes for a Style before production. It belongs to a numbered round and ends approved, revised, or rejected; a revised Sample leads to the next round.

@@ -203,11 +203,6 @@ pub fn attach_sample_photos(lib: &Library, id: SampleId, sources: &[PathBuf]) ->
     read_photos(lib, id)
 }
 
-/// True when a Sample with this ID exists.
-pub(crate) fn sample_exists(conn: &Connection, id: SampleId) -> CoreResult<bool> {
-    Ok(conn.query_row("SELECT 1 FROM sample WHERE id = ?1", [id], |_| Ok(())).optional()?.is_some())
-}
-
 fn complete(lib: &Library, mut sample: Sample) -> CoreResult<Sample> {
     sample.photos = read_photos(lib, sample.id)?;
     Ok(sample)

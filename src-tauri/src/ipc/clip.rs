@@ -92,10 +92,7 @@ pub fn passage_clips(app: AppHandle, state: State<AppState>, passage_id: String)
 /// Shows the Clip's file in Finder, so the founder can drag it into an editor.
 #[tauri::command]
 pub fn reveal_clip(state: State<AppState>, id: i64) -> CoreResult<()> {
-    let path = state.with_library(|lib| {
-        lib.ensure_reachable()?;
-        Ok(clip::get_clip(lib, id)?.path)
-    })?;
+    let path = state.with_library(|lib| clip::clip_file_to_reveal(lib, id))?;
     tauri_plugin_opener::reveal_item_in_dir(&path)
         .map_err(|e| CoreError::Io(std::io::Error::other(e.to_string())))
 }

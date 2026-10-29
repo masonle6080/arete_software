@@ -16,7 +16,7 @@ use std::collections::HashSet;
 
 use rusqlite::{params, Connection, OptionalExtension, Row};
 
-use super::{find, save_document, DocumentEdit, DocumentKind, DocumentSummary};
+use super::{find, save_with, DocumentEdit, DocumentKind, DocumentSummary};
 use crate::error::{CoreError, CoreResult};
 use crate::library::Library;
 
@@ -122,7 +122,9 @@ fn apply_report(db: &Connection, document_id: i64, report: &[PassageText]) -> Co
 /// Saves a document (as [`save_document`] does) together with its save
 /// report: `passages` is every Passage present in `edit.markdown` with its
 /// current text. Refuses the whole save, before anything is written, when a
-/// Passage ID is malformed, repeated, or belongs to another document.
+/// Passage ID is malformed, repeated, or belongs to another document. The
+/// file and the Passage records change together: a save that fails leaves
+/// both as they were.
 pub fn save_document_with_passages(
     lib: &Library,
     id: i64,
@@ -132,11 +134,7 @@ pub fn save_document_with_passages(
     let db = lib.writer()?;
     find(lib, id)?;
     check_report(db, id, passages)?;
-    let tx = db.unchecked_transaction()?;
-    let summary = save_document(lib, id, edit)?;
-    apply_report(&tx, id, passages)?;
-    tx.commit()?;
-    Ok(summary)
+    save_with(lib, id, edit, |tx| apply_report(tx, id, passages))
 }
 
 /// One Passage, orphaned or not.

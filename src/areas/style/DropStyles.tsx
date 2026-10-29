@@ -11,7 +11,7 @@ interface Props {
   onOpen(styleId: number): void;
 }
 
-/** The Styles of one Drop, Cut ones included, with a form to add one. */
+/** The Styles of one Drop, Cut ones included, with a form to add one while the Drop takes new Styles. */
 export function DropStyles({ drop, onOpen }: Props) {
   const [styles, setStyles] = useState<Style[]>([]);
   const [name, setName] = useState("");
@@ -56,13 +56,15 @@ export function DropStyles({ drop, onOpen }: Props) {
           ))}
         </ul>
       )}
-      <form className="style-create" onSubmit={add}>
-        <input placeholder="Style name" value={name} onChange={(e) => setName(e.target.value)} />
-        <input placeholder="Color" value={color} onChange={(e) => setColor(e.target.value)} />
-        <button type="submit" disabled={!name.trim() || !color.trim()}>
-          Add Style
-        </button>
-      </form>
+      {drop.canAddStyles && (
+        <form className="style-create" onSubmit={add}>
+          <input placeholder="Style name" value={name} onChange={(e) => setName(e.target.value)} />
+          <input placeholder="Color" value={color} onChange={(e) => setColor(e.target.value)} />
+          <button type="submit" disabled={!name.trim() || !color.trim()}>
+            Add Style
+          </button>
+        </form>
+      )}
     </div>
   );
 }
