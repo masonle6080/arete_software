@@ -2,18 +2,13 @@
 
 use std::path::PathBuf;
 
-use tauri::{AppHandle, Manager, State};
+use tauri::{AppHandle, State};
 
-use super::AppState;
+use super::{allow_media, AppState};
 use crate::clip::{self, Clip, ClipFilter, FfmpegProbe};
 use crate::document::Passage;
 use crate::error::{CoreError, CoreResult};
-use crate::library::Library;
 
-/// Lets the webview load thumbnails from the media folder (asset protocol).
-fn allow_media(app: &AppHandle, lib: &Library) {
-    let _ = app.asset_protocol_scope().allow_directory(lib.media_dir(), false);
-}
 
 #[tauri::command]
 pub fn list_clips(app: AppHandle, state: State<AppState>) -> CoreResult<Vec<Clip>> {

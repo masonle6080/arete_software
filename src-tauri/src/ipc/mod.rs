@@ -28,10 +28,17 @@ mod production_order;
 
 use std::sync::Mutex;
 
-use tauri::Manager;
+use tauri::{AppHandle, Manager};
 
 use crate::error::{CoreError, CoreResult};
 use crate::library::{AppConfig, Library};
+
+/// Lets the webview load files from the Library's media folder through the
+/// asset protocol (`convertFileSrc`): Clip thumbnails, Style Covers. Call it
+/// in each command whose result the UI shows as an image.
+fn allow_media(app: &AppHandle, lib: &Library) {
+    let _ = app.asset_protocol_scope().allow_directory(lib.media_dir(), false);
+}
 
 /// Shared app state behind every command.
 pub struct AppState {
@@ -103,6 +110,9 @@ pub fn run() {
             style::drop_styles,
             style::attach_style_files,
             style::style_files,
+            style::remove_style_file,
+            style::set_style_cover,
+            style::clear_style_cover,
             style::style_base,
             style::set_style_base,
             style::style_sizes,
