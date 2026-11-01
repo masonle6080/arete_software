@@ -10,7 +10,7 @@ import "./style.css";
 interface Props {
   drop: Drop;
   /** Opens the Style view. */
-  onOpen(styleId: number): void;
+  onOpen(style: Style): void;
 }
 
 /** The Styles of one Drop, Cut ones included, with a form to add one while the Drop takes new Styles. */
@@ -49,7 +49,7 @@ export function DropStyles({ drop, onOpen }: Props) {
         <ul>
           {styles.map((s) => (
             <li key={s.id}>
-              <Button className="row-button style-row" onClick={() => onOpen(s.id)}>
+              <Button className="row-button style-row" onClick={() => onOpen(s)}>
                 <span>
                   {s.name} <span className="color">· {s.color}</span>
                 </span>

@@ -3,20 +3,17 @@ import { toCoreError } from "../../shell/coreError";
 import { passageApi, type Passage } from "./api";
 import { passageSections } from "./sections";
 import "./passage.css";
-import { Button, Chip, EmptyText, SectionHeader } from "../../ui";
+import { Chip, EmptyText, SectionHeader } from "../../ui";
 
 interface Props {
   id: string;
-  /** Text of the back button, for example "← Essay". */
-  backLabel: string;
-  onBack(): void;
 }
 
 /**
  * One Passage: its last known text, its document, whether it is orphaned,
  * then everything linked to it (one registered section per kind of link).
  */
-export function PassageView({ id, backLabel, onBack }: Props) {
+export function PassageView({ id }: Props) {
   const [passage, setPassage] = useState<Passage>();
   const [error, setError] = useState<string>();
 
@@ -28,9 +25,6 @@ export function PassageView({ id, backLabel, onBack }: Props) {
 
   return (
     <section className="passage-view">
-      <Button variant="plain" className="back" onClick={onBack}>
-        {backLabel}
-      </Button>
       {error && <p className="error">{error}</p>}
       {passage && (
         <>

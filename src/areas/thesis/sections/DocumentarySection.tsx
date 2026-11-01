@@ -1,18 +1,17 @@
 import { useCallback, useEffect, useState, type FormEvent } from "react";
 import { toCoreError, type CoreError } from "../../../shell/coreError";
+import { steps } from "../../../shell/navPath";
 import { Badge, Button } from "../../../ui";
 import { documentaryApi } from "../../documentary/api";
-import { ScriptScreen } from "../../documentary/ScriptScreen";
 import { documentaryStatusLabel, type Documentary, type DocumentaryStatus } from "../../documentary/types";
 import type { ThesisSection, ThesisSectionProps } from ".";
 
-function DocumentarySectionView({ thesis }: ThesisSectionProps) {
+function DocumentarySectionView({ thesis, onOpen }: ThesisSectionProps) {
   // undefined: loading; null: this Thesis has no Documentary.
   const [doc, setDoc] = useState<Documentary | null>();
   const [title, setTitle] = useState(thesis.title);
   const [error, setError] = useState<CoreError>();
   const [confirmAbandon, setConfirmAbandon] = useState(false);
-  const [scriptOpen, setScriptOpen] = useState(false);
 
   const reload = useCallback(() => {
     documentaryApi.thesisDocumentary(thesis.id).then(setDoc, (raw) => setError(toCoreError(raw)));
@@ -39,10 +38,6 @@ function DocumentarySectionView({ thesis }: ThesisSectionProps) {
 
   if (doc === undefined) return error ? <p className="error">{error.message}</p> : null;
 
-  if (doc && scriptOpen) {
-    return <ScriptScreen documentaryId={doc.id} backLabel={`← ${thesis.title}`} onClose={() => setScriptOpen(false)} />;
-  }
-
   return (
     <div className="documentary-section">
       {error && <p className="error">{error.message}</p>}
@@ -52,7 +47,7 @@ function DocumentarySectionView({ thesis }: ThesisSectionProps) {
             <strong>{doc.title}</strong>
             <Badge lifecycle="documentary" status={doc.status} />
           </div>
-          <Button onClick={() => setScriptOpen(true)}>Open Script</Button>
+          <Button onClick={() => onOpen(steps.script(doc.id, doc.title))}>Open Script</Button>
           {doc.moves.length > 0 && (
             <div className="actions">
               {doc.moves

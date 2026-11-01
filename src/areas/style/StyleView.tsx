@@ -3,7 +3,7 @@ import { toCoreError, type CoreError } from "../../shell/coreError";
 import { announceTreeChange } from "../../shell/treeChanges";
 import { Badge, Button, SectionHeader, SegmentedControl } from "../../ui";
 import { dropApi } from "../drop/api";
-import type { Moodboard } from "../moodboard/types";
+import { steps, type Step } from "../../shell/navPath";
 import { styleApi } from "./api";
 import { styleSections } from "./sections";
 import { baseKindOf, sectionsIn, styleSegments, type BaseKind, type StyleSegment } from "./segments";
@@ -23,20 +23,17 @@ const baseKinds: readonly { value: BaseKind; label: string }[] = [
 
 interface Props {
   id: number;
-  /** Label of the screen that `onBack` returns to, for example the Thesis title. */
-  backLabel: string;
-  onBack(): void;
-  /** Opens another Style, for example a copy just made. */
-  onOpenStyle?(id: number): void;
-  /** Opens the Style's Moodboard on its own screen. */
-  onOpenMoodboard(board: Moodboard): void;
+  /** Opens an item one level below this Style in the navigation path, for example its Moodboard. */
+  onOpen(step: Step): void;
+  /** Opens another Style in place of this one, for example a copy just made. */
+  onOpenStyle(step: Step): void;
 }
 
 /**
  * One Style: its header (status moves, Duplicate, Export), then the sections
  * of one segment: Design, Build, or Make.
  */
-export function StyleView({ id, backLabel, onBack, onOpenStyle, onOpenMoodboard }: Props) {
+export function StyleView({ id, onOpen, onOpenStyle }: Props) {
   const [style, setStyle] = useState<Style>();
   const [error, setError] = useState<CoreError>();
   const [confirmCut, setConfirmCut] = useState(false);
@@ -85,7 +82,7 @@ export function StyleView({ id, backLabel, onBack, onOpenStyle, onOpenMoodboard 
       const copy = await styleApi.duplicateStyle(id, copyColor ?? "");
       setCopyColor(undefined);
       announceTreeChange();
-      onOpenStyle?.(copy.id);
+      onOpenStyle(steps.style(copy));
     } catch (raw) {
       setError(toCoreError(raw));
     }
@@ -93,9 +90,6 @@ export function StyleView({ id, backLabel, onBack, onOpenStyle, onOpenMoodboard 
 
   return (
     <section className="style-view">
-      <Button variant="plain" className="back" onClick={onBack}>
-        ← {backLabel}
-      </Button>
       {error && <p className="error">{error.message}</p>}
       {style && (
         <>
@@ -156,7 +150,7 @@ export function StyleView({ id, backLabel, onBack, onOpenStyle, onOpenMoodboard 
           {sectionsIn(styleSections, segment, baseKind).map(({ id: sectionId, title, Component }) => (
             <section key={sectionId} className="style-section">
               <SectionHeader title={title} />
-              <Component style={style} onStyleChanged={reload} onOpenMoodboard={onOpenMoodboard} />
+              <Component style={style} onStyleChanged={reload} onOpen={onOpen} />
             </section>
           ))}
         </>

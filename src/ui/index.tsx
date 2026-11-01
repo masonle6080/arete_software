@@ -128,6 +128,36 @@ export function Chip({ children, onClick, onRemove, removeLabel = "Remove", titl
   );
 }
 
+interface BreadcrumbProps {
+  /** The labels from the root to the open place. */
+  items: readonly string[];
+  /** Opens one level; 0 is the root. The last item is the open place and is not a button. */
+  onOpen(depth: number): void;
+}
+
+/** Where the open screen sits, such as `Impermanence › Drop › Hooded Coat (Ash)`. Each part opens its level. */
+export function Breadcrumb({ items, onOpen }: BreadcrumbProps) {
+  return (
+    <nav className="breadcrumb" aria-label="Breadcrumb">
+      <ol>
+        {items.map((label, i) => (
+          <li key={i}>
+            {i === items.length - 1 ? (
+              <span className="crumb current" aria-current="page">
+                {label}
+              </span>
+            ) : (
+              <button type="button" className="crumb" onClick={() => onOpen(i)}>
+                {label}
+              </button>
+            )}
+          </li>
+        ))}
+      </ol>
+    </nav>
+  );
+}
+
 /** The short line an empty section shows, such as "No design files yet." */
 export function EmptyText({ children }: { children: ReactNode }) {
   return <p className="empty-text">{children}</p>;
