@@ -1,6 +1,7 @@
 import { lazy, Suspense } from "react";
 import type { Moodboard } from "./types";
 import "./moodboard.css";
+import { Button, EmptyText } from "../../ui";
 
 // Excalidraw is large; load it only when a Moodboard opens.
 const MoodboardCanvas = lazy(() => import("./MoodboardCanvas"));
@@ -19,11 +20,11 @@ interface Props {
 export function MoodboardScreen({ board, backLabel, onBack }: Props) {
   return (
     <section className="moodboard-screen">
-      <button className="back" onClick={onBack}>
+      <Button variant="plain" className="back" onClick={onBack}>
         ← {backLabel}
-      </button>
+      </Button>
       <h1>{board.title}</h1>
-      <Suspense fallback={<p className="empty">Loading canvas…</p>}>
+      <Suspense fallback={<EmptyText>Loading canvas…</EmptyText>}>
         <MoodboardCanvas key={board.id} moodboardId={board.id} />
       </Suspense>
     </section>

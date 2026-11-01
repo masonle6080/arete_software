@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState, type FormEvent } from "react";
 import { toCoreError, type CoreError } from "../../../shell/coreError";
+import { Badge, Button } from "../../../ui";
 import { documentaryApi } from "../../documentary/api";
 import { ScriptScreen } from "../../documentary/ScriptScreen";
 import { documentaryStatusLabel, type Documentary, type DocumentaryStatus } from "../../documentary/types";
@@ -47,23 +48,29 @@ function DocumentarySectionView({ thesis }: ThesisSectionProps) {
       {error && <p className="error">{error.message}</p>}
       {doc ? (
         <div className="documentary-card">
-          <p className="status">{documentaryStatusLabel[doc.status]}</p>
-          <strong>{doc.title}</strong>
-          <button onClick={() => setScriptOpen(true)}>Open Script</button>
+          <div className="card-title">
+            <strong>{doc.title}</strong>
+            <Badge lifecycle="documentary" status={doc.status} />
+          </div>
+          <Button onClick={() => setScriptOpen(true)}>Open Script</Button>
           {doc.moves.length > 0 && (
             <div className="actions">
               {doc.moves
                 .filter((to) => to !== "abandoned")
                 .map((to) => (
-                  <button key={to} onClick={() => move(doc, to)}>
+                  <Button key={to} onClick={() => move(doc, to)}>
                     Move to {documentaryStatusLabel[to]}
-                  </button>
+                  </Button>
                 ))}
               {doc.moves.includes("abandoned") &&
                 (confirmAbandon ? (
-                  <button onClick={() => move(doc, "abandoned")}>Confirm: abandon this Documentary</button>
+                  <Button variant="destructive" onClick={() => move(doc, "abandoned")}>
+                    Confirm: abandon this Documentary
+                  </Button>
                 ) : (
-                  <button onClick={() => setConfirmAbandon(true)}>Abandon Documentary</button>
+                  <Button variant="destructive" onClick={() => setConfirmAbandon(true)}>
+                    Abandon Documentary
+                  </Button>
                 ))}
             </div>
           )}
@@ -71,9 +78,9 @@ function DocumentarySectionView({ thesis }: ThesisSectionProps) {
       ) : (
         <form className="documentary-create" onSubmit={create}>
           <input placeholder="Documentary title" value={title} onChange={(e) => setTitle(e.target.value)} />
-          <button type="submit" disabled={!title.trim()}>
+          <Button type="submit" variant="primary" disabled={!title.trim()}>
             Create Documentary
-          </button>
+          </Button>
         </form>
       )}
     </div>

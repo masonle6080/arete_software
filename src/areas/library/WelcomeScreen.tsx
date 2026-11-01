@@ -3,6 +3,7 @@ import { open } from "@tauri-apps/plugin-dialog";
 import { toCoreError, type CoreError } from "../../shell/coreError";
 import { libraryApi } from "./api";
 import type { LibraryInfo } from "./session";
+import { Button } from "../../ui";
 
 interface Props {
   initialError?: CoreError;
@@ -37,12 +38,12 @@ export function WelcomeScreen({ initialError, onOpened }: Props) {
       <h1>Arete</h1>
       <p>All brand data lives in one library folder. It can be on an external drive.</p>
       <div className="actions">
-        <button disabled={busy} onClick={() => choose("create")}>
+        <Button disabled={busy} onClick={() => choose("create")}>
           Create library…
-        </button>
-        <button disabled={busy} onClick={() => choose("open")}>
+        </Button>
+        <Button disabled={busy} onClick={() => choose("open")}>
           Open library…
-        </button>
+        </Button>
       </div>
       {error && <p className="error">{error.message}</p>}
     </main>

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { open } from "@tauri-apps/plugin-dialog";
 import { toCoreError, type CoreError } from "../../../shell/coreError";
+import { Button, EmptyText } from "../../../ui";
 import { styleApi } from "../api";
 import type { StyleFile } from "../types";
 import type { StyleSection, StyleSectionProps } from ".";
@@ -35,7 +36,7 @@ function FilesSectionView({ style }: StyleSectionProps) {
     <div className="style-files">
       {error && <p className="error">{error.message}</p>}
       {files.length === 0 ? (
-        <p className="empty">No design files yet.</p>
+        <EmptyText>No design files yet.</EmptyText>
       ) : (
         <ul>
           {files.map((f) => (
@@ -45,9 +46,9 @@ function FilesSectionView({ style }: StyleSectionProps) {
           ))}
         </ul>
       )}
-      <button onClick={attach} disabled={busy}>
+      <Button onClick={attach} disabled={busy}>
         Attach design files
-      </button>
+      </Button>
     </div>
   );
 }

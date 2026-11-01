@@ -7,6 +7,7 @@ import { techPackApi, type TechPack, type TechPackDetails } from "./api";
 import type { Style } from "../style/types";
 import { TechPackExport } from "./TechPackExport";
 import "./techPack.css";
+import { Button, EmptyText, SectionHeader } from "../../ui";
 
 export interface TechPackEditorProps {
   style: Style;
@@ -64,8 +65,8 @@ export function TechPackEditor({ style, onStyleChanged }: TechPackEditorProps) {
       {error && <p className="error">{error.message}</p>}
       {techPack === null ? (
         <>
-          <p className="empty">This Style is not built on a Tech Pack.</p>
-          <button onClick={useTechPack}>Use a Tech Pack as the base</button>
+          <EmptyText>This Style is not built on a Tech Pack.</EmptyText>
+          <Button onClick={useTechPack}>Use a Tech Pack as the base</Button>
         </>
       ) : (
         <>
@@ -132,7 +133,7 @@ function MeasureTable({ techPack, run }: PartProps) {
 
   return (
     <div className="tech-pack-part">
-      <h3>Points of Measure ({details.unit})</h3>
+      <SectionHeader level={3} title={`Points of Measure (${details.unit})`} />
       <p className="hint">The size columns are this Style's sizes.</p>
       <div className="point-of-measure-scroll">
         <table className="point-of-measure-table">
@@ -148,13 +149,14 @@ function MeasureTable({ techPack, run }: PartProps) {
                     value={size.name}
                     onCommit={(name) => run(() => techPackApi.renameSize(size.id, name), true)}
                   />
-                  <button
-                    className="remove"
+                  <Button
+                    variant="plain"
+                    size="small"
                     title={`Remove size ${size.name} and its values`}
                     onClick={() => run(() => techPackApi.removeSize(size.id), true)}
                   >
                     ×
-                  </button>
+                  </Button>
                 </th>
               ))}
               <th />
@@ -197,13 +199,14 @@ function MeasureTable({ techPack, run }: PartProps) {
                   </td>
                 ))}
                 <td>
-                  <button
-                    className="remove"
+                  <Button
+                    variant="plain"
+                    size="small"
                     title={`Remove ${pointOfMeasure.name}`}
                     onClick={() => run(() => techPackApi.removePointOfMeasure(pointOfMeasure.id))}
                   >
                     ×
-                  </button>
+                  </Button>
                 </td>
               </tr>
             ))}
@@ -219,15 +222,15 @@ function MeasureTable({ techPack, run }: PartProps) {
             value={newTolerance}
             onChange={(e) => setNewTolerance(e.target.value)}
           />
-          <button type="submit" disabled={!newName.trim()}>
+          <Button type="submit" disabled={!newName.trim()}>
             Add Point of Measure
-          </button>
+          </Button>
         </form>
         <form onSubmit={addSize}>
           <input placeholder="Size, e.g. M" value={newSize} onChange={(e) => setNewSize(e.target.value)} />
-          <button type="submit" disabled={!newSize.trim()}>
+          <Button type="submit" disabled={!newSize.trim()}>
             Add size
-          </button>
+          </Button>
         </form>
       </div>
     </div>
@@ -256,7 +259,7 @@ function Details({ techPack, run }: PartProps) {
 
   return (
     <form className="tech-pack-part tech-pack-details" onSubmit={save}>
-      <h3>Fabric and construction</h3>
+      <SectionHeader level={3} title="Fabric and construction" />
       <label>
         Unit of measure
         <input value={draft.unit} onChange={(e) => setDraft({ ...draft, unit: e.target.value })} />
@@ -308,9 +311,9 @@ function Details({ techPack, run }: PartProps) {
         />
       </label>
       <div>
-        <button type="submit" disabled={!changed}>
+        <Button type="submit" disabled={!changed}>
           Save
-        </button>
+        </Button>
       </div>
     </form>
   );
@@ -326,9 +329,9 @@ function Flats({ techPack, run }: PartProps) {
 
   return (
     <div className="tech-pack-part">
-      <h3>Flats</h3>
+      <SectionHeader level={3} title="Flats" />
       {techPack.flats.length === 0 ? (
-        <p className="empty">No flats yet.</p>
+        <EmptyText>No flats yet.</EmptyText>
       ) : (
         <ul className="tech-pack-flats">
           {techPack.flats.map((f) => (
@@ -338,7 +341,7 @@ function Flats({ techPack, run }: PartProps) {
           ))}
         </ul>
       )}
-      <button onClick={attach}>Attach flats</button>
+      <Button onClick={attach}>Attach flats</Button>
     </div>
   );
 }

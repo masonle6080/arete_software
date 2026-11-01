@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useState, type FormEvent } from "react";
 import { toCoreError, type CoreError } from "../../shell/coreError";
+import { Badge, Button, EmptyText, SectionHeader } from "../../ui";
 import type { Drop } from "../drop/types";
 import { styleApi } from "./api";
-import { styleStatusLabel, type Style } from "./types";
+import type { Style } from "./types";
 import "./style.css";
 
 interface Props {
@@ -38,20 +39,20 @@ export function DropStyles({ drop, onOpen }: Props) {
 
   return (
     <div className="drop-styles">
-      <h3>Styles</h3>
+      <SectionHeader level={3} title="Styles" />
       {error && <p className="error">{error.message}</p>}
       {styles.length === 0 ? (
-        <p className="empty">No Styles yet.</p>
+        <EmptyText>No Styles yet.</EmptyText>
       ) : (
         <ul>
           {styles.map((s) => (
             <li key={s.id}>
-              <button className={s.status === "cut" ? "style-row cut" : "style-row"} onClick={() => onOpen(s.id)}>
+              <Button className="row-button style-row" onClick={() => onOpen(s.id)}>
                 <span>
                   {s.name} <span className="color">· {s.color}</span>
                 </span>
-                <span className="status">{styleStatusLabel[s.status]}</span>
-              </button>
+                <Badge lifecycle="style" status={s.status} />
+              </Button>
             </li>
           ))}
         </ul>
@@ -60,9 +61,9 @@ export function DropStyles({ drop, onOpen }: Props) {
         <form className="style-create" onSubmit={add}>
           <input placeholder="Style name" value={name} onChange={(e) => setName(e.target.value)} />
           <input placeholder="Color" value={color} onChange={(e) => setColor(e.target.value)} />
-          <button type="submit" disabled={!name.trim() || !color.trim()}>
+          <Button type="submit" disabled={!name.trim() || !color.trim()}>
             Add Style
-          </button>
+          </Button>
         </form>
       )}
     </div>

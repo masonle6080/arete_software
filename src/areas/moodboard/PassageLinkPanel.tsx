@@ -3,6 +3,7 @@ import { CaptureUpdateAction, newElementWith } from "@excalidraw/excalidraw";
 import type { ExcalidrawImperativeAPI } from "@excalidraw/excalidraw/types";
 import { documentApi } from "../essays/api";
 import { passageApi, type Passage } from "../passage/api";
+import { Button } from "../../ui";
 
 interface Props {
   api: ExcalidrawImperativeAPI;
@@ -38,7 +39,7 @@ export function PassageLinkPanel({ api, elementId, passageId }: Props) {
         <span>
           Linked to Passage “{linked ? clip(linked.lastKnownText) : "…"}”{linked?.orphaned && " (orphaned)"}
         </span>
-        <button onClick={() => setLink(undefined)}>Unlink</button>
+        <Button onClick={() => setLink(undefined)}>Unlink</Button>
       </div>
     );
   }
@@ -54,9 +55,9 @@ export function PassageLinkPanel({ api, elementId, passageId }: Props) {
           </option>
         ))}
       </select>
-      <button disabled={!choice} onClick={() => setLink(choice)}>
+      <Button disabled={!choice} onClick={() => setLink(choice)}>
         Link
-      </button>
+      </Button>
     </div>
   );
 }

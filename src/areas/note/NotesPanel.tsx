@@ -3,6 +3,7 @@ import { open } from "@tauri-apps/plugin-dialog";
 import { toCoreError, type CoreError } from "../../shell/coreError";
 import { noteApi, type Note, type NoteOwner } from "./api";
 import "./note.css";
+import { Button, EmptyText, SectionHeader } from "../../ui";
 
 /**
  * The dated notes and attachments of one record (a Vendor, Sample, or
@@ -55,7 +56,7 @@ export function NotesPanel({ owner }: { owner: NoteOwner }) {
 
   return (
     <section className="notes">
-      <h2>Notes</h2>
+      <SectionHeader title="Notes" />
       <form className="note-form" onSubmit={(e) => { e.preventDefault(); add(); }}>
         <textarea rows={3} placeholder="Write a note" value={body} onChange={(e) => setBody(e.target.value)} />
         {files.length > 0 && (
@@ -63,21 +64,23 @@ export function NotesPanel({ owner }: { owner: NoteOwner }) {
             {files.map((f) => (
               <li key={f}>
                 {baseName(f)}
-                <button type="button" onClick={() => setFiles(files.filter((x) => x !== f))}>Remove</button>
+                <Button type="button" variant="plain" onClick={() => setFiles(files.filter((x) => x !== f))}>
+                  Remove
+                </Button>
               </li>
             ))}
           </ul>
         )}
         <div className="actions">
-          <button type="button" onClick={pickFiles}>Attach files</button>
-          <button type="submit" disabled={busy}>Add note</button>
+          <Button type="button" onClick={pickFiles}>Attach files</Button>
+          <Button type="submit" disabled={busy}>Add note</Button>
         </div>
       </form>
 
       {error && <p className="error">{error.message}</p>}
 
       {notes.length === 0 ? (
-        <p className="muted">No notes yet.</p>
+        <EmptyText>No notes yet.</EmptyText>
       ) : (
         <ul className="note-list">
           {notes.map((n) => (

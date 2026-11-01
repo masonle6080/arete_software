@@ -8,6 +8,7 @@ import type { Documentary } from "../documentary/types";
 import { clipApi, type Clip, type ClipFilter } from "./api";
 import { ClipDetails, passageLabel, useAllPassages } from "./ClipDetails";
 import "./clips.css";
+import { Button, Chip, EmptyText } from "../../ui";
 
 const VIDEO_EXTENSIONS = ["mov", "mp4", "m4v", "avi", "mkv", "mts", "m2ts", "webm", "mxf", "3gp"];
 
@@ -46,12 +47,13 @@ function ClipDocumentaries({ clip, all, memberOf, onChanged, onError }: ClipDocu
   return (
     <div className="documentaries">
       {inDocs.map((d) => (
-        <span key={d.id} className="tag">
+        <Chip
+          key={d.id}
+          removeLabel={`Remove from ${d.title}`}
+          onRemove={() => run(() => documentaryApi.removeClip(d.id, clip.id))}
+        >
           {d.title}
-          <button title={`Remove from ${d.title}`} onClick={() => run(() => documentaryApi.removeClip(d.id, clip.id))}>
-            ×
-          </button>
-        </span>
+        </Chip>
       ))}
       {others.length > 0 && (
         <select
@@ -118,7 +120,7 @@ function ClipCard({
         </label>
       </div>
       {children}
-      <button onClick={reveal}>Show in Finder</button>
+      <Button onClick={reveal}>Show in Finder</Button>
     </li>
   );
 }
@@ -205,9 +207,9 @@ function ClipsScreen() {
     <section>
       <div className="clips-header">
         <h1>Clips</h1>
-        <button disabled={importing !== null} onClick={importVideo}>
+        <Button disabled={importing !== null} onClick={importVideo}>
           {importing ? `Importing ${importing}…` : "Import video…"}
-        </button>
+        </Button>
       </div>
       {error && <p className="error">{error.message}</p>}
       {documentaries.length > 0 && (
@@ -265,10 +267,10 @@ function ClipsScreen() {
         </label>
       )}
       {clips && clips.length === 0 && linkFilter.tag === null && linkFilter.passageId === null && (
-        <p className="muted">No Clips yet. Import video to start the pool.</p>
+        <EmptyText>No Clips yet. Import video to start the pool.</EmptyText>
       )}
       {clips && shown?.length === 0 && (filter !== null || linkFilter.tag !== null || linkFilter.passageId !== null) && (
-        <p className="muted">No Clips match these filters.</p>
+        <EmptyText>No Clips match these filters.</EmptyText>
       )}
       <ul className="clip-grid">
         {shown?.map((c) => (

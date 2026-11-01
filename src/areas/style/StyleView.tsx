@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState, type FormEvent } from "react";
 import { toCoreError, type CoreError } from "../../shell/coreError";
+import { Badge, Button, SectionHeader } from "../../ui";
 import { dropApi } from "../drop/api";
 import type { Moodboard } from "../moodboard/types";
 import { styleApi } from "./api";
@@ -64,14 +65,14 @@ export function StyleView({ id, backLabel, onBack, onOpenStyle, onOpenMoodboard 
 
   return (
     <section className="style-view">
-      <button className="back" onClick={onBack}>
+      <Button variant="plain" className="back" onClick={onBack}>
         ← {backLabel}
-      </button>
+      </Button>
       {error && <p className="error">{error.message}</p>}
       {style && (
         <>
           <header>
-            <p className="status">{styleStatusLabel[style.status]}</p>
+            <Badge lifecycle="style" status={style.status} />
             <h1>{style.name}</h1>
             <p className="color">{style.color}</p>
             {style.moves.length > 0 && (
@@ -79,21 +80,25 @@ export function StyleView({ id, backLabel, onBack, onOpenStyle, onOpenMoodboard 
                 {style.moves
                   .filter((to) => to !== "cut")
                   .map((to) => (
-                    <button key={to} onClick={() => move(to)}>
+                    <Button key={to} onClick={() => move(to)}>
                       Move to {styleStatusLabel[to]}
-                    </button>
+                    </Button>
                   ))}
                 {style.moves.includes("cut") &&
                   (confirmCut ? (
-                    <button onClick={() => move("cut")}>Confirm: cut this Style</button>
+                    <Button variant="destructive" onClick={() => move("cut")}>
+                      Confirm: cut this Style
+                    </Button>
                   ) : (
-                    <button onClick={() => setConfirmCut(true)}>Cut Style</button>
+                    <Button variant="destructive" onClick={() => setConfirmCut(true)}>
+                      Cut Style
+                    </Button>
                   ))}
               </div>
             )}
             {!canDuplicate ? null : copyColor === undefined ? (
               <div className="actions">
-                <button onClick={() => setCopyColor("")}>Duplicate in another color</button>
+                <Button onClick={() => setCopyColor("")}>Duplicate in another color</Button>
               </div>
             ) : (
               <form className="actions" onSubmit={duplicate}>
@@ -104,18 +109,18 @@ export function StyleView({ id, backLabel, onBack, onOpenStyle, onOpenMoodboard 
                   value={copyColor}
                   onChange={(e) => setCopyColor(e.target.value)}
                 />
-                <button type="submit" disabled={!copyColor.trim()}>
+                <Button type="submit" variant="primary" disabled={!copyColor.trim()}>
                   Duplicate
-                </button>
-                <button type="button" onClick={() => setCopyColor(undefined)}>
+                </Button>
+                <Button type="button" onClick={() => setCopyColor(undefined)}>
                   Cancel
-                </button>
+                </Button>
               </form>
             )}
           </header>
           {styleSections.map(({ id: sectionId, title, Component }) => (
             <section key={sectionId} className="style-section">
-              <h2>{title}</h2>
+              <SectionHeader title={title} />
               <Component style={style} onStyleChanged={reload} onOpenMoodboard={onOpenMoodboard} />
             </section>
           ))}

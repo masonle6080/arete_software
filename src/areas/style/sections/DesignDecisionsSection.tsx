@@ -13,6 +13,7 @@ import { documentApi, type DocumentSummary } from "../../essays/api";
 import { passageApi, type Passage } from "../../passage/api";
 import { StyleTraceExport } from "../StyleTraceExport";
 import type { StyleSection, StyleSectionProps } from ".";
+import { Button, Chip, EmptyText, SegmentedControl } from "../../../ui";
 
 /**
  * The Design Decisions of the Style, each with its rationale and linked
@@ -73,12 +74,12 @@ function DesignDecisionsSectionView({ style }: StyleSectionProps) {
       <StyleTraceExport style={style} />
       {error && <p className="error">{error.message}</p>}
       {decisions.length === 0 ? (
-        <p className="empty">No Design Decisions yet.</p>
+        <EmptyText>No Design Decisions yet.</EmptyText>
       ) : (
         <ul>
           {decisions.map((d) => (
             <li key={d.id} className="design-decision">
-              <p className="aspect">{designAspectLabel[d.aspect]}</p>
+              <Chip>{designAspectLabel[d.aspect]}</Chip>
               <p className="rationale">{d.rationale}</p>
               <label className="decoration-link">
                 Decoration
@@ -101,16 +102,20 @@ function DesignDecisionsSectionView({ style }: StyleSectionProps) {
                 <ul className="linked-passages">
                   {d.passages.map((p) => (
                     <li key={p.id}>
-                      <button className="open" title="Open in its Essay" onClick={() => setOpened(p)}>
+                      <Button className="open" title="Open in its Essay" onClick={() => setOpened(p)}>
                         “{p.lastKnownText}”
                         <span className="source">
                           {p.documentTitle || "Untitled"}
                           {p.orphaned && " · orphaned"}
                         </span>
-                      </button>
-                      <button className="unlink" onClick={() => run(() => designDecisionApi.unlinkPassage(d.id, p.id))}>
+                      </Button>
+                      <Button
+                        variant="plain"
+                        size="small"
+                        onClick={() => run(() => designDecisionApi.unlinkPassage(d.id, p.id))}
+                      >
                         Unlink
-                      </button>
+                      </Button>
                     </li>
                   ))}
                 </ul>
@@ -124,22 +129,21 @@ function DesignDecisionsSectionView({ style }: StyleSectionProps) {
         </ul>
       )}
       <div className="design-decision-add">
-        <select value={aspect} aria-label="Aspect" onChange={(e) => setAspect(e.target.value as DesignAspect)}>
-          {designAspects.map((a) => (
-            <option key={a} value={a}>
-              {designAspectLabel[a]}
-            </option>
-          ))}
-        </select>
+        <SegmentedControl<DesignAspect>
+          label="Aspect"
+          options={designAspects.map((a) => ({ value: a, label: designAspectLabel[a] }))}
+          value={aspect}
+          onChange={setAspect}
+        />
         <textarea
           rows={3}
           placeholder="Why this choice? (required)"
           value={rationale}
           onChange={(e) => setRationale(e.target.value)}
         />
-        <button onClick={add} disabled={rationale.trim() === ""}>
+        <Button onClick={add} disabled={rationale.trim() === ""}>
           Add Design Decision
-        </button>
+        </Button>
       </div>
     </div>
   );
@@ -166,12 +170,14 @@ function PassagePicker({ exclude, onPick }: PickerProps) {
 
   if (essays === undefined) {
     return (
-      <button
+      <Button
+        variant="plain"
+        size="small"
         className="link-passage"
         onClick={() => documentApi.list("essay").then(setEssays, (e) => setError(toCoreError(e).message))}
       >
         Link a Passage…
-      </button>
+      </Button>
     );
   }
 
@@ -210,14 +216,14 @@ function PassagePicker({ exclude, onPick }: PickerProps) {
           ))}
         </select>
       )}
-      <button
+      <Button
         onClick={() => {
           setEssays(undefined);
           setEssayId(undefined);
         }}
       >
         Cancel
-      </button>
+      </Button>
     </div>
   );
 }

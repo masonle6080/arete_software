@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { open } from "@tauri-apps/plugin-dialog";
 import { toCoreError, type CoreError } from "../../../shell/coreError";
+import { Badge, Button, EmptyText, SectionHeader } from "../../../ui";
 import { sampleApi, sampleOutcomeLabel, type Sample, type SampleOutcome } from "../../sample/api";
 import { vendorApi, type Vendor } from "../../vendor/api";
 import { NotesPanel } from "../../note/NotesPanel";
@@ -47,17 +48,20 @@ function SamplesSectionView({ style }: StyleSectionProps) {
     <div className="style-samples">
       {error && <p className="error">{error.message}</p>}
       {samples.length === 0 ? (
-        <p className="empty">No Samples yet.</p>
+        <EmptyText>No Samples yet.</EmptyText>
       ) : (
         <ul>
           {samples.map((s) => (
             <li key={s.id}>
-              <button className={s.id === openId ? "sample-row open" : "sample-row"} onClick={() => setOpenId(s.id === openId ? undefined : s.id)}>
+              <Button
+                className={s.id === openId ? "row-button open" : "row-button"}
+                onClick={() => setOpenId(s.id === openId ? undefined : s.id)}
+              >
                 <span>
                   {vendorName(s.vendorId)} · round {s.round}
                 </span>
-                <span className="outcome">{sampleOutcomeLabel[s.outcome]}</span>
-              </button>
+                <Badge lifecycle="sample" status={s.outcome} />
+              </Button>
             </li>
           ))}
         </ul>
@@ -71,9 +75,9 @@ function SamplesSectionView({ style }: StyleSectionProps) {
             </option>
           ))}
         </select>
-        <button onClick={request} disabled={vendorId === undefined}>
+        <Button onClick={request} disabled={vendorId === undefined}>
           Request Sample
-        </button>
+        </Button>
       </div>
       {opened && <SampleDetail key={opened.id} sample={opened} vendorName={vendorName(opened.vendorId)} run={run} />}
     </div>
@@ -99,12 +103,15 @@ function SampleDetail({ sample, vendorName, run }: DetailProps) {
 
   return (
     <div className="sample-detail">
-      <h3>
-        {vendorName} · round {sample.round} · {sampleOutcomeLabel[sample.outcome]}
-      </h3>
-      <h4>Photos</h4>
+      <div className="card-title">
+        <h3>
+          {vendorName} · round {sample.round}
+        </h3>
+        <Badge lifecycle="sample" status={sample.outcome} />
+      </div>
+      <SectionHeader level={3} title="Photos" />
       {sample.photos.length === 0 ? (
-        <p className="empty">No photos yet.</p>
+        <EmptyText>No photos yet.</EmptyText>
       ) : (
         <ul>
           {sample.photos.map((p) => (
@@ -114,21 +121,28 @@ function SampleDetail({ sample, vendorName, run }: DetailProps) {
           ))}
         </ul>
       )}
-      <button onClick={attachPhotos}>Attach photos</button>
+      <Button onClick={attachPhotos}>Attach photos</Button>
       <FitNotes sampleId={sample.id} />
-      <h4>Feedback</h4>
+      <SectionHeader level={3} title="Feedback" />
       <textarea rows={4} value={feedback} onChange={(e) => setFeedback(e.target.value)} />
       <div className="actions">
-        <button onClick={() => run(() => sampleApi.setSampleFeedback(sample.id, feedback))} disabled={feedback === sample.feedback}>
+        <Button
+          onClick={() => run(() => sampleApi.setSampleFeedback(sample.id, feedback))}
+          disabled={feedback === sample.feedback}
+        >
           Save feedback
-        </button>
+        </Button>
       </div>
       {sample.outcome === "pending" && (
         <div className="actions">
           {DECISIONS.map((outcome) => (
-            <button key={outcome} onClick={() => run(() => sampleApi.decideSample(sample.id, outcome))}>
+            <Button
+              key={outcome}
+              variant={outcome === "rejected" ? "destructive" : "default"}
+              onClick={() => run(() => sampleApi.decideSample(sample.id, outcome))}
+            >
               Mark {sampleOutcomeLabel[outcome].toLowerCase()}
-            </button>
+            </Button>
           ))}
         </div>
       )}

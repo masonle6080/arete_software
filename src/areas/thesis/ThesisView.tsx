@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { toCoreError, type CoreError } from "../../shell/coreError";
+import { Badge, Button, SectionHeader } from "../../ui";
 import type { Moodboard } from "../moodboard/types";
 import { thesisApi } from "./api";
 import { thesisSections } from "./sections";
@@ -51,22 +52,22 @@ export function ThesisView({ id, tab, onOpenStyle, onOpenMoodboard }: Props) {
       {thesis && (
         <>
           <header>
-            <p className="status">{statusLabel[thesis.status]}</p>
+            <Badge lifecycle="thesis" status={thesis.status} />
             <h1>{thesis.title}</h1>
             {!section && thesis.statement && <p className="statement">{thesis.statement}</p>}
             {!section && thesis.manualMoves.length > 0 && (
               <div className="actions">
                 {thesis.manualMoves.map((to) => (
-                  <button key={to} onClick={() => move(to)}>
+                  <Button key={to} onClick={() => move(to)}>
                     Move to {statusLabel[to]}
-                  </button>
+                  </Button>
                 ))}
               </div>
             )}
           </header>
           {section && (
             <section className="thesis-section">
-              <h2>{section.title}</h2>
+              <SectionHeader title={section.title} />
               <section.Component
                 thesis={thesis}
                 onThesisChanged={reload}

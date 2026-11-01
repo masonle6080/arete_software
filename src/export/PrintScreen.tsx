@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { toCoreError } from "../shell/coreError";
 import { printApi, type PrintJob } from ".";
 import "./print.css";
+import { Button } from "../ui";
 
 /** Resolves when the fonts and every image in `root` have loaded. */
 async function contentReady(root: HTMLElement): Promise<void> {
@@ -61,10 +62,10 @@ export function PrintScreen({ id }: { id: string }) {
   return (
     <div className="print-screen">
       <div className="print-toolbar">
-        <button disabled={!job} onClick={() => window.print()}>
+        <Button disabled={!job} onClick={() => window.print()}>
           Save as PDF…
-        </button>
-        <button onClick={close}>Close</button>
+        </Button>
+        <Button onClick={close}>Close</Button>
         <span className="print-hint">In the print dialog, choose PDF → Save as PDF.</span>
       </div>
       {error && <p className="error">{error}</p>}

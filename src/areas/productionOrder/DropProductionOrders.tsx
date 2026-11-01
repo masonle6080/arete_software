@@ -3,10 +3,11 @@ import { toCoreError, type CoreError } from "../../shell/coreError";
 import type { Drop } from "../drop/types";
 import { NotesPanel } from "../note/NotesPanel";
 import { styleApi } from "../style/api";
-import { styleStatusLabel, type Style } from "../style/types";
+import type { Style } from "../style/types";
 import { vendorApi, type Vendor } from "../vendor/api";
 import { orderStatusLabel, productionOrderApi, type ProductionOrder, type ProductionOrderStatus } from "./api";
 import "./productionOrder.css";
+import { Badge, Button, EmptyText, SectionHeader } from "../../ui";
 
 /**
  * The Drop's production overview: every Production Order with its Vendor,
@@ -45,10 +46,10 @@ export function DropProductionOrders({ drop }: { drop: Drop }) {
 
   return (
     <div className="drop-orders">
-      <h3>Production Orders</h3>
+      <SectionHeader level={3} title="Production Orders" />
       {error && <p className="error">{error.message}</p>}
       {orders.length === 0 ? (
-        <p className="empty">No Production Orders yet.</p>
+        <EmptyText>No Production Orders yet.</EmptyText>
       ) : (
         <table className="order-table">
           <thead>
@@ -67,7 +68,9 @@ export function DropProductionOrders({ drop }: { drop: Drop }) {
                 onClick={() => setOpenId(o.id === openId ? undefined : o.id)}
               >
                 <td>{o.vendorName}</td>
-                <td>{orderStatusLabel[o.status]}</td>
+                <td>
+                  <Badge lifecycle="productionOrder" status={o.status} />
+                </td>
                 <td>{o.deliveryDate ?? "—"}</td>
                 <td className="num">
                   <Money amount={o.totalCost} currency={o.currency} estimate={!o.costsFrozen} />
@@ -87,9 +90,9 @@ export function DropProductionOrders({ drop }: { drop: Drop }) {
               </option>
             ))}
           </select>
-          <button type="submit" disabled={vendorId === undefined}>
+          <Button type="submit" disabled={vendorId === undefined}>
             Add Production Order
-          </button>
+          </Button>
         </form>
       )}
       {open && <OrderDetail key={open.id} order={open} onChanged={reload} />}
@@ -162,8 +165,10 @@ function OrderDetail({ order, onChanged }: { order: ProductionOrder; onChanged()
 
   return (
     <div className="order-detail">
-      <p className="status">{orderStatusLabel[order.status]}</p>
-      <strong>{order.vendorName}</strong>
+      <div className="card-title">
+        <strong>{order.vendorName}</strong>
+        <Badge lifecycle="productionOrder" status={order.status} />
+      </div>
       {error && <p className="error">{error.message}</p>}
 
       {order.moves.length > 0 && (
@@ -171,15 +176,19 @@ function OrderDetail({ order, onChanged }: { order: ProductionOrder; onChanged()
           {order.moves
             .filter((to) => to !== "cancelled")
             .map((to) => (
-              <button key={to} onClick={() => move(to)}>
+              <Button key={to} onClick={() => move(to)}>
                 Move to {orderStatusLabel[to]}
-              </button>
+              </Button>
             ))}
           {order.moves.includes("cancelled") &&
             (confirmCancel ? (
-              <button onClick={() => move("cancelled")}>Confirm: cancel this order</button>
+              <Button variant="destructive" onClick={() => move("cancelled")}>
+                Confirm: cancel this order
+              </Button>
             ) : (
-              <button onClick={() => setConfirmCancel(true)}>Cancel order</button>
+              <Button variant="destructive" onClick={() => setConfirmCancel(true)}>
+                Cancel order
+              </Button>
             ))}
         </div>
       )}
@@ -195,13 +204,17 @@ function OrderDetail({ order, onChanged }: { order: ProductionOrder; onChanged()
 
       {draft && (
         <div className="order-grid">
-          {styles.length === 0 && <p className="empty">The Drop has no Approved Styles to order.</p>}
+          {styles.length === 0 && <EmptyText>The Drop has no Approved Styles to order.</EmptyText>}
           {styles.map((s) => (
             <div key={s.id} className="order-grid-style">
               <span>
                 {s.name} <span className="muted">· {s.color}</span>
                 {s.status !== "approved" && (
-                  <span className="muted"> · {styleStatusLabel[s.status]}: clear its quantities</span>
+                  <>
+                    {" "}
+                    <Badge lifecycle="style" status={s.status} />
+                    <span className="muted"> clear its quantities</span>
+                  </>
                 )}
               </span>
               {(sizes[s.id] ?? []).length === 0 ? (

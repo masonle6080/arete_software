@@ -13,6 +13,7 @@ import {
   type VendorRole,
 } from "./api";
 import "./vendor.css";
+import { Button, EmptyText, SectionHeader } from "../../ui";
 
 /** `null` id: a new Vendor. */
 type Editing = { id: number | null; input: VendorInput };
@@ -66,7 +67,7 @@ function VendorScreen() {
     <section className="vendors">
       <header>
         <h1>Vendors</h1>
-        <button onClick={() => startEdit({ id: null, input: emptyVendorInput() })}>New Vendor</button>
+        <Button onClick={() => startEdit({ id: null, input: emptyVendorInput() })}>New Vendor</Button>
       </header>
 
       {editing && (
@@ -81,14 +82,14 @@ function VendorScreen() {
       {error && <p className="error">{error.message}</p>}
 
       {vendors.length === 0 ? (
-        <p className="muted">No Vendors yet.</p>
+        <EmptyText>No Vendors yet.</EmptyText>
       ) : (
         <ul className="vendor-list">
           {vendors.map((v) => (
             <li key={v.id} className={v.id === selectedId ? "selected" : undefined}>
-              <button className="name link" onClick={() => setSelectedId(v.id)}>{v.name}</button>
+              <Button className="name link" onClick={() => setSelectedId(v.id)}>{v.name}</Button>
               <span className="muted">{v.roles.map(roleLabel).join(", ")}</span>
-              <button onClick={() => startEdit({ id: v.id, input: toInput(v) })}>Edit</button>
+              <Button onClick={() => startEdit({ id: v.id, input: toInput(v) })}>Edit</Button>
             </li>
           ))}
         </ul>
@@ -162,21 +163,21 @@ function VendorForm(props: {
             <input placeholder="Role" value={c.role} onChange={(e) => setContact(i, { role: e.target.value })} />
             <input placeholder="Email" value={c.email} onChange={(e) => setContact(i, { email: e.target.value })} />
             <input placeholder="Phone" value={c.phone} onChange={(e) => setContact(i, { phone: e.target.value })} />
-            <button type="button" onClick={() => set({ contacts: input.contacts.filter((_, j) => j !== i) })}>
+            <Button type="button" onClick={() => set({ contacts: input.contacts.filter((_, j) => j !== i) })}>
               Remove
-            </button>
+            </Button>
           </div>
         ))}
-        <button
+        <Button
           type="button"
           onClick={() => set({ contacts: [...input.contacts, { name: "", role: "", email: "", phone: "" }] })}
         >
           Add contact
-        </button>
+        </Button>
       </fieldset>
       <div className="actions">
-        <button type="submit">{editing.id === null ? "Create" : "Save"}</button>
-        <button type="button" onClick={props.onCancel}>Cancel</button>
+        <Button type="submit">{editing.id === null ? "Create" : "Save"}</Button>
+        <Button type="button" onClick={props.onCancel}>Cancel</Button>
       </div>
     </form>
   );
@@ -185,7 +186,7 @@ function VendorForm(props: {
 function VendorDetail({ vendor }: { vendor: Vendor }) {
   return (
     <article className="vendor-detail">
-      <h2>{vendor.name}</h2>
+      <SectionHeader title={vendor.name} />
       <dl>
         <dt>Roles</dt>
         <dd>{vendor.roles.map(roleLabel).join(", ")}</dd>
@@ -196,9 +197,9 @@ function VendorDetail({ vendor }: { vendor: Vendor }) {
         <dt>Lead time</dt>
         <dd>{vendor.leadTime || "—"}</dd>
       </dl>
-      <h3>Contacts</h3>
+      <SectionHeader level={3} title="Contacts" />
       {vendor.contacts.length === 0 ? (
-        <p className="muted">No contacts yet.</p>
+        <EmptyText>No contacts yet.</EmptyText>
       ) : (
         <ul className="contact-list">
           {vendor.contacts.map((c, i) => (
