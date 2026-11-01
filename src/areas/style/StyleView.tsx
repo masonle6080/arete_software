@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState, type FormEvent } from "react";
+import { convertFileSrc } from "@tauri-apps/api/core";
 import { toCoreError, type CoreError } from "../../shell/coreError";
 import { Badge, Button, SectionHeader, SegmentedControl } from "../../ui";
 import { dropApi } from "../drop/api";
@@ -98,6 +99,9 @@ export function StyleView({ id, backLabel, onBack, onOpenStyle, onOpenMoodboard 
       {style && (
         <>
           <header>
+            {style.cover && (
+              <img className="style-cover" src={convertFileSrc(style.cover.path)} alt={`Cover of ${style.name}`} />
+            )}
             <Badge lifecycle="style" status={style.status} />
             <h1>{style.name}</h1>
             <p className="color">{style.color}</p>
