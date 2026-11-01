@@ -53,4 +53,4 @@ function FilesSectionView({ style }: StyleSectionProps) {
   );
 }
 
-export const filesSection: StyleSection = { id: "files", title: "Design files", Component: FilesSectionView };
+export const filesSection: StyleSection = { id: "files", title: "Design files", segment: "design", Component: FilesSectionView };

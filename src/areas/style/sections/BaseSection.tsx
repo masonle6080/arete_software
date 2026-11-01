@@ -107,4 +107,10 @@ function BaseSectionView({ style, onStyleChanged }: StyleSectionProps) {
   );
 }
 
-export const baseSection: StyleSection = { id: "base", title: "Base and sizes", Component: BaseSectionView };
+export const baseSection: StyleSection = {
+  id: "base",
+  title: "Base and sizes",
+  segment: "build",
+  baseKind: "blank",
+  Component: BaseSectionView,
+};

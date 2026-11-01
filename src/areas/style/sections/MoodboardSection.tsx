@@ -6,4 +6,9 @@ function MoodboardSectionView({ style, onOpenMoodboard }: StyleSectionProps) {
   return <Moodboards owner={{ kind: "style", id: style.id }} single onOpen={onOpenMoodboard} />;
 }
 
-export const moodboardSection: StyleSection = { id: "moodboard", title: "Moodboard", Component: MoodboardSectionView };
+export const moodboardSection: StyleSection = {
+  id: "moodboard",
+  title: "Moodboard",
+  segment: "design",
+  Component: MoodboardSectionView,
+};
