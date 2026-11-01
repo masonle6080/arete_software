@@ -5,6 +5,7 @@ import { PassageView } from "../areas/passage/PassageView";
 import { StyleView } from "../areas/style/StyleView";
 import { ThesisView } from "../areas/thesis";
 import { steps, type Place, type Step } from "./navPath";
+import type { View } from "./sidebar";
 
 interface Props {
   /** The place that owns the screen (see `screenLevel`). Not a Thesis list or an area. */
@@ -15,6 +16,8 @@ interface Props {
   thesisId?: number;
   /** Opens an item: one level down, back to its level if it is on the path, or a Thesis tab (see `openStep`). */
   onPush(step: Step): void;
+  /** Starts the path of a sidebar view, for example a Style under the Drop tab from the Thesis Overview. */
+  onGo(view: View): void;
   /** Shows another item in place of this one, for example a Style's new copy. */
   onReplace(step: Step): void;
   /** Changes the breadcrumb label of this place. */
@@ -22,11 +25,11 @@ interface Props {
 }
 
 /** The screen of one place of the navigation path: a Thesis tab, a Style, an Essay, a Moodboard, or a Script. */
-export function PlaceScreen({ place, passageId, thesisId, onPush, onReplace, onRelabel }: Props) {
+export function PlaceScreen({ place, passageId, thesisId, onPush, onGo, onReplace, onRelabel }: Props) {
   const openPassage = (id: string) => onPush(steps.passage(id));
   switch (place.kind) {
     case "thesis":
-      return thesisId === undefined ? null : <ThesisView id={thesisId} tab={place.tab} onOpen={onPush} />;
+      return thesisId === undefined ? null : <ThesisView id={thesisId} tab={place.tab} onOpen={onPush} onGo={onGo} />;
     case "style":
       return <StyleView id={place.id} onOpen={onPush} onOpenStyle={onReplace} />;
     case "essay":

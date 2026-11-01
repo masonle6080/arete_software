@@ -2,9 +2,11 @@ import { useCallback, useEffect, useState } from "react";
 import { toCoreError, type CoreError } from "../../shell/coreError";
 import { Badge, Button, SectionHeader } from "../../ui";
 import type { Step } from "../../shell/navPath";
+import type { View } from "../../shell/sidebar";
 import { thesisApi } from "./api";
 import { thesisSections } from "./sections";
 import { ThesisChips } from "./ThesisChips";
+import { ThesisOverview } from "./ThesisOverview";
 import { statusLabel, type Thesis, type ThesisStatus } from "./types";
 
 /** The sidebar tabs of the current Thesis: Overview, then every registered section. */
@@ -19,13 +21,17 @@ interface Props {
   tab: string;
   /** Opens an item of this Thesis one level below the tab in the navigation path. */
   onOpen(step: Step): void;
+  /** Opens a tab of this Thesis, or an item on top of its tab, as the sidebar tree does. */
+  onGo(view: View): void;
 }
 
 /**
- * One tab of a Thesis under its header. Overview shows the statement and the
- * status moves; any other tab shows that one section.
+ * One tab of a Thesis under its header, which shows the status Badge, the
+ * title, and the chips on every tab. Overview adds the statement and the
+ * status moves to the header, and sums up the Thesis below it; any other
+ * tab shows that one section.
  */
-export function ThesisView({ id, tab, onOpen }: Props) {
+export function ThesisView({ id, tab, onOpen, onGo }: Props) {
   const [thesis, setThesis] = useState<Thesis>();
   const [error, setError] = useState<CoreError>();
 
@@ -65,6 +71,7 @@ export function ThesisView({ id, tab, onOpen }: Props) {
               </div>
             )}
           </header>
+          {!section && <ThesisOverview thesis={thesis} onGo={onGo} />}
           {section && (
             <section className="thesis-section">
               <SectionHeader title={section.title} />

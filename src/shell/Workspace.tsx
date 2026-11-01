@@ -181,6 +181,7 @@ export function Workspace({ library, onSwitchLibrary }: Props) {
               passageId={passageId}
               thesisId={thesisId}
               onPush={open}
+              onGo={(v) => void go(v)}
               onReplace={(step) => void navigate((p) => push(pop(p), step))}
               onRelabel={(label) =>
                 setPath((p) => (p[depth] && placeKey(p[depth].place) === placeKey(place) ? relabel(p, depth, label) : p))

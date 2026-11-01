@@ -1,14 +1,8 @@
 import { useCallback, useEffect, useState, type ReactNode } from "react";
 import { toCoreError, type CoreError } from "../../shell/coreError";
-import { steps } from "../../shell/navPath";
 import { thesisTabLabel, type View } from "../../shell/sidebar";
 import { listenTreeChanges } from "../../shell/treeChanges";
-import { dropApi } from "../drop/api";
-import { essayThesisApi, type DocumentSummary } from "../essays/api";
-import { moodboardApi } from "../moodboard/api";
-import type { Moodboard } from "../moodboard/types";
-import { styleApi } from "../style/api";
-import type { Style } from "../style/types";
+import { itemView, loadThesisContents, type ThesisContents } from "./contents";
 
 interface Props {
   thesisId: number;
@@ -20,36 +14,18 @@ interface Props {
 /** The parts of the tree that open and close. */
 type Group = "essays" | "moodboards" | "drop";
 
-interface Contents {
-  essays: DocumentSummary[];
-  moodboards: Moodboard[];
-  /** The Styles of the Thesis's active (not cancelled) Drop. Empty when it has none. */
-  styles: Style[];
-}
-
-async function loadContents(thesisId: number): Promise<Contents> {
-  const [essays, moodboards, drops] = await Promise.all([
-    essayThesisApi.essaysOfThesis(thesisId),
-    moodboardApi.listMoodboards({ kind: "thesis", id: thesisId }),
-    dropApi.thesisDrops(thesisId),
-  ]);
-  const active = drops.drops.find((d) => d.stage !== "cancelled");
-  const styles = active ? await styleApi.dropStyles(active.id) : [];
-  return { essays, moodboards, styles };
-}
-
 /**
  * The source-list tree of the current Thesis: Overview, Essays, Moodboards,
  * Drop with each Style, and Documentary. Essays, Moodboards, and Drop open
  * and close. The tree reloads on every announced tree change.
  */
 export function ThesisTree({ thesisId, openKey, onGo }: Props) {
-  const [contents, setContents] = useState<Contents>();
+  const [contents, setContents] = useState<ThesisContents>();
   const [error, setError] = useState<CoreError>();
   const [closed, setClosed] = useState<Set<Group>>(() => new Set());
 
   const reload = useCallback(() => {
-    loadContents(thesisId).then(
+    loadThesisContents(thesisId).then(
       (c) => {
         setContents(c);
         setError(undefined);
@@ -82,7 +58,7 @@ export function ThesisTree({ thesisId, openKey, onGo }: Props) {
     </li>
   );
 
-  const tab = (id: string) => row(`thesis:${id}`, thesisTabLabel[id], { kind: "thesis", tab: id }, "tree-top");
+  const tab = (id: string) => row(`thesis:${id}`, thesisTabLabel[id], itemView.tab(id), "tree-top");
 
   const group = (id: Group, children: ReactNode[]) => {
     const label = thesisTabLabel[id];
@@ -114,13 +90,13 @@ export function ThesisTree({ thesisId, openKey, onGo }: Props) {
         {group(
           "essays",
           (contents?.essays ?? []).map((e) =>
-            row(`essay:${e.id}`, e.title || "Untitled", { kind: "thesis", tab: "essays", open: steps.essay(e.id, e.title) }, "tree-leaf"),
+            row(`essay:${e.id}`, e.title || "Untitled", itemView.essay(e), "tree-leaf"),
           ),
         )}
         {group(
           "moodboards",
           (contents?.moodboards ?? []).map((b) =>
-            row(`moodboard:${b.id}`, b.title, { kind: "thesis", tab: "moodboards", open: steps.moodboard(b) }, "tree-leaf"),
+            row(`moodboard:${b.id}`, b.title, itemView.moodboard(b), "tree-leaf"),
           ),
         )}
         {group(
@@ -131,7 +107,7 @@ export function ThesisTree({ thesisId, openKey, onGo }: Props) {
               <>
                 {s.name} <span className="tree-color">{s.color}</span>
               </>,
-              { kind: "thesis", tab: "drop", open: steps.style(s) },
+              itemView.style(s),
               s.status === "cut" ? "tree-leaf cut" : "tree-leaf",
             ),
           ),
