@@ -1,5 +1,6 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { toCoreError, type CoreError } from "../../shell/coreError";
+import { announceTreeChange } from "../../shell/treeChanges";
 import { moodboardApi } from "./api";
 import type { Moodboard, MoodboardOwner } from "./types";
 import "./moodboard.css";
@@ -35,6 +36,7 @@ export function Moodboards({ owner, single = false, onOpen }: Props) {
     try {
       const board = await moodboardApi.createMoodboard({ kind, id }, title);
       setTitle("");
+      announceTreeChange();
       onOpen(board);
     } catch (raw) {
       setError(toCoreError(raw));
@@ -47,6 +49,7 @@ export function Moodboards({ owner, single = false, onOpen }: Props) {
     try {
       await moodboardApi.deleteMoodboard(board.id);
       setBoards((list) => list.filter((b) => b.id !== board.id));
+      announceTreeChange();
     } catch (raw) {
       setError(toCoreError(raw));
     }

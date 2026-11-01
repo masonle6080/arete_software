@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { toCoreError, type CoreError } from "../../shell/coreError";
 import { thesisApi } from "./api";
+import { ALL_THESES, NEW_THESIS, pickerChoice } from "./pickerChoice";
 import { statusLabel, type ThesisGroup } from "./types";
 
 interface Props {
@@ -10,10 +11,17 @@ interface Props {
   version: number;
   /** Called with undefined when the current Thesis is no longer in the library. */
   onPick(id: number | undefined): void;
+  /** "New Thesis…" at the end of the list. */
+  onNewThesis(): void;
+  /** "All Theses…" at the end of the list. */
+  onAllTheses(): void;
 }
 
-/** The sidebar's choice of current Thesis, grouped by status. */
-export function ThesisPicker({ value, version, onPick }: Props) {
+/**
+ * The sidebar's choice of current Thesis, grouped by status. It ends with
+ * "New Thesis…" and "All Theses…", which act and leave the choice as it was.
+ */
+export function ThesisPicker({ value, version, onPick, onNewThesis, onAllTheses }: Props) {
   const [groups, setGroups] = useState<ThesisGroup[]>();
   const [error, setError] = useState<CoreError>();
 
@@ -32,7 +40,12 @@ export function ThesisPicker({ value, version, onPick }: Props) {
       <select
         id="thesis-picker"
         value={value ?? ""}
-        onChange={(e) => e.target.value && onPick(Number(e.target.value))}
+        onChange={(e) => {
+          const choice = pickerChoice(e.target.value);
+          if (choice?.kind === "thesis") onPick(choice.id);
+          else if (choice?.kind === "new") onNewThesis();
+          else if (choice?.kind === "all") onAllTheses();
+        }}
       >
         {value === undefined && <option value="">Pick a Thesis…</option>}
         {groups
@@ -46,6 +59,9 @@ export function ThesisPicker({ value, version, onPick }: Props) {
               ))}
             </optgroup>
           ))}
+        <option disabled>──────────</option>
+        <option value={NEW_THESIS}>New Thesis…</option>
+        <option value={ALL_THESES}>All Theses…</option>
       </select>
       {error && <p className="error">{error.message}</p>}
     </div>

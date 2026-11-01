@@ -1,16 +1,16 @@
 import { useEffect, useState, type FormEvent } from "react";
-import type { Area } from "../../shell/area";
+import type { Area, AreaProps } from "../../shell/area";
 import { toCoreError, type CoreError } from "../../shell/coreError";
 import { currencyApi, type CurrencySettings } from "../costSheet/api";
 import "./settings.css";
 import { Button, EmptyText, SectionHeader } from "../../ui";
 
 /**
- * Library settings: the home currency and the exchange rates the founder
- * enters by hand. Every Cost Sheet totals in the home currency with these
- * rates. There are no live rates.
+ * Library settings: the Library folder, and the home currency and the
+ * exchange rates the founder enters by hand. Every Cost Sheet totals in the
+ * home currency with these rates. There are no live rates.
  */
-function SettingsScreen() {
+function SettingsScreen({ library }: AreaProps) {
   const [settings, setSettings] = useState<CurrencySettings>();
   const [home, setHome] = useState("");
   const [rateCurrency, setRateCurrency] = useState("");
@@ -59,6 +59,13 @@ function SettingsScreen() {
     <section className="settings">
       <h1>Settings</h1>
       {error && <p className="error">{error.message}</p>}
+      <SectionHeader title="Library" />
+      <dl className="facts">
+        <dt>Folder</dt>
+        <dd>{library.path}</dd>
+        <dt>Schema version</dt>
+        <dd>{library.schemaVersion}</dd>
+      </dl>
       <SectionHeader title="Currencies" />
       <form className="settings-row" onSubmit={saveHome}>
         <label>

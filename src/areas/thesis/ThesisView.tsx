@@ -18,6 +18,8 @@ interface Props {
   tab: string;
   /** Opens the Style view for one Style of this Thesis's Drop. */
   onOpenStyle(styleId: number): void;
+  /** Opens one Essay linked to this Thesis. */
+  onOpenEssay(essayId: number): void;
   /** Opens one Moodboard of this Thesis on its own screen. */
   onOpenMoodboard(board: Moodboard): void;
 }
@@ -26,7 +28,7 @@ interface Props {
  * One tab of a Thesis under its header. Overview shows the statement and the
  * status moves; any other tab shows that one section.
  */
-export function ThesisView({ id, tab, onOpenStyle, onOpenMoodboard }: Props) {
+export function ThesisView({ id, tab, onOpenStyle, onOpenEssay, onOpenMoodboard }: Props) {
   const [thesis, setThesis] = useState<Thesis>();
   const [error, setError] = useState<CoreError>();
 
@@ -72,6 +74,7 @@ export function ThesisView({ id, tab, onOpenStyle, onOpenMoodboard }: Props) {
                 thesis={thesis}
                 onThesisChanged={reload}
                 onOpenStyle={onOpenStyle}
+                onOpenEssay={onOpenEssay}
                 onOpenMoodboard={onOpenMoodboard}
               />
             </section>

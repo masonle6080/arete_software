@@ -39,12 +39,40 @@ body:has(.shell) { background: transparent; }
 .sidebar button:hover { background: var(--hover); }
 .sidebar button.active { background: var(--selected); font-weight: 500; }
 .sidebar-group { display: flex; flex-direction: column; gap: 1px; padding: 0 0 10px; }
-.sidebar .group-toggle {
+.sidebar-heading {
+  margin: 0;
+  padding: 0 8px 2px;
   color: var(--muted);
   font-size: var(--text-small);
   font-weight: 600;
 }
-.sidebar .nested { padding-left: 20px; }
+
+/* The Thesis tree (src/areas/thesis/ThesisTree.tsx). */
+.thesis-tree { padding: 0 0 10px; }
+.thesis-tree ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 1px; }
+.thesis-tree .tree-row {
+  width: 100%;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.thesis-tree .tree-top { padding-left: 20px; }
+.thesis-tree .tree-group { display: flex; align-items: center; }
+.thesis-tree .tree-group .tree-inline { flex: 1; min-width: 0; }
+.thesis-tree .tree-group .tree-top { padding-left: 4px; }
+.sidebar .thesis-tree .tree-disclosure {
+  flex: none;
+  width: 16px;
+  min-height: 24px;
+  padding: 0;
+  text-align: center;
+  color: var(--muted);
+  font-size: 10px;
+}
+.sidebar .thesis-tree .tree-disclosure:hover { background: transparent; color: var(--fg); }
+.thesis-tree .tree-children .tree-row { padding-left: 32px; }
+.thesis-tree .tree-color { color: var(--muted); }
+.thesis-tree .tree-row.cut { color: var(--muted); text-decoration: line-through; }
 .thesis-picker { display: flex; flex-direction: column; gap: 4px; padding: 0 0 10px; }
 .thesis-picker label { color: var(--muted); font-size: var(--text-small); font-weight: 600; padding: 0 8px; }
 .thesis-picker select { width: 100%; }
