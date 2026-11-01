@@ -77,7 +77,7 @@ export function DropStyles({ drop, onOpen }: Props) {
 }
 
 /** The top of a Style's card: its Cover small, or a neutral placeholder with its color name. */
-function CardFaceView({ style }: { style: Style }) {
+export function CardFaceView({ style }: { style: Style }) {
   const face = cardFace(style);
   return face.kind === "cover" ? (
     <img className="style-card-face" src={convertFileSrc(face.path)} alt={`Cover of ${style.name}`} />
