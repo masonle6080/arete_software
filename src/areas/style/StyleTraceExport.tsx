@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { exportPdf, fileNameFor, saveTextFile } from "../../export";
 import { toCoreError } from "../../shell/coreError";
+import { Button } from "../../ui";
 import { designDecisionApi } from "../designDecision/api";
 import { styleTraceCss, styleTraceHtml, styleTraceMarkdown, styleTraceTitle } from "./trace";
 import type { Style } from "./types";
@@ -41,8 +42,12 @@ export function StyleTraceExport({ style }: { style: Style }) {
   return (
     <div className="style-trace-export">
       <span className="muted">Export trace</span>
-      <button onClick={toMarkdown}>Markdown…</button>
-      <button onClick={toPdf}>PDF…</button>
+      <Button size="small" onClick={toMarkdown}>
+        Markdown…
+      </Button>
+      <Button size="small" onClick={toPdf}>
+        PDF…
+      </Button>
       {message && <span className={message.error ? "error" : "muted"}>{message.text}</span>}
     </div>
   );

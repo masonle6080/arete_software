@@ -1,22 +1,41 @@
 import { useCallback, useEffect, useState, type FormEvent } from "react";
+import { convertFileSrc } from "@tauri-apps/api/core";
 import { toCoreError, type CoreError } from "../../shell/coreError";
+import { announceTreeChange } from "../../shell/treeChanges";
+import { Badge, Button, SectionHeader, SegmentedControl } from "../../ui";
 import { dropApi } from "../drop/api";
+import { steps, type Step } from "../../shell/navPath";
 import { styleApi } from "./api";
 import { styleSections } from "./sections";
+import { baseKindOf, sectionsIn, styleSegments, type BaseKind, type StyleSegment } from "./segments";
+import { StyleChips } from "./StyleChips";
+import { StyleTraceExport } from "./StyleTraceExport";
 import { styleStatusLabel, type Style, type StyleStatus } from "./types";
 import "./style.css";
 
+/**
+ * The Base kind switch at the top of Build. A Style uses one kind of base,
+ * so Build shows one section; the switch reaches the other kind, for
+ * example to move a Tech Pack Style back to a Blank.
+ */
+const baseKinds: readonly { value: BaseKind; label: string }[] = [
+  { value: "blank", label: "Blank" },
+  { value: "techPack", label: "Tech Pack" },
+];
+
 interface Props {
   id: number;
-  /** Label of the screen that `onBack` returns to, for example the Thesis title. */
-  backLabel: string;
-  onBack(): void;
-  /** Opens another Style, for example a copy just made. */
-  onOpenStyle?(id: number): void;
+  /** Opens an item one level below this Style in the navigation path, for example its Moodboard. */
+  onOpen(step: Step): void;
+  /** Opens another Style in place of this one, for example a copy just made. */
+  onOpenStyle(step: Step): void;
 }
 
-/** One Style: its header and status moves, then every registered section. */
-export function StyleView({ id, backLabel, onBack, onOpenStyle }: Props) {
+/**
+ * One Style: its header (status moves, Duplicate, Export), then the sections
+ * of one segment: Design, Build, or Make.
+ */
+export function StyleView({ id, onOpen, onOpenStyle }: Props) {
   const [style, setStyle] = useState<Style>();
   const [error, setError] = useState<CoreError>();
   const [confirmCut, setConfirmCut] = useState(false);
@@ -26,12 +45,23 @@ export function StyleView({ id, backLabel, onBack, onOpenStyle }: Props) {
   /** Whether the Style's Drop takes duplicated Styles now. */
   const [canDuplicate, setCanDuplicate] = useState(false);
 
+  /** The open segment. It stays open when the Style reloads. */
+  const [segment, setSegment] = useState<StyleSegment>("design");
+  /**
+   * The base kind the Build segment shows. It follows the Style's base each
+   * time the Style loads; the Base kind switch changes it to start the other
+   * kind of base.
+   */
+  const [baseKind, setBaseKind] = useState<BaseKind>("techPack");
+
   const reload = useCallback(() => {
     styleApi
       .getStyle(id)
       .then(async (s) => {
+        const [drop, base] = await Promise.all([dropApi.getDrop(s.dropId), styleApi.styleBase(s.id)]);
         setStyle(s);
-        setCanDuplicate((await dropApi.getDrop(s.dropId)).canAddStyles);
+        setCanDuplicate(drop.canAddStyles);
+        setBaseKind(baseKindOf(base));
       })
       .catch((raw) => setError(toCoreError(raw)));
   }, [id]);
@@ -42,6 +72,7 @@ export function StyleView({ id, backLabel, onBack, onOpenStyle }: Props) {
     setConfirmCut(false);
     try {
       setStyle(await styleApi.moveStyle(id, to));
+      announceTreeChange();
     } catch (raw) {
       setError(toCoreError(raw));
     }
@@ -53,7 +84,8 @@ export function StyleView({ id, backLabel, onBack, onOpenStyle }: Props) {
     try {
       const copy = await styleApi.duplicateStyle(id, copyColor ?? "");
       setCopyColor(undefined);
-      onOpenStyle?.(copy.id);
+      announceTreeChange();
+      onOpenStyle(steps.style(copy));
     } catch (raw) {
       setError(toCoreError(raw));
     }
@@ -61,36 +93,41 @@ export function StyleView({ id, backLabel, onBack, onOpenStyle }: Props) {
 
   return (
     <section className="style-view">
-      <button className="back" onClick={onBack}>
-        ← {backLabel}
-      </button>
       {error && <p className="error">{error.message}</p>}
       {style && (
         <>
           <header>
-            <p className="status">{styleStatusLabel[style.status]}</p>
+            {style.cover && (
+              <img className="style-cover" src={convertFileSrc(style.cover.path)} alt={`Cover of ${style.name}`} />
+            )}
+            <Badge lifecycle="style" status={style.status} />
             <h1>{style.name}</h1>
             <p className="color">{style.color}</p>
+            <StyleChips style={style} onOpen={onOpen} onSegment={setSegment} />
             {style.moves.length > 0 && (
               <div className="actions">
                 {style.moves
                   .filter((to) => to !== "cut")
                   .map((to) => (
-                    <button key={to} onClick={() => move(to)}>
+                    <Button key={to} onClick={() => move(to)}>
                       Move to {styleStatusLabel[to]}
-                    </button>
+                    </Button>
                   ))}
                 {style.moves.includes("cut") &&
                   (confirmCut ? (
-                    <button onClick={() => move("cut")}>Confirm: cut this Style</button>
+                    <Button variant="destructive" onClick={() => move("cut")}>
+                      Confirm: cut this Style
+                    </Button>
                   ) : (
-                    <button onClick={() => setConfirmCut(true)}>Cut Style</button>
+                    <Button variant="destructive" onClick={() => setConfirmCut(true)}>
+                      Cut Style
+                    </Button>
                   ))}
               </div>
             )}
             {!canDuplicate ? null : copyColor === undefined ? (
               <div className="actions">
-                <button onClick={() => setCopyColor("")}>Duplicate in another color</button>
+                <Button onClick={() => setCopyColor("")}>Duplicate in another color</Button>
               </div>
             ) : (
               <form className="actions" onSubmit={duplicate}>
@@ -101,19 +138,26 @@ export function StyleView({ id, backLabel, onBack, onOpenStyle }: Props) {
                   value={copyColor}
                   onChange={(e) => setCopyColor(e.target.value)}
                 />
-                <button type="submit" disabled={!copyColor.trim()}>
+                <Button type="submit" variant="primary" disabled={!copyColor.trim()}>
                   Duplicate
-                </button>
-                <button type="button" onClick={() => setCopyColor(undefined)}>
+                </Button>
+                <Button type="button" onClick={() => setCopyColor(undefined)}>
                   Cancel
-                </button>
+                </Button>
               </form>
             )}
+            <StyleTraceExport style={style} />
+            <SegmentedControl<StyleSegment> label="Style segment" options={styleSegments} value={segment} onChange={setSegment} />
           </header>
-          {styleSections.map(({ id: sectionId, title, Component }) => (
+          {segment === "build" && (
+            <div className="style-base-kind">
+              <SegmentedControl<BaseKind> label="Base kind" options={baseKinds} value={baseKind} onChange={setBaseKind} />
+            </div>
+          )}
+          {sectionsIn(styleSections, segment, baseKind).map(({ id: sectionId, title, Component }) => (
             <section key={sectionId} className="style-section">
-              <h2>{title}</h2>
-              <Component style={style} onStyleChanged={reload} />
+              <SectionHeader title={title} />
+              <Component style={style} onStyleChanged={reload} onOpen={onOpen} />
             </section>
           ))}
         </>

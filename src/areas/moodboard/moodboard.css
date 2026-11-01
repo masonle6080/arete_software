@@ -1,28 +1,19 @@
-.moodboard-bar {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 8px;
-}
-.moodboard-bar button.active { font-weight: 600; border-color: var(--fg); }
-.moodboard-bar form { display: flex; gap: 8px; margin-left: auto; }
-.moodboard-bar input {
-  font: inherit;
-  color: var(--fg);
-  background: transparent;
-  border: 1px solid var(--line);
-  border-radius: 6px;
-  padding: 6px 8px;
-}
-.moodboards .empty { color: var(--muted); margin: 0; }
+.moodboard-list { list-style: none; margin: 0 0 var(--space-2); padding: 0; }
+.moodboard-list li { display: flex; align-items: center; gap: var(--space-2); padding: var(--space-1) 0; }
+.moodboard-list strong { margin-right: auto; }
+.moodboard-create { display: flex; gap: var(--space-2); }
+
+/* One Moodboard on its own screen: the canvas takes the rest of the pane. */
+.moodboard-screen { display: flex; flex-direction: column; height: 100%; }
+.moodboard-screen h1 { margin: var(--space-1) 0 var(--space-3); }
+.moodboard-screen .moodboard-canvas { flex: 1; height: auto; }
 
 /* Excalidraw needs a parent with a non-zero height. */
 .moodboard-canvas {
   height: 70vh;
   min-height: 420px;
   border: 1px solid var(--line);
-  border-radius: 6px;
+  border-radius: var(--control-radius);
   overflow: hidden;
   display: flex;
   flex-direction: column;
@@ -35,17 +26,8 @@
 .passage-link-panel {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--space-2);
   padding: 6px 8px;
   border-bottom: 1px solid var(--line);
-  font-size: 13px;
 }
-.passage-link-panel select {
-  font: inherit;
-  color: var(--fg);
-  background: transparent;
-  border: 1px solid var(--line);
-  border-radius: 6px;
-  padding: 4px 6px;
-  max-width: 420px;
-}
+.passage-link-panel select { max-width: 420px; }

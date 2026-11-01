@@ -4,6 +4,7 @@ import { mediaApi, moodboardApi } from "../../moodboard/api";
 import { mimeTypeOf } from "../../moodboard/mediaType";
 import type { LinkedMoodboardItem } from "../../moodboard/types";
 import type { PassageSection, PassageSectionProps } from "./index";
+import { EmptyText } from "../../../ui";
 
 /** The canvas items linked to this Passage, from every Moodboard. */
 function MoodboardItems({ passage }: PassageSectionProps) {
@@ -17,7 +18,7 @@ function MoodboardItems({ passage }: PassageSectionProps) {
   if (error) return <p className="error">{error}</p>;
   if (!items) return null;
   if (items.length === 0) {
-    return <p className="muted">No Moodboard items. Select an item on a Moodboard canvas to link it.</p>;
+    return <EmptyText>No Moodboard items. Select an item on a Moodboard canvas to link it.</EmptyText>;
   }
   return (
     <ul className="passage-moodboard-items">

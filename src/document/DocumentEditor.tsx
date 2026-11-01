@@ -5,6 +5,7 @@ import { fromMarkdown } from "./markdown";
 import { passageIdsAt, passageRange, type PassageText } from "./passage";
 import { saveReport } from "./saveReport";
 import "./editor.css";
+import { Button } from "../ui";
 
 export interface DocumentEditorProps {
   title: string;
@@ -166,31 +167,31 @@ function PassageBar({ editor, onOpenPassage }: { editor: Editor; onOpenPassage?(
 
   return (
     <div className="passage-bar">
-      <button
+      <Button
         disabled={!state.canMark}
         title="Mark the selected text as a Passage (⇧⌘P)"
         onMouseDown={(e) => e.preventDefault()}
         onClick={() => editor.chain().focus().setPassage().run()}
       >
         Mark Passage
-      </button>
+      </Button>
       {state.under && (
-        <button
+        <Button
           title="Remove this Passage mark and keep the text"
           onMouseDown={(e) => e.preventDefault()}
           onClick={() => editor.chain().focus().unsetPassage(state.under!).run()}
         >
           Remove Passage
-        </button>
+        </Button>
       )}
       {state.under && onOpenPassage && (
-        <button
+        <Button
           title="Show this Passage and everything linked to it"
           onMouseDown={(e) => e.preventDefault()}
           onClick={() => onOpenPassage(state.under!)}
         >
           Passage details
-        </button>
+        </Button>
       )}
     </div>
   );

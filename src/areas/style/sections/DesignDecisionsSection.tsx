@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { toCoreError, type CoreError } from "../../../shell/coreError";
+import { steps } from "../../../shell/navPath";
 import {
   designAspectLabel,
   designAspects,
@@ -8,23 +9,36 @@ import {
   type DesignDecision,
 } from "../../designDecision/api";
 import { decorationApi, decorationLabel, type Decoration } from "../../decoration/api";
-import { EssayScreen } from "../../essays";
 import { documentApi, type DocumentSummary } from "../../essays/api";
 import { passageApi, type Passage } from "../../passage/api";
-import { StyleTraceExport } from "../StyleTraceExport";
 import type { StyleSection, StyleSectionProps } from ".";
+import { Button, Chip, EmptyText, SegmentedControl } from "../../../ui";
 
 /**
  * The Design Decisions of the Style, each with its rationale and linked
- * Passages, and the one Decoration it is about. A linked Passage opens in
- * its Essay, selected and in view.
+ * Passages, and the one Decoration it is about. Each motivating Passage is
+ * a chip that names its Essay or Script and opens it one level below the
+ * Style.
  */
-function DesignDecisionsSectionView({ style }: StyleSectionProps) {
+/** A Passage chip names the Passage and its Essay or Script. */
+function passageChipLabel(p: Passage): string {
+  const text = p.lastKnownText.length > 40 ? `${p.lastKnownText.slice(0, 40)}…` : p.lastKnownText;
+  return `“${text}” · ${p.documentTitle || "Untitled"}${p.orphaned ? " (orphaned)" : ""}`;
+}
+
+/**
+ * Where a Passage chip leads: an Essay Passage opens in its Essay, selected
+ * and in view; a Script Passage opens on its own screen.
+ */
+function passageStep(p: Passage) {
+  return p.documentKind === "essay" ? steps.essay(p.documentId, p.documentTitle, p.id) : steps.passage(p.id);
+}
+
+function DesignDecisionsSectionView({ style, onStyleChanged, onOpen }: StyleSectionProps) {
   const [decisions, setDecisions] = useState<DesignDecision[]>([]);
   const [decorations, setDecorations] = useState<Decoration[]>([]);
   const [aspect, setAspect] = useState<DesignAspect>("decoration");
   const [rationale, setRationale] = useState("");
-  const [opened, setOpened] = useState<Passage>();
   const [error, setError] = useState<CoreError>();
 
   const reload = useCallback(() => {
@@ -43,6 +57,8 @@ function DesignDecisionsSectionView({ style }: StyleSectionProps) {
     try {
       await action();
       reload();
+      // The Style header counts the Passages that motivate it.
+      onStyleChanged();
       return true;
     } catch (raw) {
       setError(toCoreError(raw));
@@ -54,31 +70,16 @@ function DesignDecisionsSectionView({ style }: StyleSectionProps) {
     if (await run(() => designDecisionApi.add(style.id, aspect, rationale))) setRationale("");
   }
 
-  if (opened) {
-    return (
-      <EssayScreen
-        id={opened.documentId}
-        focusPassageId={opened.id}
-        backLabel={`← ${style.name}`}
-        onClose={() => {
-          setOpened(undefined);
-          reload();
-        }}
-      />
-    );
-  }
-
   return (
     <div className="design-decisions">
-      <StyleTraceExport style={style} />
       {error && <p className="error">{error.message}</p>}
       {decisions.length === 0 ? (
-        <p className="empty">No Design Decisions yet.</p>
+        <EmptyText>No Design Decisions yet.</EmptyText>
       ) : (
         <ul>
           {decisions.map((d) => (
             <li key={d.id} className="design-decision">
-              <p className="aspect">{designAspectLabel[d.aspect]}</p>
+              <Chip>{designAspectLabel[d.aspect]}</Chip>
               <p className="rationale">{d.rationale}</p>
               <label className="decoration-link">
                 Decoration
@@ -98,22 +99,19 @@ function DesignDecisionsSectionView({ style }: StyleSectionProps) {
                 </select>
               </label>
               {d.passages.length > 0 && (
-                <ul className="linked-passages">
+                <div className="chips linked-passages">
                   {d.passages.map((p) => (
-                    <li key={p.id}>
-                      <button className="open" title="Open in its Essay" onClick={() => setOpened(p)}>
-                        “{p.lastKnownText}”
-                        <span className="source">
-                          {p.documentTitle || "Untitled"}
-                          {p.orphaned && " · orphaned"}
-                        </span>
-                      </button>
-                      <button className="unlink" onClick={() => run(() => designDecisionApi.unlinkPassage(d.id, p.id))}>
-                        Unlink
-                      </button>
-                    </li>
+                    <Chip
+                      key={p.id}
+                      title={`${p.orphaned ? "Orphaned Passage" : "Passage"} from ${p.documentTitle || "Untitled"}: open it`}
+                      onClick={() => onOpen(passageStep(p))}
+                      removeLabel="Unlink this Passage"
+                      onRemove={() => run(() => designDecisionApi.unlinkPassage(d.id, p.id))}
+                    >
+                      {passageChipLabel(p)}
+                    </Chip>
                   ))}
-                </ul>
+                </div>
               )}
               <PassagePicker
                 exclude={d.passages.map((p) => p.id)}
@@ -124,22 +122,21 @@ function DesignDecisionsSectionView({ style }: StyleSectionProps) {
         </ul>
       )}
       <div className="design-decision-add">
-        <select value={aspect} aria-label="Aspect" onChange={(e) => setAspect(e.target.value as DesignAspect)}>
-          {designAspects.map((a) => (
-            <option key={a} value={a}>
-              {designAspectLabel[a]}
-            </option>
-          ))}
-        </select>
+        <SegmentedControl<DesignAspect>
+          label="Aspect"
+          options={designAspects.map((a) => ({ value: a, label: designAspectLabel[a] }))}
+          value={aspect}
+          onChange={setAspect}
+        />
         <textarea
           rows={3}
           placeholder="Why this choice? (required)"
           value={rationale}
           onChange={(e) => setRationale(e.target.value)}
         />
-        <button onClick={add} disabled={rationale.trim() === ""}>
+        <Button onClick={add} disabled={rationale.trim() === ""}>
           Add Design Decision
-        </button>
+        </Button>
       </div>
     </div>
   );
@@ -166,12 +163,14 @@ function PassagePicker({ exclude, onPick }: PickerProps) {
 
   if (essays === undefined) {
     return (
-      <button
+      <Button
+        variant="plain"
+        size="small"
         className="link-passage"
         onClick={() => documentApi.list("essay").then(setEssays, (e) => setError(toCoreError(e).message))}
       >
         Link a Passage…
-      </button>
+      </Button>
     );
   }
 
@@ -210,14 +209,14 @@ function PassagePicker({ exclude, onPick }: PickerProps) {
           ))}
         </select>
       )}
-      <button
+      <Button
         onClick={() => {
           setEssays(undefined);
           setEssayId(undefined);
         }}
       >
         Cancel
-      </button>
+      </Button>
     </div>
   );
 }
@@ -225,5 +224,6 @@ function PassagePicker({ exclude, onPick }: PickerProps) {
 export const designDecisionsSection: StyleSection = {
   id: "design-decisions",
   title: "Design Decisions",
+  segment: "design",
   Component: DesignDecisionsSectionView,
 };

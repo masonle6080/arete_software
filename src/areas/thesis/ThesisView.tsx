@@ -1,18 +1,30 @@
 import { useCallback, useEffect, useState } from "react";
 import { toCoreError, type CoreError } from "../../shell/coreError";
+import { Badge, Button, SectionHeader } from "../../ui";
+import type { Step, ThesisTab } from "../../shell/navPath";
+import type { View } from "../../shell/sidebar";
 import { thesisApi } from "./api";
 import { thesisSections } from "./sections";
+import { ThesisChips } from "./ThesisChips";
+import { ThesisOverview } from "./ThesisOverview";
 import { statusLabel, type Thesis, type ThesisStatus } from "./types";
 
 interface Props {
   id: number;
-  onBack(): void;
-  /** Opens the Style view for one Style of this Thesis's Drop. */
-  onOpenStyle(styleId: number): void;
+  tab: ThesisTab;
+  /** Opens an item of this Thesis one level below the tab in the navigation path. */
+  onOpen(step: Step): void;
+  /** Opens a tab of this Thesis, or an item on top of its tab, as the sidebar tree does. */
+  onGo(view: View): void;
 }
 
-/** One Thesis: its header and status moves, then every registered section. */
-export function ThesisView({ id, onBack, onOpenStyle }: Props) {
+/**
+ * One tab of a Thesis under its header, which shows the status Badge, the
+ * title, and the chips on every tab. Overview adds the statement and the
+ * status moves to the header, and sums up the Thesis below it; any other
+ * tab shows that one section.
+ */
+export function ThesisView({ id, tab, onOpen, onGo }: Props) {
   const [thesis, setThesis] = useState<Thesis>();
   const [error, setError] = useState<CoreError>();
 
@@ -30,34 +42,39 @@ export function ThesisView({ id, onBack, onOpenStyle }: Props) {
     }
   }
 
+  const section = tab === "overview" ? undefined : thesisSections[tab];
+
   return (
     <section className="thesis-view">
-      <button className="back" onClick={onBack}>
-        ← Theses
-      </button>
       {error && <p className="error">{error.message}</p>}
       {thesis && (
         <>
           <header>
-            <p className="status">{statusLabel[thesis.status]}</p>
+            <Badge lifecycle="thesis" status={thesis.status} />
             <h1>{thesis.title}</h1>
-            {thesis.statement && <p className="statement">{thesis.statement}</p>}
-            {thesis.manualMoves.length > 0 && (
+            <ThesisChips thesis={thesis} onOpen={onOpen} />
+            {!section && thesis.statement && <p className="statement">{thesis.statement}</p>}
+            {!section && thesis.manualMoves.length > 0 && (
               <div className="actions">
                 {thesis.manualMoves.map((to) => (
-                  <button key={to} onClick={() => move(to)}>
+                  <Button key={to} onClick={() => move(to)}>
                     Move to {statusLabel[to]}
-                  </button>
+                  </Button>
                 ))}
               </div>
             )}
           </header>
-          {thesisSections.map(({ id: sectionId, title, Component }) => (
-            <section key={sectionId} className="thesis-section">
-              <h2>{title}</h2>
-              <Component thesis={thesis} onThesisChanged={reload} onOpenStyle={onOpenStyle} />
+          {!section && <ThesisOverview thesis={thesis} onGo={onGo} />}
+          {section && (
+            <section className="thesis-section">
+              <SectionHeader title={section.title} />
+              <section.Component
+                thesis={thesis}
+                onThesisChanged={reload}
+                onOpen={onOpen}
+              />
             </section>
-          ))}
+          )}
         </>
       )}
     </section>

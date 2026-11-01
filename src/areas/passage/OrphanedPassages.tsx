@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { toCoreError } from "../../shell/coreError";
 import { passageApi, type Passage } from "./api";
 import "./passage.css";
+import { Button } from "../../ui";
 
 interface Props {
   documentId: number;
@@ -33,7 +34,7 @@ export function OrphanedPassages({ documentId, version, onOpen }: Props) {
       <ul>
         {orphans.map((p) => (
           <li key={p.id}>
-            <button onClick={() => onOpen(p.id)}>“{p.lastKnownText}”</button>
+            <Button onClick={() => onOpen(p.id)}>“{p.lastKnownText}”</Button>
           </li>
         ))}
       </ul>

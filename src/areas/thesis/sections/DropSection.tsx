@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useState, type FormEvent } from "react";
 import { toCoreError, type CoreError } from "../../../shell/coreError";
+import { steps } from "../../../shell/navPath";
+import { Badge, Button, EmptyText } from "../../../ui";
 import { dropApi } from "../../drop/api";
 import { stageLabel, warningText, type Drop, type DropStage, type DropWarning, type ThesisDrops } from "../../drop/types";
 import { DropStyles } from "../../style/DropStyles";
@@ -12,7 +14,7 @@ interface PendingMove {
   warnings: DropWarning[];
 }
 
-function DropSectionView({ thesis, onThesisChanged, onOpenStyle }: ThesisSectionProps) {
+function DropSectionView({ thesis, onThesisChanged, onOpen }: ThesisSectionProps) {
   const [data, setData] = useState<ThesisDrops>();
   const [name, setName] = useState(thesis.title);
   const [error, setError] = useState<CoreError>();
@@ -60,22 +62,28 @@ function DropSectionView({ thesis, onThesisChanged, onOpenStyle }: ThesisSection
 
       {active && (
         <div className="drop-card">
-          <p className="status">{stageLabel[active.stage]}</p>
-          <strong>{active.name}</strong>
+          <div className="card-title">
+            <strong>{active.name}</strong>
+            <Badge lifecycle="drop" status={active.stage} />
+          </div>
           {active.moves.length > 0 && (
             <div className="actions">
               {active.moves
                 .filter((to) => to !== "cancelled")
                 .map((to) => (
-                  <button key={to} onClick={() => move(active, to)}>
+                  <Button key={to} onClick={() => move(active, to)}>
                     Move to {stageLabel[to]}
-                  </button>
+                  </Button>
                 ))}
               {active.moves.includes("cancelled") &&
                 (confirmCancel ? (
-                  <button onClick={() => move(active, "cancelled")}>Confirm: cancel this Drop</button>
+                  <Button variant="destructive" onClick={() => move(active, "cancelled")}>
+                    Confirm: cancel this Drop
+                  </Button>
                 ) : (
-                  <button onClick={() => setConfirmCancel(true)}>Cancel Drop</button>
+                  <Button variant="destructive" onClick={() => setConfirmCancel(true)}>
+                    Cancel Drop
+                  </Button>
                 ))}
             </div>
           )}
@@ -87,11 +95,11 @@ function DropSectionView({ thesis, onThesisChanged, onOpenStyle }: ThesisSection
                   <li key={i}>{warningText(w)}</li>
                 ))}
               </ul>
-              <button onClick={() => move(active, pending.to, true)}>Move to {stageLabel[pending.to]} anyway</button>
-              <button onClick={() => setPending(undefined)}>Keep {stageLabel[active.stage]}</button>
+              <Button onClick={() => move(active, pending.to, true)}>Move to {stageLabel[pending.to]} anyway</Button>
+              <Button onClick={() => setPending(undefined)}>Keep {stageLabel[active.stage]}</Button>
             </div>
           )}
-          <DropStyles drop={active} onOpen={onOpenStyle} />
+          <DropStyles drop={active} onOpen={(style) => onOpen(steps.style(style))} />
           <DropProductionOrders drop={active} />
         </div>
       )}
@@ -99,18 +107,18 @@ function DropSectionView({ thesis, onThesisChanged, onOpenStyle }: ThesisSection
       {data.canCreateDrop && (
         <form className="drop-create" onSubmit={create}>
           <input placeholder="Drop name" value={name} onChange={(e) => setName(e.target.value)} />
-          <button type="submit" disabled={!name.trim()}>
+          <Button type="submit" variant="primary" disabled={!name.trim()}>
             Create Drop
-          </button>
+          </Button>
         </form>
       )}
-      {!active && !data.canCreateDrop && <p className="empty">No Drop</p>}
+      {!active && !data.canCreateDrop && <EmptyText>No Drop</EmptyText>}
 
       {cancelled.length > 0 && (
         <ul className="drop-cancelled">
           {cancelled.map((d) => (
             <li key={d.id}>
-              {d.name} <span className="status">Cancelled</span>
+              {d.name} <Badge lifecycle="drop" status={d.stage} />
             </li>
           ))}
         </ul>
@@ -119,4 +127,4 @@ function DropSectionView({ thesis, onThesisChanged, onOpenStyle }: ThesisSection
   );
 }
 
-export const dropSection: ThesisSection = { id: "drop", title: "Drop", Component: DropSectionView };
+export const dropSection: ThesisSection = { id: "drop", title: "Drop & Styles", Component: DropSectionView };

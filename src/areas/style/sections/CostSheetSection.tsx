@@ -11,6 +11,7 @@ import {
 import { vendorApi, type Vendor } from "../../vendor/api";
 import type { StyleSection, StyleSectionProps } from ".";
 import "./costSheet.css";
+import { Button } from "../../../ui";
 
 function toInput(line: CostLine): CostLineInput {
   return { category: line.category, vendorId: line.vendorId, description: line.description, currency: line.currency };
@@ -93,9 +94,9 @@ function CostSheetSectionView({ style }: StyleSectionProps) {
                     }}
                   />
                   <span className="unit">pcs</span>
-                  <button className="remove" title="Remove this tier" onClick={() => run(() => costSheetApi.removeTier(tier.id))}>
+                  <Button variant="plain" size="small" title="Remove this tier" onClick={() => run(() => costSheetApi.removeTier(tier.id))}>
                     ×
-                  </button>
+                  </Button>
                 </th>
               ))}
               <th />
@@ -171,9 +172,9 @@ function CostSheetSectionView({ style }: StyleSectionProps) {
                   );
                 })}
                 <td>
-                  <button className="remove" title="Remove this line" onClick={() => run(() => costSheetApi.removeLine(line.id))}>
+                  <Button variant="plain" size="small" title="Remove this line" onClick={() => run(() => costSheetApi.removeLine(line.id))}>
                     ×
-                  </button>
+                  </Button>
                 </td>
               </tr>
             ))}
@@ -194,7 +195,7 @@ function CostSheetSectionView({ style }: StyleSectionProps) {
         </table>
       </div>
       <div className="cost-add">
-        <button onClick={addLine}>Add line</button>
+        <Button onClick={addLine}>Add line</Button>
         <form onSubmit={addTier}>
           <input
             className="number"
@@ -204,9 +205,9 @@ function CostSheetSectionView({ style }: StyleSectionProps) {
             value={newQuantity}
             onChange={(e) => setNewQuantity(e.target.value)}
           />
-          <button type="submit" disabled={!/^\d+$/.test(newQuantity.trim())}>
+          <Button type="submit" disabled={!/^\d+$/.test(newQuantity.trim())}>
             Add Quantity Tier
-          </button>
+          </Button>
         </form>
       </div>
       <p className="hint">
@@ -219,5 +220,6 @@ function CostSheetSectionView({ style }: StyleSectionProps) {
 export const costSheetSection: StyleSection = {
   id: "cost-sheet",
   title: "Cost Sheet",
+  segment: "make",
   Component: CostSheetSectionView,
 };

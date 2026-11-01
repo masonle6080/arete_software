@@ -7,6 +7,8 @@ export const moodboardApi = {
   createMoodboard: (owner: MoodboardOwner, title: string) =>
     call<Moodboard>("create_moodboard", { owner, title }),
   listMoodboards: (owner: MoodboardOwner) => call<Moodboard[]>("list_moodboards", { owner }),
+  /** Deletes the Moodboard, its scene, and its Passage links. Its media stays. */
+  deleteMoodboard: (id: number) => call<void>("delete_moodboard", { id }),
   /** The saved scene JSON, or null for a Moodboard never saved. */
   loadScene: (id: number) => call<string | null>("load_moodboard_scene", { id }),
   /**

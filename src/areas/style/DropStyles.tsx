@@ -1,17 +1,21 @@
+import { convertFileSrc } from "@tauri-apps/api/core";
 import { useCallback, useEffect, useState, type FormEvent } from "react";
 import { toCoreError, type CoreError } from "../../shell/coreError";
+import { announceTreeChange } from "../../shell/treeChanges";
+import { Badge, Button, EmptyText, SectionHeader } from "../../ui";
 import type { Drop } from "../drop/types";
 import { styleApi } from "./api";
-import { styleStatusLabel, type Style } from "./types";
+import { cardFace } from "./cover";
+import type { Style } from "./types";
 import "./style.css";
 
 interface Props {
   drop: Drop;
   /** Opens the Style view. */
-  onOpen(styleId: number): void;
+  onOpen(style: Style): void;
 }
 
-/** The Styles of one Drop, Cut ones included, with a form to add one while the Drop takes new Styles. */
+/** The Styles of one Drop as a card grid of Covers, Cut ones included, with a form to add one while the Drop takes new Styles. */
 export function DropStyles({ drop, onOpen }: Props) {
   const [styles, setStyles] = useState<Style[]>([]);
   const [name, setName] = useState("");
@@ -30,6 +34,7 @@ export function DropStyles({ drop, onOpen }: Props) {
       await styleApi.createStyle(drop.id, name, color);
       setName("");
       setColor("");
+      announceTreeChange();
     } catch (raw) {
       setError(toCoreError(raw));
     }
@@ -38,19 +43,21 @@ export function DropStyles({ drop, onOpen }: Props) {
 
   return (
     <div className="drop-styles">
-      <h3>Styles</h3>
+      <SectionHeader level={3} title="Styles" />
       {error && <p className="error">{error.message}</p>}
       {styles.length === 0 ? (
-        <p className="empty">No Styles yet.</p>
+        <EmptyText>No Styles yet.</EmptyText>
       ) : (
-        <ul>
+        <ul className="style-grid">
           {styles.map((s) => (
             <li key={s.id}>
-              <button className={s.status === "cut" ? "style-row cut" : "style-row"} onClick={() => onOpen(s.id)}>
-                <span>
-                  {s.name} <span className="color">· {s.color}</span>
+              <button type="button" className="style-card" onClick={() => onOpen(s)}>
+                <CardFaceView style={s} />
+                <span className="style-card-name">{s.name}</span>
+                <span className="style-card-meta">
+                  <span className="color">{s.color}</span>
+                  <Badge lifecycle="style" status={s.status} />
                 </span>
-                <span className="status">{styleStatusLabel[s.status]}</span>
               </button>
             </li>
           ))}
@@ -60,11 +67,21 @@ export function DropStyles({ drop, onOpen }: Props) {
         <form className="style-create" onSubmit={add}>
           <input placeholder="Style name" value={name} onChange={(e) => setName(e.target.value)} />
           <input placeholder="Color" value={color} onChange={(e) => setColor(e.target.value)} />
-          <button type="submit" disabled={!name.trim() || !color.trim()}>
+          <Button type="submit" disabled={!name.trim() || !color.trim()}>
             Add Style
-          </button>
+          </Button>
         </form>
       )}
     </div>
+  );
+}
+
+/** The top of a Style's card: its Cover small, or a neutral placeholder with its color name. */
+export function CardFaceView({ style }: { style: Style }) {
+  const face = cardFace(style);
+  return face.kind === "cover" ? (
+    <img className="style-card-face" src={convertFileSrc(face.path)} alt={`Cover of ${style.name}`} />
+  ) : (
+    <span className="style-card-face style-card-placeholder">{face.color}</span>
   );
 }

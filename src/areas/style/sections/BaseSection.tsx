@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { toCoreError, type CoreError } from "../../../shell/coreError";
+import { EmptyText } from "../../../ui";
 import { blankApi, blankLabel, formatCost, type Blank } from "../../blank/api";
 import { styleApi } from "../api";
 import type { StyleBase } from "../types";
@@ -78,15 +79,15 @@ function BaseSectionView({ style, onStyleChanged }: StyleSectionProps) {
         </select>
       </label>
       {base?.kind === "techPack" && (
-        <p className="empty">
+        <EmptyText>
           {sizes.length === 0
             ? "No sizes yet. Add size columns to the Point of Measure table in the Tech Pack."
             : `Sizes from the Tech Pack's Point of Measure table: ${sizes.join(", ")}`}
-        </p>
+        </EmptyText>
       )}
       {blank && (
         <>
-          <p className="empty">
+          <p className="muted">
             {blank.vendorName} · {formatCost(blank)}
             {blank.colors.length > 0 && <> · comes in {blank.colors.join(", ")}</>}
           </p>
@@ -101,9 +102,15 @@ function BaseSectionView({ style, onStyleChanged }: StyleSectionProps) {
           </fieldset>
         </>
       )}
-      {!base && <p className="empty">No base yet.</p>}
+      {!base && <EmptyText>No base yet.</EmptyText>}
     </div>
   );
 }
 
-export const baseSection: StyleSection = { id: "base", title: "Base and sizes", Component: BaseSectionView };
+export const baseSection: StyleSection = {
+  id: "base",
+  title: "Base and sizes",
+  segment: "build",
+  baseKind: "blank",
+  Component: BaseSectionView,
+};

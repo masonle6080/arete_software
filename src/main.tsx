@@ -3,6 +3,7 @@ import ReactDOM from "react-dom/client";
 import { printJobId } from "./export";
 import { PrintScreen } from "./export/PrintScreen";
 import { App } from "./shell/App";
+import "./ui/ui.css";
 import "./shell/app.css";
 
 // A print window (PDF export) opens this page with `#print=ID`.

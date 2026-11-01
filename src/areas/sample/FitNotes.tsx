@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { toCoreError, type CoreError } from "../../shell/coreError";
 import { sampleApi, type FitCell, type SampleFit } from "./api";
 import "./fitNotes.css";
+import { EmptyText, SectionHeader } from "../../ui";
 
 /** Parses a measured value. Empty text clears it (`null`); other text must be a number. */
 function parseMeasured(text: string): number | null | undefined {
@@ -50,10 +51,10 @@ export function FitNotes({ sampleId }: { sampleId: number }) {
 
   return (
     <div className="fit-notes">
-      <h4>Fit notes ({fit.unit})</h4>
+      <SectionHeader level={3} title={`Fit notes (${fit.unit})`} />
       {error && <p className="error">{error.message}</p>}
       {fit.rows.length === 0 || fit.sizes.length === 0 ? (
-        <p className="empty">Add Points of Measure and sizes to the Tech Pack to record fit notes.</p>
+        <EmptyText>Add Points of Measure and sizes to the Tech Pack to record fit notes.</EmptyText>
       ) : (
         <div className="fit-scroll">
           <table className="fit-table">

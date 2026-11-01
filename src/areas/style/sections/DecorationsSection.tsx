@@ -4,6 +4,7 @@ import { toCoreError, type CoreError } from "../../../shell/coreError";
 import { decorationApi, type Decoration, type DecorationInput } from "../../decoration/api";
 import { vendorApi, type Vendor } from "../../vendor/api";
 import type { StyleSection, StyleSectionProps } from ".";
+import { Button, EmptyText } from "../../../ui";
 
 const EMPTY: DecorationInput = { technique: "", placement: "", size: "", colors: [], vendorId: null };
 
@@ -44,7 +45,7 @@ function DecorationsSectionView({ style }: StyleSectionProps) {
     <div className="decorations">
       {error && <p className="error">{error.message}</p>}
       {decorations.length === 0 ? (
-        <p className="empty">No Decorations yet.</p>
+        <EmptyText>No Decorations yet.</EmptyText>
       ) : (
         <ul>
           {decorations.map((d) =>
@@ -88,10 +89,12 @@ function DecorationsSectionView({ style }: StyleSectionProps) {
                   <dd title={d.artwork?.path}>{d.artwork?.fileName ?? "None"}</dd>
                 </dl>
                 <div className="actions">
-                  <button onClick={() => setEditingId(d.id)}>Edit</button>
-                  <button onClick={() => attachArtwork(d.id)}>{d.artwork ? "Replace artwork" : "Add artwork"}</button>
-                  {d.artwork && <button onClick={() => run(() => decorationApi.clearArtwork(d.id))}>Remove artwork</button>}
-                  <button onClick={() => run(() => decorationApi.remove(d.id))}>Remove Decoration</button>
+                  <Button onClick={() => setEditingId(d.id)}>Edit</Button>
+                  <Button onClick={() => attachArtwork(d.id)}>{d.artwork ? "Replace artwork" : "Add artwork"}</Button>
+                  {d.artwork && <Button onClick={() => run(() => decorationApi.clearArtwork(d.id))}>Remove artwork</Button>}
+                  <Button variant="destructive" onClick={() => run(() => decorationApi.remove(d.id))}>
+                    Remove Decoration
+                  </Button>
                 </div>
               </li>
             ),
@@ -109,7 +112,7 @@ function DecorationsSectionView({ style }: StyleSectionProps) {
           onCancel={() => setEditingId(undefined)}
         />
       ) : (
-        <button onClick={() => setEditingId("new")}>Add Decoration</button>
+        <Button onClick={() => setEditingId("new")}>Add Decoration</Button>
       )}
     </div>
   );
@@ -165,10 +168,10 @@ function DecorationForm({ initial, vendors, submitLabel, onSubmit, onCancel }: F
         </select>
       </label>
       <div className="actions">
-        <button onClick={submit} disabled={technique.trim() === ""}>
+        <Button onClick={submit} disabled={technique.trim() === ""}>
           {submitLabel}
-        </button>
-        <button onClick={onCancel}>Cancel</button>
+        </Button>
+        <Button onClick={onCancel}>Cancel</Button>
       </div>
     </div>
   );
@@ -177,5 +180,6 @@ function DecorationForm({ initial, vendors, submitLabel, onSubmit, onCancel }: F
 export const decorationsSection: StyleSection = {
   id: "decorations",
   title: "Decorations",
+  segment: "design",
   Component: DecorationsSectionView,
 };

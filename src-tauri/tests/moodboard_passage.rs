@@ -151,3 +151,16 @@ fn listing_items_of_a_missing_passage_fails() {
 
     assert!(matches!(err, arete_lib::error::CoreError::PassageNotFound { .. }), "{err:?}");
 }
+
+#[test]
+fn deleting_a_moodboard_unlists_its_items_from_the_passage() {
+    let env = TestEnv::new();
+    let lib = env.library();
+    essay_with_passage(&lib);
+    let b = board(&lib);
+    moodboard::save_moodboard_scene(&lib, b.id, &scene(LINKED_IMAGE)).unwrap();
+
+    moodboard::delete_moodboard(&lib, b.id).unwrap();
+
+    assert!(moodboard::moodboard_items_of_passage(&lib, "p-brave").unwrap().is_empty());
+}

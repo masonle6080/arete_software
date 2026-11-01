@@ -1,14 +1,19 @@
 import { useCallback, useEffect, useState } from "react";
 import { toCoreError } from "../../../shell/coreError";
-import { EssayScreen } from "../../essays";
+import { steps } from "../../../shell/navPath";
+import { announceTreeChange } from "../../../shell/treeChanges";
+import { Button, EmptyText } from "../../../ui";
 import { documentApi, essayThesisApi, type DocumentSummary } from "../../essays/api";
 import type { ThesisSection, ThesisSectionProps } from ".";
 
-/** The Essays linked to this Thesis. The founder can open, link, and unlink them. */
-function EssaysSection({ thesis }: ThesisSectionProps) {
+/**
+ * The Essays linked to this Thesis. The founder can open, link, and unlink
+ * them, and write a new one. An Essay opens inside this Thesis, and a new
+ * Essay links to it at once.
+ */
+function EssaysSection({ thesis, onOpen }: ThesisSectionProps) {
   const [linked, setLinked] = useState<DocumentSummary[]>([]);
   const [all, setAll] = useState<DocumentSummary[]>([]);
-  const [openId, setOpenId] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const reload = useCallback(() => {
@@ -25,45 +30,47 @@ function EssaysSection({ thesis }: ThesisSectionProps) {
       setError(toCoreError(e).message);
     }
     reload();
+    announceTreeChange();
   };
 
-  if (openId !== null) {
-    return (
-      <EssayScreen
-        id={openId}
-        backLabel={`← ${thesis.title}`}
-        onClose={() => {
-          setOpenId(null);
-          reload();
-        }}
-      />
-    );
-  }
+  const create = async () => {
+    setError(null);
+    try {
+      const essay = await documentApi.create("essay", "");
+      await essayThesisApi.link(essay.id, thesis.id);
+      announceTreeChange();
+      onOpen(steps.essay(essay.id, essay.title));
+    } catch (e) {
+      setError(toCoreError(e).message);
+      reload();
+    }
+  };
 
   const unlinked = all.filter((e) => !linked.some((l) => l.id === e.id));
 
   return (
     <>
       {error && <p className="error">{error}</p>}
-      {linked.length === 0 && <p className="muted">No essays linked yet.</p>}
+      {linked.length === 0 && <EmptyText>No essays linked yet.</EmptyText>}
       <ul className="thesis-essays">
         {linked.map((e) => (
           <li key={e.id}>
-            <button className="open" onClick={() => setOpenId(e.id)}>
+            <Button className="open" onClick={() => onOpen(steps.essay(e.id, e.title))}>
               {e.title || "Untitled"}
-            </button>
-            <button
-              className="unlink"
+            </Button>
+            <Button
+              variant="plain"
               aria-label={`Unlink ${e.title || "Untitled"}`}
               onClick={() => change(essayThesisApi.unlink(e.id, thesis.id))}
             >
               Unlink
-            </button>
+            </Button>
           </li>
         ))}
       </ul>
-      {unlinked.length > 0 && (
-        <div className="thesis-essays-link">
+      <div className="actions thesis-essays-link">
+        <Button onClick={create}>New essay</Button>
+        {unlinked.length > 0 && (
           <select
             value=""
             aria-label="Link an essay"
@@ -76,8 +83,8 @@ function EssaysSection({ thesis }: ThesisSectionProps) {
               </option>
             ))}
           </select>
-        </div>
-      )}
+        )}
+      </div>
     </>
   );
 }

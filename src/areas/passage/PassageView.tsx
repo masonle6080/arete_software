@@ -3,19 +3,17 @@ import { toCoreError } from "../../shell/coreError";
 import { passageApi, type Passage } from "./api";
 import { passageSections } from "./sections";
 import "./passage.css";
+import { Chip, EmptyText, SectionHeader } from "../../ui";
 
 interface Props {
   id: string;
-  /** Text of the back button, for example "← Essay". */
-  backLabel: string;
-  onBack(): void;
 }
 
 /**
  * One Passage: its last known text, its document, whether it is orphaned,
  * then everything linked to it (one registered section per kind of link).
  */
-export function PassageView({ id, backLabel, onBack }: Props) {
+export function PassageView({ id }: Props) {
   const [passage, setPassage] = useState<Passage>();
   const [error, setError] = useState<string>();
 
@@ -27,16 +25,13 @@ export function PassageView({ id, backLabel, onBack }: Props) {
 
   return (
     <section className="passage-view">
-      <button className="back" onClick={onBack}>
-        {backLabel}
-      </button>
       {error && <p className="error">{error}</p>}
       {passage && (
         <>
           <header>
             <p className="meta">
               Passage in {kind} “{passage.documentTitle || "Untitled"}”
-              {passage.orphaned && <span className="orphaned-tag">Orphaned</span>}
+              {passage.orphaned && <Chip>Orphaned</Chip>}
             </p>
             <blockquote>{passage.lastKnownText}</blockquote>
             {passage.orphaned && (
@@ -45,10 +40,10 @@ export function PassageView({ id, backLabel, onBack }: Props) {
               </p>
             )}
           </header>
-          {passageSections.length === 0 && <p className="muted">Nothing is linked to this Passage yet.</p>}
+          {passageSections.length === 0 && <EmptyText>Nothing is linked to this Passage yet.</EmptyText>}
           {passageSections.map(({ id: sectionId, title, Component }) => (
             <section key={sectionId} className="passage-section">
-              <h2>{title}</h2>
+              <SectionHeader title={title} />
               <Component passage={passage} />
             </section>
           ))}

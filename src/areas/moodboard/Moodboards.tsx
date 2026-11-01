@@ -1,37 +1,33 @@
-import { lazy, Suspense, useEffect, useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { toCoreError, type CoreError } from "../../shell/coreError";
+import { announceTreeChange } from "../../shell/treeChanges";
 import { moodboardApi } from "./api";
 import type { Moodboard, MoodboardOwner } from "./types";
 import "./moodboard.css";
-
-// Excalidraw is large; load it only when a Moodboard opens.
-const MoodboardCanvas = lazy(() => import("./MoodboardCanvas"));
+import { Button, EmptyText } from "../../ui";
 
 interface Props {
   owner: MoodboardOwner;
   /** The owner has at most one Moodboard (a Style): hide "Add" once it has one. */
   single?: boolean;
+  /** Opens one Moodboard's canvas on its own screen (see `MoodboardScreen`). */
+  onOpen(board: Moodboard): void;
 }
 
 /**
- * The Moodboards of one owner: create, pick, and edit them. Reusable for any
- * owner kind (a Thesis or a Style).
+ * The Moodboards of one owner: create, open, and delete them. Reusable for
+ * any owner kind (a Thesis or a Style). The canvas opens on its own screen.
  */
-export function Moodboards({ owner, single = false }: Props) {
+export function Moodboards({ owner, single = false, onOpen }: Props) {
   const [boards, setBoards] = useState<Moodboard[]>([]);
-  const [openId, setOpenId] = useState<number>();
   const [title, setTitle] = useState("");
   const [error, setError] = useState<CoreError>();
+  /** The Moodboard whose Delete button waits for a confirm click. */
+  const [confirmDelete, setConfirmDelete] = useState<number>();
 
   const { kind, id } = owner;
   useEffect(() => {
-    moodboardApi.listMoodboards({ kind, id }).then(
-      (list) => {
-        setBoards(list);
-        setOpenId((current) => current ?? list[0]?.id);
-      },
-      (raw) => setError(toCoreError(raw)),
-    );
+    moodboardApi.listMoodboards({ kind, id }).then(setBoards, (raw) => setError(toCoreError(raw)));
   }, [kind, id]);
 
   async function create(e: FormEvent) {
@@ -39,9 +35,21 @@ export function Moodboards({ owner, single = false }: Props) {
     setError(undefined);
     try {
       const board = await moodboardApi.createMoodboard({ kind, id }, title);
-      setBoards((list) => [...list, board]);
-      setOpenId(board.id);
       setTitle("");
+      announceTreeChange();
+      onOpen(board);
+    } catch (raw) {
+      setError(toCoreError(raw));
+    }
+  }
+
+  async function remove(board: Moodboard) {
+    setError(undefined);
+    setConfirmDelete(undefined);
+    try {
+      await moodboardApi.deleteMoodboard(board.id);
+      setBoards((list) => list.filter((b) => b.id !== board.id));
+      announceTreeChange();
     } catch (raw) {
       setError(toCoreError(raw));
     }
@@ -49,27 +57,34 @@ export function Moodboards({ owner, single = false }: Props) {
 
   return (
     <div className="moodboards">
-      <div className="moodboard-bar">
-        {boards.map((b) => (
-          <button key={b.id} className={b.id === openId ? "active" : undefined} onClick={() => setOpenId(b.id)}>
-            {b.title}
-          </button>
-        ))}
-        {!(single && boards.length > 0) && (
-          <form onSubmit={create}>
-            <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="New Moodboard title" />
-            <button type="submit" disabled={!title.trim()}>
-              Add Moodboard
-            </button>
-          </form>
-        )}
-      </div>
       {error && <p className="error">{error.message}</p>}
-      {boards.length === 0 && <p className="empty">{single ? "No Moodboard yet." : "No Moodboards yet."}</p>}
-      {openId !== undefined && (
-        <Suspense fallback={<p className="empty">Loading canvas…</p>}>
-          <MoodboardCanvas key={openId} moodboardId={openId} />
-        </Suspense>
+      {boards.length === 0 ? (
+        <EmptyText>{single ? "No Moodboard yet." : "No Moodboards yet."}</EmptyText>
+      ) : (
+        <ul className="moodboard-list">
+          {boards.map((b) => (
+            <li key={b.id}>
+              <strong>{b.title}</strong>
+              <Button onClick={() => onOpen(b)}>Open</Button>
+              {confirmDelete === b.id ? (
+                <>
+                  <Button onClick={() => remove(b)}>Confirm: delete this Moodboard</Button>
+                  <Button onClick={() => setConfirmDelete(undefined)}>Cancel</Button>
+                </>
+              ) : (
+                <Button onClick={() => setConfirmDelete(b.id)}>Delete</Button>
+              )}
+            </li>
+          ))}
+        </ul>
+      )}
+      {!(single && boards.length > 0) && (
+        <form className="moodboard-create" onSubmit={create}>
+          <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="New Moodboard title" />
+          <Button type="submit" disabled={!title.trim()}>
+            Add Moodboard
+          </Button>
+        </form>
       )}
     </div>
   );

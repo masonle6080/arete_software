@@ -3,6 +3,7 @@ import { toCoreError, type CoreError } from "../../shell/coreError";
 import { documentApi } from "../essays/api";
 import { passageApi, type Passage } from "../passage/api";
 import { clipApi, type Clip } from "./api";
+import { Chip } from "../../ui";
 
 /** Short text of a Passage for a chip or a menu. */
 export function passageLabel(p: Passage): string {
@@ -86,12 +87,9 @@ export function ClipDetails({ clip, passageGroups, onChanged, onError }: Props) 
     <div className="clip-details">
       <div className="chips">
         {clip.tags.map((t) => (
-          <span key={t} className="tag">
+          <Chip key={t} removeLabel={`Remove tag ${t}`} onRemove={() => run(() => clipApi.removeTag(clip.id, t))}>
             #{t}
-            <button title={`Remove tag ${t}`} onClick={() => run(() => clipApi.removeTag(clip.id, t))}>
-              ×
-            </button>
-          </span>
+          </Chip>
         ))}
         <input
           className="new-tag"
@@ -113,12 +111,9 @@ export function ClipDetails({ clip, passageGroups, onChanged, onError }: Props) 
       />
       <div className="chips">
         {linked.map((p) => (
-          <span key={p.id} className="tag" title={p.lastKnownText}>
+          <Chip key={p.id} title={p.lastKnownText} removeLabel="Unlink Passage" onRemove={() => unlink(p.id)}>
             {passageLabel(p)}
-            <button title="Unlink Passage" onClick={() => unlink(p.id)}>
-              ×
-            </button>
-          </span>
+          </Chip>
         ))}
         {passageGroups.length > 0 && (
           <select

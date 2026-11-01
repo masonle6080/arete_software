@@ -25,13 +25,21 @@ mod documentary;
 mod export;
 mod cost_sheet;
 mod production_order;
+mod links;
 
 use std::sync::Mutex;
 
-use tauri::Manager;
+use tauri::{AppHandle, Manager};
 
 use crate::error::{CoreError, CoreResult};
 use crate::library::{AppConfig, Library};
+
+/// Lets the webview load files from the Library's media folder through the
+/// asset protocol (`convertFileSrc`): Clip thumbnails, Style Covers. Call it
+/// in each command whose result the UI shows as an image.
+fn allow_media(app: &AppHandle, lib: &Library) {
+    let _ = app.asset_protocol_scope().allow_directory(lib.media_dir(), false);
+}
 
 /// Shared app state behind every command.
 pub struct AppState {
@@ -103,6 +111,9 @@ pub fn run() {
             style::drop_styles,
             style::attach_style_files,
             style::style_files,
+            style::remove_style_file,
+            style::set_style_cover,
+            style::clear_style_cover,
             style::style_base,
             style::set_style_base,
             style::style_sizes,
@@ -151,6 +162,7 @@ pub fn run() {
             // moodboard
             moodboard::create_moodboard,
             moodboard::list_moodboards,
+            moodboard::delete_moodboard,
             moodboard::load_moodboard_scene,
             moodboard::save_moodboard_scene,
             moodboard::moodboard_items_of_passage,
@@ -213,6 +225,10 @@ pub fn run() {
             production_order::set_order_quantity,
             production_order::set_delivery_date,
             production_order::move_production_order,
+            // links
+            links::thesis_links,
+            links::essay_links,
+            links::style_links,
         ])
         .run(tauri::generate_context!())
         .expect("error while running Arete");

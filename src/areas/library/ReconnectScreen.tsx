@@ -3,6 +3,7 @@ import type { CoreError } from "../../shell/coreError";
 import { libraryApi } from "./api";
 import { waitForReconnect } from "./reconnect";
 import type { LibraryInfo } from "./session";
+import { Button } from "../../ui";
 
 interface Props {
   library: LibraryInfo;
@@ -33,7 +34,7 @@ export function ReconnectScreen({ library, onReconnected, onSwitch }: Props) {
       <p>Connect the drive that holds this folder. Arete reconnects by itself.</p>
       {error ? <p className="error">{error.message}</p> : <p className="waiting">Waiting for the folder…</p>}
       <div className="actions">
-        <button onClick={onSwitch}>Switch library…</button>
+        <Button onClick={onSwitch}>Switch library…</Button>
       </div>
     </main>
   );

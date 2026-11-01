@@ -1,17 +1,17 @@
 import { useCallback, useEffect, useState, type FormEvent } from "react";
 import { toCoreError, type CoreError } from "../../../shell/coreError";
+import { steps } from "../../../shell/navPath";
+import { Badge, Button } from "../../../ui";
 import { documentaryApi } from "../../documentary/api";
-import { ScriptScreen } from "../../documentary/ScriptScreen";
 import { documentaryStatusLabel, type Documentary, type DocumentaryStatus } from "../../documentary/types";
 import type { ThesisSection, ThesisSectionProps } from ".";
 
-function DocumentarySectionView({ thesis }: ThesisSectionProps) {
+function DocumentarySectionView({ thesis, onThesisChanged, onOpen }: ThesisSectionProps) {
   // undefined: loading; null: this Thesis has no Documentary.
   const [doc, setDoc] = useState<Documentary | null>();
   const [title, setTitle] = useState(thesis.title);
   const [error, setError] = useState<CoreError>();
   const [confirmAbandon, setConfirmAbandon] = useState(false);
-  const [scriptOpen, setScriptOpen] = useState(false);
 
   const reload = useCallback(() => {
     documentaryApi.thesisDocumentary(thesis.id).then(setDoc, (raw) => setError(toCoreError(raw)));
@@ -27,6 +27,8 @@ function DocumentarySectionView({ thesis }: ThesisSectionProps) {
       setError(toCoreError(raw));
     }
     reload();
+    // The Thesis header shows the Documentary status.
+    onThesisChanged();
   }
 
   async function create(e: FormEvent) {
@@ -38,32 +40,34 @@ function DocumentarySectionView({ thesis }: ThesisSectionProps) {
 
   if (doc === undefined) return error ? <p className="error">{error.message}</p> : null;
 
-  if (doc && scriptOpen) {
-    return <ScriptScreen documentaryId={doc.id} backLabel={`← ${thesis.title}`} onClose={() => setScriptOpen(false)} />;
-  }
-
   return (
     <div className="documentary-section">
       {error && <p className="error">{error.message}</p>}
       {doc ? (
         <div className="documentary-card">
-          <p className="status">{documentaryStatusLabel[doc.status]}</p>
-          <strong>{doc.title}</strong>
-          <button onClick={() => setScriptOpen(true)}>Open Script</button>
+          <div className="card-title">
+            <strong>{doc.title}</strong>
+            <Badge lifecycle="documentary" status={doc.status} />
+          </div>
+          <Button onClick={() => onOpen(steps.script(doc.id, doc.title))}>Open Script</Button>
           {doc.moves.length > 0 && (
             <div className="actions">
               {doc.moves
                 .filter((to) => to !== "abandoned")
                 .map((to) => (
-                  <button key={to} onClick={() => move(doc, to)}>
+                  <Button key={to} onClick={() => move(doc, to)}>
                     Move to {documentaryStatusLabel[to]}
-                  </button>
+                  </Button>
                 ))}
               {doc.moves.includes("abandoned") &&
                 (confirmAbandon ? (
-                  <button onClick={() => move(doc, "abandoned")}>Confirm: abandon this Documentary</button>
+                  <Button variant="destructive" onClick={() => move(doc, "abandoned")}>
+                    Confirm: abandon this Documentary
+                  </Button>
                 ) : (
-                  <button onClick={() => setConfirmAbandon(true)}>Abandon Documentary</button>
+                  <Button variant="destructive" onClick={() => setConfirmAbandon(true)}>
+                    Abandon Documentary
+                  </Button>
                 ))}
             </div>
           )}
@@ -71,9 +75,9 @@ function DocumentarySectionView({ thesis }: ThesisSectionProps) {
       ) : (
         <form className="documentary-create" onSubmit={create}>
           <input placeholder="Documentary title" value={title} onChange={(e) => setTitle(e.target.value)} />
-          <button type="submit" disabled={!title.trim()}>
+          <Button type="submit" variant="primary" disabled={!title.trim()}>
             Create Documentary
-          </button>
+          </Button>
         </form>
       )}
     </div>
