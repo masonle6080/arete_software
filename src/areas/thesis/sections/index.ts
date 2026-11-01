@@ -1,5 +1,5 @@
 import type { ComponentType } from "react";
-import type { Step } from "../../../shell/navPath";
+import type { Step, ThesisTab } from "../../../shell/navPath";
 import type { Thesis } from "../types";
 import { dropSection } from "./DropSection";
 import { essaysSection } from "./EssaysSection";
@@ -18,23 +18,26 @@ export interface ThesisSectionProps {
   onOpen(step: Step): void;
 }
 
+/** The Thesis tabs that show a section: every tab but Overview. */
+export type SectionTab = Exclude<ThesisTab, "overview">;
+
 /** One section of the Thesis view, for example Essays or Drop. Each is a sidebar tab. */
 export interface ThesisSection {
-  id: string;
+  id: SectionTab;
   title: string;
   Component: ComponentType<ThesisSectionProps>;
 }
 
 /**
- * The sections of the Thesis view, in display order. To add one (Essays,
- * Moodboards, Drop, Documentary), create `sections/<Name>Section.tsx` that
- * exports a `ThesisSection`, then add one import and one line here. The view
- * renders the section of the open tab under its title; the section owns its
- * own data.
+ * The section of each Thesis tab but Overview. To add one, add its tab to
+ * `thesisTabs` (`shell/navPath.ts`, which sets the tab order), create
+ * `sections/<Name>Section.tsx` that exports a `ThesisSection`, then add one
+ * import and one line here. The view renders the section of the open tab
+ * under its title; the section owns its own data.
  */
-export const thesisSections: ThesisSection[] = [
-  essaysSection,
-  moodboardsSection,
-  dropSection,
-  documentarySection,
-];
+export const thesisSections: Record<SectionTab, ThesisSection> = {
+  essays: essaysSection,
+  moodboards: moodboardsSection,
+  drop: dropSection,
+  documentary: documentarySection,
+};

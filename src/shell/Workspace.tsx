@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { settingsArea, sharedAreas } from "../areas";
 import type { LibraryInfo } from "../areas/library/session";
-import { loadCurrentThesis, saveCurrentThesis, ThesisList, ThesisPicker, ThesisTree, thesisTabs } from "../areas/thesis";
+import { loadCurrentThesis, saveCurrentThesis, ThesisList, ThesisPicker, ThesisTree } from "../areas/thesis";
 import { thesisApi } from "../areas/thesis/api";
 import { Breadcrumb, Button } from "../ui";
 import { runLeaveGuards } from "./leaveGuards";
@@ -23,7 +23,6 @@ interface Props {
   onSwitchLibrary(): void;
 }
 
-const tabIds = thesisTabs.map((t) => t.id);
 const areas = [...sharedAreas, settingsArea];
 const areaLabel = (id: string) => areas.find((a) => a.id === id)?.label ?? id;
 
@@ -110,7 +109,7 @@ export function Workspace({ library, onSwitchLibrary }: Props) {
         void navigate(pop);
         return;
       }
-      const tab = thesisId === undefined ? undefined : shortcutTab(e, tabIds);
+      const tab = thesisId === undefined ? undefined : shortcutTab(e);
       if (tab === undefined) return;
       e.preventDefault();
       void go({ kind: "thesis", tab });

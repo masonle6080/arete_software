@@ -3,7 +3,7 @@
  * Essays, its Moodboards, and the Styles of its Drop. Pure apart from the
  * injected sources, so it is tested without the core.
  */
-import { steps } from "../../shell/navPath";
+import { steps, type ThesisTab } from "../../shell/navPath";
 import type { View } from "../../shell/sidebar";
 import { dropApi } from "../drop/api";
 import type { ThesisDrops } from "../drop/types";
@@ -53,7 +53,7 @@ export async function loadThesisContents(thesisId: number, sources = coreSources
  * its tab, so the breadcrumb reads `Thesis › Drop › Style`.
  */
 export const itemView = {
-  tab: (tab: string): View => ({ kind: "thesis", tab }),
+  tab: (tab: ThesisTab): View => ({ kind: "thesis", tab }),
   essay: (e: DocumentSummary): View => ({ kind: "thesis", tab: "essays", open: steps.essay(e.id, e.title) }),
   moodboard: (b: Moodboard): View => ({ kind: "thesis", tab: "moodboards", open: steps.moodboard(b) }),
   style: (s: Style): View => ({ kind: "thesis", tab: "drop", open: steps.style(s) }),
