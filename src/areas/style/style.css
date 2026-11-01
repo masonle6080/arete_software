@@ -11,7 +11,18 @@
 .style-view header > .segmented { margin-top: var(--space-4); }
 .style-base-kind { margin-top: var(--space-4); }
 .style-section { margin-top: var(--space-6); border-top: 1px solid var(--line); padding-top: var(--space-3); }
-.style-files ul { list-style: none; margin: 0 0 var(--space-2); padding: 0; }
+.style-view .style-cover {
+  display: block;
+  max-width: min(100%, 480px);
+  max-height: 360px;
+  object-fit: contain;
+  border-radius: 8px;
+  margin-bottom: var(--space-2);
+}
+.style-files ul { list-style: none; margin: 0 0 var(--space-2); padding: 0; max-width: 640px; }
+.style-files li { display: flex; align-items: center; gap: var(--space-2); padding: 2px 0; }
+.style-files .file-name { flex: 1; }
+.style-files .cover-mark { color: var(--muted); font-size: var(--text-small); }
 
 .style-samples > ul { list-style: none; margin: 0 0 var(--space-2); padding: 0; max-width: 560px; }
 .sample-request { display: flex; gap: var(--space-2); margin-top: var(--space-2); }

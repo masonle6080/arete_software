@@ -13,6 +13,11 @@ export const styleApi = {
   /** `sources` are paths outside the library; the core imports a copy of each. */
   attachStyleFiles: (id: number, sources: string[]) => call<StyleFile[]>("attach_style_files", { id, sources }),
   styleFiles: (id: number) => call<StyleFile[]>("style_files", { id }),
+  /** Returns the files left. Removing the Cover file clears the Cover. */
+  removeStyleFile: (id: number, fileId: number) => call<StyleFile[]>("remove_style_file", { id, fileId }),
+  /** Only a PNG, JPEG, WebP, or HEIC file of this Style can be its Cover. */
+  setStyleCover: (id: number, fileId: number) => call<Style>("set_style_cover", { id, fileId }),
+  clearStyleCover: (id: number) => call<Style>("clear_style_cover", { id }),
   /** `null` when the Style has no base yet. */
   styleBase: (id: number) => call<StyleBase | null>("style_base", { id }),
   /** The Style keeps only the sizes the new base also offers. */

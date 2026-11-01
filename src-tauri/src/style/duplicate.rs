@@ -2,9 +2,9 @@
 //!
 //! The copy is a new Draft Style on the same Drop, with the same name and
 //! the founder's new color. It gets a copy of the base and sizes, the Tech
-//! Pack (new Point of Measure and size IDs), the design files, the
-//! Decorations, the Design Decisions with their Passage links, the
-//! Moodboard, and the Cost Sheet. It does not get Samples: they record what
+//! Pack (new Point of Measure and size IDs), the design files (and the
+//! Cover, on the copy's own copy of the file), the Decorations, the Design
+//! Decisions with their Passage links, the Moodboard, and the Cost Sheet. It does not get Samples: they record what
 //! came back for the original color.
 //!
 //! Each area copies its own rows with a `copy_*` function in its module,
@@ -55,13 +55,22 @@ fn copy_areas(conn: &Connection, from: StyleId, to: StyleId) -> CoreResult<()> {
     Ok(())
 }
 
-/// Copies the design file records. The media files are shared: stored
-/// media is content-addressed and never changes.
+/// Copies the design file records, and points the copy's Cover at its own
+/// copy of the Cover file. The media files are shared: stored media is
+/// content-addressed and never changes.
 fn copy_files(conn: &Connection, from: StyleId, to: StyleId) -> CoreResult<()> {
-    conn.execute(
-        "INSERT INTO style_file (style_id, media, file_name, added_at)
-         SELECT ?2, media, file_name, added_at FROM style_file WHERE style_id = ?1 ORDER BY id",
-        params![from, to],
-    )?;
+    let cover: Option<i64> = conn.query_row("SELECT cover_file_id FROM style WHERE id = ?1", [from], |r| r.get(0))?;
+    let mut stmt = conn.prepare("SELECT id FROM style_file WHERE style_id = ?1 ORDER BY id")?;
+    let files: Vec<i64> = stmt.query_map([from], |r| r.get(0))?.collect::<Result<_, _>>()?;
+    for file in files {
+        conn.execute(
+            "INSERT INTO style_file (style_id, media, file_name, added_at)
+             SELECT ?2, media, file_name, added_at FROM style_file WHERE id = ?1",
+            params![file, to],
+        )?;
+        if cover == Some(file) {
+            conn.execute("UPDATE style SET cover_file_id = ?2 WHERE id = ?1", params![to, conn.last_insert_rowid()])?;
+        }
+    }
     Ok(())
 }

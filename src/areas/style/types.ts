@@ -18,6 +18,8 @@ export interface Style {
   status: StyleStatus;
   /** Statuses the lifecycle allows next. The core owns this rule. */
   moves: StyleStatus[];
+  /** The one image design file picked to represent this Style, if any. */
+  cover: StyleFile | null;
 }
 
 /** Mirrors `StyleFile`: one design file attached to a Style. */
