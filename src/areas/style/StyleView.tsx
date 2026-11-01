@@ -72,6 +72,7 @@ export function StyleView({ id, onOpen, onOpenStyle }: Props) {
     setConfirmCut(false);
     try {
       setStyle(await styleApi.moveStyle(id, to));
+      announceTreeChange();
     } catch (raw) {
       setError(toCoreError(raw));
     }
