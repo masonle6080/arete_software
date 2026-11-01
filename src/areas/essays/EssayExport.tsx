@@ -3,6 +3,7 @@ import { exportHtml, exportMarkdown } from "../../document";
 import { exportPdf, fileNameFor, saveTextFile } from "../../export";
 import { toCoreError } from "../../shell/coreError";
 import { documentApi } from "./api";
+import { Button } from "../../ui";
 
 interface EssayExportProps {
   essayId: number;
@@ -49,8 +50,8 @@ export function EssayExport({ essayId, flush }: EssayExportProps) {
   return (
     <div className="essay-export">
       <span className="muted">Export</span>
-      <button onClick={toMarkdown}>Markdown…</button>
-      <button onClick={toPdf}>PDF…</button>
+      <Button onClick={toMarkdown}>Markdown…</Button>
+      <Button onClick={toPdf}>PDF…</Button>
       {message && <span className={message.error ? "error" : "muted"}>{message.text}</span>}
     </div>
   );

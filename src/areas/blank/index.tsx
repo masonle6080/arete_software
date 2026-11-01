@@ -4,6 +4,7 @@ import { toCoreError } from "../../shell/coreError";
 import { vendorApi, type Vendor } from "../vendor/api";
 import { blankApi, blankLabel, formatCost, type Blank, type BlankInput } from "./api";
 import "./blank.css";
+import { Button, EmptyText } from "../../ui";
 
 /** The form's text fields. Lists are comma-separated; cost is in major units. */
 interface Draft {
@@ -99,7 +100,7 @@ function BlankScreen() {
     <section className="blanks">
       <header>
         <h1>Blanks</h1>
-        <button onClick={() => startEdit({ id: null, draft: emptyDraft })}>New Blank</button>
+        <Button onClick={() => startEdit({ id: null, draft: emptyDraft })}>New Blank</Button>
       </header>
 
       {editing && (
@@ -115,7 +116,7 @@ function BlankScreen() {
       {error && <p className="error">{error}</p>}
 
       {blanks.length === 0 ? (
-        <p className="muted">No Blanks yet.</p>
+        <EmptyText>No Blanks yet.</EmptyText>
       ) : (
         <table className="blank-list">
           <thead>
@@ -137,7 +138,7 @@ function BlankScreen() {
                 <td>{b.sizes.join(", ")}</td>
                 <td>{formatCost(b)}</td>
                 <td>
-                  <button onClick={() => startEdit({ id: b.id, draft: toDraft(b) })}>Edit</button>
+                  <Button onClick={() => startEdit({ id: b.id, draft: toDraft(b) })}>Edit</Button>
                 </td>
               </tr>
             ))}
@@ -204,8 +205,8 @@ function BlankForm(props: {
         <textarea rows={3} value={d.notes} onChange={(e) => set({ notes: e.target.value })} />
       </label>
       <div className="actions">
-        <button type="submit">{editing.id === null ? "Create" : "Save"}</button>
-        <button type="button" onClick={props.onCancel}>Cancel</button>
+        <Button type="submit">{editing.id === null ? "Create" : "Save"}</Button>
+        <Button type="button" onClick={props.onCancel}>Cancel</Button>
       </div>
     </form>
   );

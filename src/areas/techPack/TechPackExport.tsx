@@ -6,6 +6,7 @@ import { vendorApi } from "../vendor/api";
 import { techPackApi } from "./api";
 import { flatImageSrc, techPackExportCss, techPackExportHtml } from "./export";
 import type { Style } from "../style/types";
+import { Button } from "../../ui";
 
 /** The PDF export button for one Style's Tech Pack. It exports the saved Tech Pack. */
 export function TechPackExport({ style }: { style: Style }) {
@@ -52,9 +53,9 @@ export function TechPackExport({ style }: { style: Style }) {
 
   return (
     <div className="tech-pack-export">
-      <button onClick={toPdf} disabled={busy}>
+      <Button onClick={toPdf} disabled={busy}>
         Export PDF…
-      </button>
+      </Button>
       <span className="hint">Exports the saved Tech Pack. Save your edits first.</span>
       {error && <span className="error">{error}</span>}
     </div>

@@ -4,35 +4,23 @@
   padding: 0;
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-  gap: 16px;
+  gap: var(--space-4);
 }
 .clip { display: flex; flex-direction: column; gap: 6px; }
 .clip .thumb {
   width: 100%;
   aspect-ratio: 16 / 9;
   object-fit: cover;
-  border-radius: 6px;
+  border-radius: var(--control-radius);
   background: var(--line);
 }
-.clip .thumb.empty { display: grid; place-items: center; color: var(--muted); font-size: 12px; }
+.clip .thumb.empty { display: grid; place-items: center; color: var(--muted); font-size: var(--text-small); }
 .clip .name { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.clip .meta { display: flex; justify-content: space-between; align-items: center; color: var(--muted); font-size: 13px; }
-.clip .meta input { font: inherit; color: var(--fg); background: transparent; border: 1px solid var(--line); border-radius: 4px; }
-.muted { color: var(--muted); }
+.clip .meta { display: flex; justify-content: space-between; align-items: center; color: var(--muted); }
 
-.clips-filter { display: flex; gap: 8px; align-items: center; margin-bottom: 8px; }
-.clips-filter select,
-.clip .documentaries select { font: inherit; color: var(--fg); background: transparent; border: 1px solid var(--line); border-radius: 4px; }
-.clip .documentaries { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; font-size: 13px; }
-.clip .documentaries .tag { border: 1px solid var(--line); border-radius: 999px; padding: 0 6px; display: inline-flex; gap: 4px; align-items: center; }
-.clip .documentaries .tag button { border: none; padding: 0; background: none; color: var(--muted); cursor: pointer; }
+.clips-filter { display: flex; gap: var(--space-2); align-items: center; margin-bottom: var(--space-2); }
+.clip .documentaries { display: flex; flex-wrap: wrap; gap: var(--space-1); align-items: center; }
 
-.clip .clip-details { display: flex; flex-direction: column; gap: 4px; font-size: 13px; }
-.clip .clip-details .chips { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; }
-.clip .clip-details .tag { border: 1px solid var(--line); border-radius: 999px; padding: 0 6px; display: inline-flex; gap: 4px; align-items: center; max-width: 100%; }
-.clip .clip-details .tag button { border: none; padding: 0; background: none; color: var(--muted); cursor: pointer; }
-.clip .clip-details input,
-.clip .clip-details select,
-.clip .clip-details textarea { font: inherit; color: var(--fg); background: transparent; border: 1px solid var(--line); border-radius: 4px; }
+.clip .clip-details { display: flex; flex-direction: column; gap: var(--space-1); }
 .clip .clip-details .new-tag { width: 80px; }
-.clip .clip-details .notes { resize: vertical; width: 100%; box-sizing: border-box; }
+.clip .clip-details .notes { resize: vertical; width: 100%; }

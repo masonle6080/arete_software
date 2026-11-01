@@ -8,6 +8,7 @@ import { documentApi, type DocumentSummary, type StoredDocument } from "./api";
 import { EssayExport } from "./EssayExport";
 import { EssayTheses } from "./EssayTheses";
 import "./essays.css";
+import { Button, EmptyText } from "../../ui";
 
 function EssayList({ onOpen }: { onOpen(id: number): void }) {
   const [essays, setEssays] = useState<DocumentSummary[] | null>(null);
@@ -30,17 +31,17 @@ function EssayList({ onOpen }: { onOpen(id: number): void }) {
     <section>
       <header className="essay-list-header">
         <h1>Essays</h1>
-        <button onClick={create}>New essay</button>
+        <Button onClick={create}>New essay</Button>
       </header>
       {error && <p className="error">{error}</p>}
-      {essays?.length === 0 && <p className="muted">No essays yet.</p>}
+      {essays?.length === 0 && <EmptyText>No essays yet.</EmptyText>}
       <ul className="essay-list">
         {essays?.map((e) => (
           <li key={e.id}>
-            <button onClick={() => onOpen(e.id)}>
+            <Button onClick={() => onOpen(e.id)}>
               <span>{e.title || "Untitled"}</span>
               <time dateTime={e.updatedAt}>{new Date(e.updatedAt).toLocaleString()}</time>
-            </button>
+            </Button>
           </li>
         ))}
       </ul>
@@ -93,15 +94,16 @@ export function EssayScreen({ id, onClose, backLabel = "← Essays", focusPassag
         <PassageView key={passageId} id={passageId} backLabel="← Essay" onBack={() => setPassageId(null)} />
       )}
       <div hidden={passageId !== null}>
-        <button
-          className="essay-back"
+        <Button
+          variant="plain"
+          className="back"
           onClick={async () => {
             await editor.current?.flush();
             onClose();
           }}
         >
           {backLabel}
-        </button>
+        </Button>
         {error && <p className="error">{error}</p>}
         {essay && <EssayTheses essayId={essay.id} />}
         {essay && <EssayExport essayId={essay.id} flush={async () => editor.current?.flush()} />}

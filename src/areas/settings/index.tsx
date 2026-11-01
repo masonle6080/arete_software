@@ -3,6 +3,7 @@ import type { Area } from "../../shell/area";
 import { toCoreError, type CoreError } from "../../shell/coreError";
 import { currencyApi, type CurrencySettings } from "../costSheet/api";
 import "./settings.css";
+import { Button, EmptyText, SectionHeader } from "../../ui";
 
 /**
  * Library settings: the home currency and the exchange rates the founder
@@ -58,7 +59,7 @@ function SettingsScreen() {
     <section className="settings">
       <h1>Settings</h1>
       {error && <p className="error">{error.message}</p>}
-      <h2>Currencies</h2>
+      <SectionHeader title="Currencies" />
       <form className="settings-row" onSubmit={saveHome}>
         <label>
           Home currency
@@ -70,16 +71,16 @@ function SettingsScreen() {
             onChange={(e) => setHome(e.target.value.toUpperCase())}
           />
         </label>
-        <button type="submit" disabled={home.trim() === "" || home === settings?.homeCurrency}>
+        <Button type="submit" disabled={home.trim() === "" || home === settings?.homeCurrency}>
           Save
-        </button>
+        </Button>
       </form>
       <p className="hint">Cost Sheets total each Quantity Tier in this currency, rounded to cents.</p>
 
-      <h3>Exchange rates</h3>
+      <SectionHeader level={3} title="Exchange rates" />
       <p className="hint">One unit of each currency is worth this many units of {homeLabel}.</p>
       {settings && settings.rates.length === 0 ? (
-        <p className="empty">No exchange rates yet.</p>
+        <EmptyText>No exchange rates yet.</EmptyText>
       ) : (
         <table className="rates">
           <tbody>
@@ -91,15 +92,15 @@ function SettingsScreen() {
                   {r.rate} {homeLabel}
                 </td>
                 <td>
-                  <button
+                  <Button
                     onClick={() => {
                       setRateCurrency(r.currency);
                       setRate(r.rate);
                     }}
                   >
                     Edit
-                  </button>
-                  <button onClick={() => run(() => currencyApi.removeRate(r.currency))}>Remove</button>
+                  </Button>
+                  <Button onClick={() => run(() => currencyApi.removeRate(r.currency))}>Remove</Button>
                 </td>
               </tr>
             ))}
@@ -121,9 +122,9 @@ function SettingsScreen() {
           Rate
           <input inputMode="decimal" placeholder="1.08" value={rate} onChange={(e) => setRate(e.target.value)} />
         </label>
-        <button type="submit" disabled={rateCurrency.trim() === "" || rate.trim() === ""}>
+        <Button type="submit" disabled={rateCurrency.trim() === "" || rate.trim() === ""}>
           Save rate
-        </button>
+        </Button>
       </form>
     </section>
   );

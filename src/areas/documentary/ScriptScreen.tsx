@@ -6,6 +6,7 @@ import { OrphanedPassages } from "../passage/OrphanedPassages";
 import { PassageView } from "../passage/PassageView";
 import { documentaryApi } from "./api";
 import "../essays/essays.css";
+import { Button } from "../../ui";
 
 interface Props {
   documentaryId: number;
@@ -52,15 +53,16 @@ export function ScriptScreen({ documentaryId, onClose, backLabel }: Props) {
         <PassageView key={passageId} id={passageId} backLabel="← Script" onBack={() => setPassageId(null)} />
       )}
       <div hidden={passageId !== null}>
-        <button
-          className="essay-back"
+        <Button
+          variant="plain"
+          className="back"
           onClick={async () => {
             await editor.current?.flush();
             onClose();
           }}
         >
           {backLabel}
-        </button>
+        </Button>
         {error && <p className="error">{error}</p>}
         {script && <OrphanedPassages documentId={script.id} version={saves} onOpen={openPassage} />}
         {script && (

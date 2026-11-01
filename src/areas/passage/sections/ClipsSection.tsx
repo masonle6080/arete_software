@@ -3,6 +3,7 @@ import { convertFileSrc } from "@tauri-apps/api/core";
 import { toCoreError } from "../../../shell/coreError";
 import { clipApi, type Clip } from "../../clips/api";
 import type { PassageSection, PassageSectionProps } from ".";
+import { EmptyText } from "../../../ui";
 
 /** The Clips linked to a Passage. Link and unlink them in the Clips area. */
 function LinkedClips({ passage }: PassageSectionProps) {
@@ -15,7 +16,7 @@ function LinkedClips({ passage }: PassageSectionProps) {
 
   if (error) return <p className="error">{error}</p>;
   if (!clips) return null;
-  if (clips.length === 0) return <p className="muted">No Clips are linked to this Passage.</p>;
+  if (clips.length === 0) return <EmptyText>No Clips are linked to this Passage.</EmptyText>;
   return (
     <ul className="passage-clips">
       {clips.map((c) => (

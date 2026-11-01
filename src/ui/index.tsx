@@ -21,11 +21,13 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   size?: "regular" | "small";
 }
 
-/** A push button in one of the shared styles. Defaults to `type="button"`. */
-export function Button({ variant = "default", size = "regular", className, type = "button", ...rest }: ButtonProps) {
+/**
+ * A push button in one of the shared styles. Like a plain `<button>`, it
+ * submits its form unless `type="button"` is given.
+ */
+export function Button({ variant = "default", size = "regular", className, ...rest }: ButtonProps) {
   return (
     <button
-      type={type}
       className={cx("btn", variant !== "default" && `btn-${variant}`, size === "small" && "btn-small", className)}
       {...rest}
     />

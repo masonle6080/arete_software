@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { toCoreError } from "../../../shell/coreError";
+import { Button, EmptyText } from "../../../ui";
 import { EssayScreen } from "../../essays";
 import { documentApi, essayThesisApi, type DocumentSummary } from "../../essays/api";
 import type { ThesisSection, ThesisSectionProps } from ".";
@@ -45,20 +46,20 @@ function EssaysSection({ thesis }: ThesisSectionProps) {
   return (
     <>
       {error && <p className="error">{error}</p>}
-      {linked.length === 0 && <p className="muted">No essays linked yet.</p>}
+      {linked.length === 0 && <EmptyText>No essays linked yet.</EmptyText>}
       <ul className="thesis-essays">
         {linked.map((e) => (
           <li key={e.id}>
-            <button className="open" onClick={() => setOpenId(e.id)}>
+            <Button className="open" onClick={() => setOpenId(e.id)}>
               {e.title || "Untitled"}
-            </button>
-            <button
-              className="unlink"
+            </Button>
+            <Button
+              variant="plain"
               aria-label={`Unlink ${e.title || "Untitled"}`}
               onClick={() => change(essayThesisApi.unlink(e.id, thesis.id))}
             >
               Unlink
-            </button>
+            </Button>
           </li>
         ))}
       </ul>

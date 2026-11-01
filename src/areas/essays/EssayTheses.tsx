@@ -3,6 +3,7 @@ import { toCoreError } from "../../shell/coreError";
 import { thesisApi } from "../thesis/api";
 import type { Thesis } from "../thesis/types";
 import { essayThesisApi } from "./api";
+import { Chip } from "../../ui";
 
 /**
  * The Theses an Essay supports, with controls to link and unlink them. An
@@ -36,18 +37,15 @@ export function EssayTheses({ essayId }: { essayId: number }) {
   return (
     <div className="essay-theses">
       <span className="muted">Theses:</span>
-      {linked.length === 0 && <span className="muted">none</span>}
+      {linked.length === 0 && <span className="muted">None</span>}
       {linked.map((t) => (
-        <span key={t.id} className="essay-thesis-chip">
+        <Chip
+          key={t.id}
+          removeLabel={`Unlink from ${t.title}`}
+          onRemove={() => change(essayThesisApi.unlink(essayId, t.id))}
+        >
           {t.title}
-          <button
-            aria-label={`Unlink from ${t.title}`}
-            title="Unlink"
-            onClick={() => change(essayThesisApi.unlink(essayId, t.id))}
-          >
-            ×
-          </button>
-        </span>
+        </Chip>
       ))}
       {unlinked.length > 0 && (
         <select

@@ -3,6 +3,7 @@ import { toCoreError, type CoreError } from "../../shell/coreError";
 import { moodboardApi } from "./api";
 import type { Moodboard, MoodboardOwner } from "./types";
 import "./moodboard.css";
+import { Button, EmptyText } from "../../ui";
 
 interface Props {
   owner: MoodboardOwner;
@@ -55,20 +56,20 @@ export function Moodboards({ owner, single = false, onOpen }: Props) {
     <div className="moodboards">
       {error && <p className="error">{error.message}</p>}
       {boards.length === 0 ? (
-        <p className="empty">{single ? "No Moodboard yet." : "No Moodboards yet."}</p>
+        <EmptyText>{single ? "No Moodboard yet." : "No Moodboards yet."}</EmptyText>
       ) : (
         <ul className="moodboard-list">
           {boards.map((b) => (
             <li key={b.id}>
               <strong>{b.title}</strong>
-              <button onClick={() => onOpen(b)}>Open</button>
+              <Button onClick={() => onOpen(b)}>Open</Button>
               {confirmDelete === b.id ? (
                 <>
-                  <button onClick={() => remove(b)}>Confirm: delete this Moodboard</button>
-                  <button onClick={() => setConfirmDelete(undefined)}>Cancel</button>
+                  <Button onClick={() => remove(b)}>Confirm: delete this Moodboard</Button>
+                  <Button onClick={() => setConfirmDelete(undefined)}>Cancel</Button>
                 </>
               ) : (
-                <button onClick={() => setConfirmDelete(b.id)}>Delete</button>
+                <Button onClick={() => setConfirmDelete(b.id)}>Delete</Button>
               )}
             </li>
           ))}
@@ -77,9 +78,9 @@ export function Moodboards({ owner, single = false, onOpen }: Props) {
       {!(single && boards.length > 0) && (
         <form className="moodboard-create" onSubmit={create}>
           <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="New Moodboard title" />
-          <button type="submit" disabled={!title.trim()}>
+          <Button type="submit" disabled={!title.trim()}>
             Add Moodboard
-          </button>
+          </Button>
         </form>
       )}
     </div>

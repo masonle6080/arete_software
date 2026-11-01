@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useState, type FormEvent } from "react";
 import { toCoreError, type CoreError } from "../../shell/coreError";
+import { Badge, Button, EmptyText, SectionHeader } from "../../ui";
 import { thesisApi } from "./api";
-import { statusLabel, type ThesisGroup } from "./types";
+import type { ThesisGroup } from "./types";
 
 interface Props {
   onOpen(id: number): void;
@@ -46,27 +47,28 @@ export function ThesisList({ onOpen, onChanged }: Props) {
           value={statement}
           onChange={(e) => setStatement(e.target.value)}
         />
-        <button type="submit" disabled={!title.trim()}>
+        <Button type="submit" variant="primary" disabled={!title.trim()}>
           Add Thesis
-        </button>
+        </Button>
       </form>
       {error && <p className="error">{error.message}</p>}
 
       {groups.map((group) => (
         <div key={group.status} className="thesis-group">
-          <h2>
-            {statusLabel[group.status]} <span className="count">{group.theses.length}</span>
-          </h2>
+          <SectionHeader
+            title={<Badge lifecycle="thesis" status={group.status} />}
+            count={group.theses.length}
+          />
           {group.theses.length === 0 ? (
-            <p className="empty">None</p>
+            <EmptyText>None</EmptyText>
           ) : (
             <ul>
               {group.theses.map((t) => (
                 <li key={t.id}>
-                  <button className="thesis-row" onClick={() => onOpen(t.id)}>
+                  <Button className="thesis-row" onClick={() => onOpen(t.id)}>
                     <strong>{t.title}</strong>
                     {t.statement && <span className="statement">{t.statement}</span>}
-                  </button>
+                  </Button>
                 </li>
               ))}
             </ul>

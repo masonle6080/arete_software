@@ -78,8 +78,8 @@ h4 { font-size: var(--text-base); font-weight: 600; color: var(--muted); }
 
 /* ---- Controls ---------------------------------------------------------- */
 
-button,
-.btn {
+/* Every button starts as a regular push button; Button's variants refine it. */
+button {
   font: inherit;
   color: var(--fg);
   background: var(--bg-control);
@@ -125,7 +125,6 @@ textarea:focus-visible {
 }
 
 input:not([type="checkbox"]):not([type="radio"]):not([type="file"]),
-select,
 textarea {
   font: inherit;
   color: var(--fg);
@@ -136,6 +135,8 @@ textarea {
   padding: 2px 6px;
 }
 textarea { padding: 4px 6px; }
+/* A select keeps the native macOS pop-up button look; only the type size is shared. */
+select { font: inherit; color: var(--fg); min-height: var(--control-height); }
 input[type="checkbox"],
 input[type="radio"] { accent-color: var(--accent); }
 
@@ -239,3 +240,22 @@ input[type="radio"] { accent-color: var(--accent); }
 .error { color: var(--error); }
 .chips { display: flex; flex-wrap: wrap; gap: var(--space-1); align-items: center; }
 .actions { display: flex; flex-wrap: wrap; gap: var(--space-2); align-items: center; }
+/* The title line of a card: a name and its status Badge. */
+.card-title { display: flex; align-items: center; gap: var(--space-2); margin: 0 0 var(--space-1); }
+/* A list row that is a button, such as a Style or a Sample. */
+.row-button {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-3);
+  width: 100%;
+  text-align: left;
+  border: none;
+  box-shadow: none;
+  background: transparent;
+  padding: 4px 8px;
+}
+.row-button:hover,
+.row-button.open { background: var(--hover); }
+/* The "← Back" button at the top of a screen. */
+.back { margin-left: -8px; margin-bottom: var(--space-1); }

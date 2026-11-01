@@ -9,6 +9,7 @@ import {
   thesisTabs,
   ThesisWorkspace,
 } from "../areas/thesis";
+import { Button } from "../ui";
 
 /** What the content pane shows: a tab of the current Thesis, every Thesis, or one area. */
 type View = { kind: "thesis"; tab: string } | { kind: "theses" } | { kind: "area"; id: string };
@@ -53,13 +54,13 @@ export function Workspace({ library, onSwitchLibrary }: Props) {
 
   const area = view.kind === "area" ? [...libraryAreas, settingsArea].find((a) => a.id === view.id) : undefined;
   const navButton = (next: View, label: string, className = "") => (
-    <button
+    <Button
       key={label}
       className={viewKey(next) === viewKey(view) ? `${className} active` : className}
       onClick={() => go(next)}
     >
       {label}
-    </button>
+    </Button>
   );
 
   return (
@@ -74,15 +75,15 @@ export function Workspace({ library, onSwitchLibrary }: Props) {
         )}
         <div className="sidebar-group">
           {navButton({ kind: "theses" }, "All Theses")}
-          <button className="group-toggle" aria-expanded={libraryOpen} onClick={() => setLibraryOpen((o) => !o)}>
+          <Button className="group-toggle" aria-expanded={libraryOpen} onClick={() => setLibraryOpen((o) => !o)}>
             Library {libraryOpen ? "▾" : "▸"}
-          </button>
+          </Button>
           {libraryOpen && libraryAreas.map((a) => navButton({ kind: "area", id: a.id }, a.label, "nested"))}
           {navButton({ kind: "area", id: settingsArea.id }, settingsArea.label)}
         </div>
-        <button className="switch" onClick={onSwitchLibrary}>
+        <Button className="switch" onClick={onSwitchLibrary}>
           Switch library…
-        </button>
+        </Button>
       </nav>
       <div className="content-pane">
         <div className="drag-region" data-tauri-drag-region />
