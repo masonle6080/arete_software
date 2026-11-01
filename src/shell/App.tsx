@@ -32,24 +32,33 @@ export function App() {
 
   const onReconnected = useCallback((library: LibraryInfo) => setSession({ status: "open", library }), []);
 
+  // The title bar is hidden, so screens without the shell need their own strip to drag the window by.
+  const dragStrip = <div className="drag-region window-drag" data-tauri-drag-region />;
+
   if (!session) return <main className="welcome">Opening library…</main>;
 
   if (session.status === "welcome") {
     return (
-      <WelcomeScreen
-        initialError={session.error}
-        onOpened={(library) => setSession({ status: "open", library })}
-      />
+      <>
+        {dragStrip}
+        <WelcomeScreen
+          initialError={session.error}
+          onOpened={(library) => setSession({ status: "open", library })}
+        />
+      </>
     );
   }
 
   if (session.status === "disconnected") {
     return (
-      <ReconnectScreen
-        library={session.library}
-        onReconnected={onReconnected}
-        onSwitch={() => setSession({ status: "welcome" })}
-      />
+      <>
+        {dragStrip}
+        <ReconnectScreen
+          library={session.library}
+          onReconnected={onReconnected}
+          onSwitch={() => setSession({ status: "welcome" })}
+        />
+      </>
     );
   }
 

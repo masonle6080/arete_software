@@ -65,6 +65,7 @@ export function Workspace({ library, onSwitchLibrary }: Props) {
   return (
     <div className="shell">
       <nav className="sidebar">
+        <div className="drag-region" data-tauri-drag-region />
         <ThesisPicker value={thesisId} version={thesesVersion} onPick={pickThesis} />
         {thesisId !== undefined && (
           <div className="sidebar-group">
@@ -83,15 +84,18 @@ export function Workspace({ library, onSwitchLibrary }: Props) {
           Switch library…
         </button>
       </nav>
-      <main className="content">
-        {view.kind === "thesis" && thesisId !== undefined ? (
-          <ThesisWorkspace key={`${thesisId}:${visit}`} thesisId={thesisId} tab={view.tab} />
-        ) : view.kind === "area" && area ? (
-          <area.Screen key={visit} library={library} />
-        ) : (
-          <ThesisList key={visit} onOpen={pickThesis} onChanged={() => setThesesVersion((n) => n + 1)} />
-        )}
-      </main>
+      <div className="content-pane">
+        <div className="drag-region" data-tauri-drag-region />
+        <main className="content">
+          {view.kind === "thesis" && thesisId !== undefined ? (
+            <ThesisWorkspace key={`${thesisId}:${visit}`} thesisId={thesisId} tab={view.tab} />
+          ) : view.kind === "area" && area ? (
+            <area.Screen key={visit} library={library} />
+          ) : (
+            <ThesisList key={visit} onOpen={pickThesis} onChanged={() => setThesesVersion((n) => n + 1)} />
+          )}
+        </main>
+      </div>
     </div>
   );
 }

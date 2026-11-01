@@ -1,0 +1,241 @@
+/*
+ * Design tokens and the shared components (see index.tsx).
+ * Values follow macOS: the system font at 13px, the system accent color,
+ * and the heights and radii of regular and small controls.
+ */
+:root {
+  color-scheme: light dark;
+
+  --font: -apple-system, BlinkMacSystemFont, system-ui, "Helvetica Neue", sans-serif;
+  --font-mono: ui-monospace, "SF Mono", Menlo, monospace;
+  --text-small: 11px;
+  --text-base: 13px;
+  --text-large: 15px;
+  --text-title: 22px;
+
+  --control-height: 22px;
+  --control-height-small: 18px;
+  --control-radius: 5px;
+  --control-padding: 0 10px;
+  --card-radius: 8px;
+
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+
+  --bg: #ffffff;
+  --bg-control: #ffffff;
+  --fg: rgba(0, 0, 0, 0.85);
+  --muted: rgba(0, 0, 0, 0.5);
+  --line: rgba(0, 0, 0, 0.1);
+  --hover: rgba(0, 0, 0, 0.05);
+  --selected: rgba(0, 0, 0, 0.08);
+  --error: #d70015;
+  --green: #248a3d;
+  --on-accent: #ffffff;
+
+  /* The system accent color, with fallbacks for engines that lack it. */
+  --accent: #007aff;
+
+  font-family: var(--font);
+  font-size: var(--text-base);
+  line-height: 1.4;
+  color: var(--fg);
+  background: var(--bg);
+  -webkit-font-smoothing: antialiased;
+}
+@supports (color: AccentColor) {
+  :root { --accent: AccentColor; --on-accent: AccentColorText; }
+}
+@supports (color: -apple-system-control-accent) {
+  :root { --accent: -apple-system-control-accent; --on-accent: #ffffff; }
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #1e1e1e;
+    --bg-control: rgba(255, 255, 255, 0.08);
+    --fg: rgba(255, 255, 255, 0.86);
+    --muted: rgba(255, 255, 255, 0.5);
+    --line: rgba(255, 255, 255, 0.12);
+    --hover: rgba(255, 255, 255, 0.06);
+    --selected: rgba(255, 255, 255, 0.1);
+    --error: #ff6961;
+    --green: #30d158;
+  }
+}
+
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); }
+
+h1 { font-size: var(--text-title); font-weight: 700; margin: 0 0 var(--space-2); }
+h2 { font-size: var(--text-large); font-weight: 600; }
+h3 { font-size: var(--text-base); font-weight: 600; }
+h4 { font-size: var(--text-base); font-weight: 600; color: var(--muted); }
+
+/* ---- Controls ---------------------------------------------------------- */
+
+button,
+.btn {
+  font: inherit;
+  color: var(--fg);
+  background: var(--bg-control);
+  border: 1px solid var(--line);
+  border-radius: var(--control-radius);
+  min-height: var(--control-height);
+  padding: var(--control-padding);
+  box-shadow: 0 0.5px 1px rgba(0, 0, 0, 0.08);
+  cursor: default;
+}
+button:active:not(:disabled) { background: var(--selected); }
+button:disabled { opacity: 0.45; }
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--accent) 50%, transparent);
+  outline-offset: 0;
+}
+
+.btn-primary {
+  color: var(--on-accent);
+  background: var(--accent);
+  border-color: transparent;
+}
+.btn-primary:active:not(:disabled) { background: var(--accent); filter: brightness(0.9); }
+
+.btn-plain,
+.btn-destructive {
+  background: transparent;
+  border-color: transparent;
+  box-shadow: none;
+  color: var(--muted);
+}
+.btn-plain:hover:not(:disabled) { color: var(--fg); background: var(--hover); }
+.btn-destructive { color: var(--error); }
+.btn-destructive:hover:not(:disabled) { background: var(--hover); }
+
+.btn-small {
+  min-height: var(--control-height-small);
+  padding: 0 6px;
+  font-size: var(--text-small);
+}
+
+input:not([type="checkbox"]):not([type="radio"]):not([type="file"]),
+select,
+textarea {
+  font: inherit;
+  color: var(--fg);
+  background: var(--bg-control);
+  border: 1px solid var(--line);
+  border-radius: var(--control-radius);
+  min-height: var(--control-height);
+  padding: 2px 6px;
+}
+textarea { padding: 4px 6px; }
+input[type="checkbox"],
+input[type="radio"] { accent-color: var(--accent); }
+
+/* ---- SectionHeader ----------------------------------------------------- */
+
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  margin: 0 0 var(--space-2);
+}
+.section-header h2,
+.section-header h3 { margin: 0; }
+.section-header-3 h3 { font-size: var(--text-small); text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted); }
+.section-count { margin-left: var(--space-2); color: var(--muted); font-weight: 400; }
+.section-actions { display: flex; gap: var(--space-2); align-items: center; }
+
+/* ---- SegmentedControl -------------------------------------------------- */
+
+.segmented {
+  display: inline-flex;
+  padding: 1px;
+  gap: 1px;
+  border-radius: calc(var(--control-radius) + 1px);
+  background: var(--hover);
+  border: 1px solid var(--line);
+}
+.segmented .segment {
+  border: none;
+  box-shadow: none;
+  background: transparent;
+  min-height: calc(var(--control-height) - 4px);
+  padding: 0 12px;
+}
+.segmented .segment.selected {
+  background: var(--bg-control);
+  box-shadow: 0 0.5px 1.5px rgba(0, 0, 0, 0.2);
+}
+
+/* ---- Badge ------------------------------------------------------------- */
+
+.badge {
+  display: inline-block;
+  padding: 1px 7px;
+  border-radius: 999px;
+  font-size: var(--text-small);
+  font-weight: 500;
+  line-height: 16px;
+  white-space: nowrap;
+  vertical-align: middle;
+}
+.badge-gray { color: var(--muted); background: var(--selected); }
+.badge-accent { color: var(--accent); background: color-mix(in srgb, var(--accent) 15%, transparent); }
+.badge-green { color: var(--green); background: color-mix(in srgb, var(--green) 15%, transparent); }
+.badge-red {
+  color: var(--error);
+  background: color-mix(in srgb, var(--error) 12%, transparent);
+  text-decoration: line-through;
+}
+
+/* ---- Chip -------------------------------------------------------------- */
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  max-width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  font-size: var(--text-small);
+  line-height: 16px;
+  color: var(--fg);
+  background: var(--bg-control);
+}
+.chip-label {
+  padding: 1px 8px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.chip button {
+  font: inherit;
+  min-height: 0;
+  border: none;
+  box-shadow: none;
+  background: transparent;
+  border-radius: 999px;
+}
+.chip-link .chip-label:hover { color: var(--accent); }
+.chip-remove { padding: 0 6px 0 0; color: var(--muted); }
+.chip-remove:hover { color: var(--fg); }
+.chip-label + .chip-remove { margin-left: -4px; }
+
+/* ---- EmptyText --------------------------------------------------------- */
+
+.empty-text { color: var(--muted); margin: 0 0 var(--space-2); }
+
+/* ---- Small shared helpers ---------------------------------------------- */
+
+.muted { color: var(--muted); }
+.error { color: var(--error); }
+.chips { display: flex; flex-wrap: wrap; gap: var(--space-1); align-items: center; }
+.actions { display: flex; flex-wrap: wrap; gap: var(--space-2); align-items: center; }
