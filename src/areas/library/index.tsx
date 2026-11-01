@@ -14,4 +14,4 @@ function LibraryScreen({ library }: AreaProps) {
   );
 }
 
-export const libraryArea: Area = { id: "library", label: "Library", Screen: LibraryScreen };
+export const libraryArea: Area = { id: "library", label: "Library folder", Screen: LibraryScreen };

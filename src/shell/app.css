@@ -52,6 +52,19 @@ button:disabled { opacity: 0.5; cursor: default; }
 }
 .sidebar button { border: none; text-align: left; }
 .sidebar button.active { font-weight: 600; }
+.sidebar-group { display: flex; flex-direction: column; gap: 4px; padding-bottom: 8px; border-bottom: 1px solid var(--line); }
+.sidebar .group-toggle { color: var(--muted); }
+.sidebar .nested { padding-left: 24px; }
+.thesis-picker { display: flex; flex-direction: column; gap: 4px; padding: 0 4px 8px; border-bottom: 1px solid var(--line); }
+.thesis-picker label { color: var(--muted); font-size: 0.8rem; }
+.thesis-picker select {
+  font: inherit;
+  color: var(--fg);
+  background: transparent;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 4px 6px;
+}
 .sidebar .switch { margin-top: auto; color: var(--muted); }
 .content { flex: 1; padding: 24px 32px; }
 

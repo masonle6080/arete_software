@@ -1,4 +1,5 @@
 import type { ComponentType } from "react";
+import type { Moodboard } from "../../moodboard/types";
 import type { Thesis } from "../types";
 import { dropSection } from "./DropSection";
 import { essaysSection } from "./EssaysSection";
@@ -12,9 +13,11 @@ export interface ThesisSectionProps {
   onThesisChanged(): void;
   /** Opens the full Style view, in place of the Thesis view. */
   onOpenStyle(styleId: number): void;
+  /** Opens one Moodboard on its own screen, in place of the Thesis view. */
+  onOpenMoodboard(board: Moodboard): void;
 }
 
-/** One section of the Thesis view, for example Essays or Drop. */
+/** One section of the Thesis view, for example Essays or Drop. Each is a sidebar tab. */
 export interface ThesisSection {
   id: string;
   title: string;
@@ -25,7 +28,8 @@ export interface ThesisSection {
  * The sections of the Thesis view, in display order. To add one (Essays,
  * Moodboards, Drop, Documentary), create `sections/<Name>Section.tsx` that
  * exports a `ThesisSection`, then add one import and one line here. The view
- * renders each section under its title; the section owns its own data.
+ * renders the section of the open tab under its title; the section owns its
+ * own data.
  */
 export const thesisSections: ThesisSection[] = [
   essaysSection,

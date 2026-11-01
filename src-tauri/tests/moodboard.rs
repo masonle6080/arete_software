@@ -216,3 +216,44 @@ fn a_style_has_at_most_one_moodboard() {
     assert!(matches!(err, CoreError::InvalidInput { .. }), "{err:?}");
     assert_eq!(moodboard::list_moodboards(&lib, owner).unwrap(), vec![board]);
 }
+
+#[test]
+fn founder_can_delete_a_moodboard() {
+    let env = TestEnv::new();
+    let lib = env.library();
+    let t = thesis::create_thesis(&lib, "Amor fati", "").unwrap();
+    let owner = MoodboardOwner::Thesis(t.id);
+    let textures = moodboard::create_moodboard(&lib, owner, "Textures").unwrap();
+    let palette = moodboard::create_moodboard(&lib, owner, "Palette").unwrap();
+    moodboard::save_moodboard_scene(&lib, textures.id, SCENE).unwrap();
+
+    moodboard::delete_moodboard(&lib, textures.id).unwrap();
+
+    assert_eq!(moodboard::list_moodboards(&lib, owner).unwrap(), vec![palette]);
+    let err = moodboard::load_moodboard_scene(&lib, textures.id).unwrap_err();
+    assert!(matches!(err, CoreError::NotFound { record: "Moodboard", .. }), "{err:?}");
+}
+
+#[test]
+fn deleting_a_missing_moodboard_is_not_found() {
+    let env = TestEnv::new();
+    let lib = env.library();
+
+    let err = moodboard::delete_moodboard(&lib, 42).unwrap_err();
+
+    assert!(matches!(err, CoreError::NotFound { record: "Moodboard", id: 42 }), "{err:?}");
+}
+
+#[test]
+fn a_style_can_get_a_new_moodboard_after_deleting_its_one() {
+    let env = TestEnv::new();
+    let lib = env.library();
+    let s = new_style(&lib);
+    let owner = MoodboardOwner::Style(s.id);
+    let first = moodboard::create_moodboard(&lib, owner, "Tee references").unwrap();
+
+    moodboard::delete_moodboard(&lib, first.id).unwrap();
+    let second = moodboard::create_moodboard(&lib, owner, "New references").unwrap();
+
+    assert_eq!(moodboard::list_moodboards(&lib, owner).unwrap(), vec![second]);
+}

@@ -35,7 +35,6 @@
 .thesis-row .statement,
 .thesis-view .statement { color: var(--muted); }
 
-.thesis-view .back { border: none; padding-left: 0; color: var(--muted); }
 .thesis-view .status { color: var(--muted); margin: 16px 0 0; font-size: 0.85rem; }
 .thesis-view h1 { margin: 4px 0; }
 .thesis-view .actions { display: flex; gap: 8px; margin-top: 12px; }

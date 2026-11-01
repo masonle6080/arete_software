@@ -1,4 +1,5 @@
 import type { ComponentType } from "react";
+import type { Moodboard } from "../../moodboard/types";
 import type { Style } from "../types";
 import { filesSection } from "./FilesSection";
 import { samplesSection } from "./SamplesSection";
@@ -14,6 +15,8 @@ export interface StyleSectionProps {
   style: Style;
   /** Call after a section changes the Style itself (for example, its status). */
   onStyleChanged(): void;
+  /** Opens the Moodboard on its own screen, in place of the Style view. */
+  onOpenMoodboard(board: Moodboard): void;
 }
 
 /** One section of the Style view, for example Design files or Cost Sheet. */

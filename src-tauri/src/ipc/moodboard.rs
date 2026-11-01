@@ -17,6 +17,11 @@ pub fn list_moodboards(state: State<AppState>, owner: MoodboardOwner) -> CoreRes
 }
 
 #[tauri::command]
+pub fn delete_moodboard(state: State<AppState>, id: MoodboardId) -> CoreResult<()> {
+    state.with_library(|lib| moodboard::delete_moodboard(lib, id))
+}
+
+#[tauri::command]
 pub fn load_moodboard_scene(state: State<AppState>, id: MoodboardId) -> CoreResult<Option<String>> {
     state.with_library(|lib| moodboard::load_moodboard_scene(lib, id))
 }

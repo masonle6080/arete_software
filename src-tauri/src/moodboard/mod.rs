@@ -8,8 +8,8 @@
 //! by `MediaRef` (see `crate::media`), never inline bytes.
 //!
 //! Domain command functions for this area: [`create_moodboard`],
-//! [`list_moodboards`], [`get_moodboard`], [`load_moodboard_scene`],
-//! [`save_moodboard_scene`], and [`moodboard_items_of_passage`] (canvas items
+//! [`list_moodboards`], [`get_moodboard`], [`delete_moodboard`],
+//! [`load_moodboard_scene`], [`save_moodboard_scene`], and [`moodboard_items_of_passage`] (canvas items
 //! linked to a Passage, see [`passage_link`]).
 
 mod passage_link;
@@ -121,6 +121,14 @@ pub fn get_moodboard(lib: &Library, id: MoodboardId) -> CoreResult<Moodboard> {
         .query_row(&format!("SELECT {COLUMNS} FROM moodboard WHERE id = ?1"), [id], from_row)
         .optional()?
         .ok_or(CoreError::NotFound { record: "Moodboard", id })
+}
+
+/// Deletes a Moodboard and its scene. Its Passage links go with it (the
+/// link table cascades); the media its images reference stays in the library.
+pub fn delete_moodboard(lib: &Library, id: MoodboardId) -> CoreResult<()> {
+    get_moodboard(lib, id)?;
+    lib.writer()?.execute("DELETE FROM moodboard WHERE id = ?1", [id])?;
+    Ok(())
 }
 
 /// The saved canvas scene JSON, or `None` for a Moodboard never saved.

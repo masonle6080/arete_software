@@ -1,13 +1,8 @@
-.moodboard-bar {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 8px;
-}
-.moodboard-bar button.active { font-weight: 600; border-color: var(--fg); }
-.moodboard-bar form { display: flex; gap: 8px; margin-left: auto; }
-.moodboard-bar input {
+.moodboard-list { list-style: none; margin: 0 0 8px; padding: 0; }
+.moodboard-list li { display: flex; align-items: center; gap: 8px; padding: 4px 0; }
+.moodboard-list strong { margin-right: auto; }
+.moodboard-create { display: flex; gap: 8px; }
+.moodboard-create input {
   font: inherit;
   color: var(--fg);
   background: transparent;
@@ -15,7 +10,15 @@
   border-radius: 6px;
   padding: 6px 8px;
 }
-.moodboards .empty { color: var(--muted); margin: 0; }
+.moodboards .empty { color: var(--muted); margin: 0 0 8px; }
+
+/* One Moodboard on its own screen: the canvas takes the rest of the window. */
+/* 48px is the top and bottom padding of `.content` (shell/app.css). */
+.moodboard-screen { display: flex; flex-direction: column; height: calc(100vh - 48px); }
+.moodboard-screen .back { align-self: flex-start; border: none; padding-left: 0; color: var(--muted); }
+.moodboard-screen h1 { margin: 4px 0 12px; }
+.moodboard-screen .empty { color: var(--muted); margin: 0; }
+.moodboard-screen .moodboard-canvas { flex: 1; height: auto; }
 
 /* Excalidraw needs a parent with a non-zero height. */
 .moodboard-canvas {

@@ -151,6 +151,7 @@ pub fn run() {
             // moodboard
             moodboard::create_moodboard,
             moodboard::list_moodboards,
+            moodboard::delete_moodboard,
             moodboard::load_moodboard_scene,
             moodboard::save_moodboard_scene,
             moodboard::moodboard_items_of_passage,

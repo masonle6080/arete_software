@@ -1,8 +1,8 @@
 import { Moodboards } from "../../moodboard/Moodboards";
 import type { ThesisSection, ThesisSectionProps } from "./index";
 
-function ThesisMoodboards({ thesis }: ThesisSectionProps) {
-  return <Moodboards owner={{ kind: "thesis", id: thesis.id }} />;
+function ThesisMoodboards({ thesis, onOpenMoodboard }: ThesisSectionProps) {
+  return <Moodboards owner={{ kind: "thesis", id: thesis.id }} onOpen={onOpenMoodboard} />;
 }
 
 export const moodboardsSection: ThesisSection = {

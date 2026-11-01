@@ -119,4 +119,4 @@ function DropSectionView({ thesis, onThesisChanged, onOpenStyle }: ThesisSection
   );
 }
 
-export const dropSection: ThesisSection = { id: "drop", title: "Drop", Component: DropSectionView };
+export const dropSection: ThesisSection = { id: "drop", title: "Drop & Styles", Component: DropSectionView };

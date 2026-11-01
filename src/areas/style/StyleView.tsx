@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState, type FormEvent } from "react";
 import { toCoreError, type CoreError } from "../../shell/coreError";
 import { dropApi } from "../drop/api";
+import type { Moodboard } from "../moodboard/types";
 import { styleApi } from "./api";
 import { styleSections } from "./sections";
 import { styleStatusLabel, type Style, type StyleStatus } from "./types";
@@ -13,10 +14,12 @@ interface Props {
   onBack(): void;
   /** Opens another Style, for example a copy just made. */
   onOpenStyle?(id: number): void;
+  /** Opens the Style's Moodboard on its own screen. */
+  onOpenMoodboard(board: Moodboard): void;
 }
 
 /** One Style: its header and status moves, then every registered section. */
-export function StyleView({ id, backLabel, onBack, onOpenStyle }: Props) {
+export function StyleView({ id, backLabel, onBack, onOpenStyle, onOpenMoodboard }: Props) {
   const [style, setStyle] = useState<Style>();
   const [error, setError] = useState<CoreError>();
   const [confirmCut, setConfirmCut] = useState(false);
@@ -113,7 +116,7 @@ export function StyleView({ id, backLabel, onBack, onOpenStyle }: Props) {
           {styleSections.map(({ id: sectionId, title, Component }) => (
             <section key={sectionId} className="style-section">
               <h2>{title}</h2>
-              <Component style={style} onStyleChanged={reload} />
+              <Component style={style} onStyleChanged={reload} onOpenMoodboard={onOpenMoodboard} />
             </section>
           ))}
         </>

@@ -3,21 +3,16 @@ import { essaysArea } from "./essays";
 import { libraryArea } from "./library";
 import { vendorArea } from "./vendor";
 import { blankArea } from "./blank";
-import { thesisArea } from "./thesis";
 import { clipsArea } from "./clips";
 import { settingsArea } from "./settings";
 
 /**
- * Navigation: one entry per area, in sidebar order. To add an area, create
+ * Navigation outside the current Thesis: the library-wide areas, in the
+ * order of the sidebar's Library group. To add an area, create
  * `src/areas/<area>/index.tsx` exporting an `Area`, then add one import and
- * one line here.
+ * one line here. The Thesis area is not an `Area`: the shell centers the
+ * sidebar on it (see `src/areas/thesis/index.tsx`).
  */
-export const areas: Area[] = [
-  libraryArea,
-  essaysArea,
-  vendorArea,
-  blankArea,
-  thesisArea,
-  clipsArea,
-  settingsArea,
-];
+export const libraryAreas: Area[] = [libraryArea, essaysArea, vendorArea, blankArea, clipsArea];
+
+export { settingsArea };

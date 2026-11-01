@@ -5,10 +5,12 @@ import { statusLabel, type ThesisGroup } from "./types";
 
 interface Props {
   onOpen(id: number): void;
+  /** Called after a Thesis is added, so the sidebar's Thesis picker can reload. */
+  onChanged?(): void;
 }
 
 /** Capture form plus every Thesis, grouped by status. */
-export function ThesisList({ onOpen }: Props) {
+export function ThesisList({ onOpen, onChanged }: Props) {
   const [groups, setGroups] = useState<ThesisGroup[]>([]);
   const [title, setTitle] = useState("");
   const [statement, setStatement] = useState("");
@@ -27,6 +29,7 @@ export function ThesisList({ onOpen }: Props) {
       setTitle("");
       setStatement("");
       reload();
+      onChanged?.();
     } catch (raw) {
       setError(toCoreError(raw));
     }
