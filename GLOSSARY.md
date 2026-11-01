@@ -4,6 +4,12 @@ A creative and operations system for a solo, concept-led clothing brand. Each dr
 
 ## Language
 
+### Records
+
+**Library**:
+The one folder that holds all of the brand's records and media. The app works in one Library at a time.
+_Avoid_: Workspace, vault, database, project
+
 ### Ideas and storytelling
 
 **Thesis**:
@@ -43,6 +49,10 @@ _Avoid_: Collection, release, season
 **Style**:
 A single garment design in a single color, made in a range of sizes. The same design in another color is a separate Style.
 _Avoid_: Product, item, piece, colorway, SKU
+
+**Cover**:
+The one image, from among a Style's design files, that the founder picks to represent the Style. A Style has at most one Cover.
+_Avoid_: Thumbnail, hero image, main image
 
 **Design Decision**:
 A choice made on a Style, classified by aspect (Decoration, fabric, color, silhouette, or other), with a written rationale and, optionally, the Passages that motivate it.
