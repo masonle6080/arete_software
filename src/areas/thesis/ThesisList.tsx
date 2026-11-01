@@ -8,10 +8,12 @@ interface Props {
   onOpen(id: number): void;
   /** Called after a Thesis is added, so the sidebar's Thesis picker can reload. */
   onChanged?(): void;
+  /** Focuses the title field of the "Add Thesis" form, for "New Thesis…". */
+  focusCreate?: boolean;
 }
 
 /** Capture form plus every Thesis, grouped by status. */
-export function ThesisList({ onOpen, onChanged }: Props) {
+export function ThesisList({ onOpen, onChanged, focusCreate = false }: Props) {
   const [groups, setGroups] = useState<ThesisGroup[]>([]);
   const [title, setTitle] = useState("");
   const [statement, setStatement] = useState("");
@@ -40,7 +42,7 @@ export function ThesisList({ onOpen, onChanged }: Props) {
     <section className="thesis-list">
       <h1>Theses</h1>
       <form className="thesis-capture" onSubmit={create}>
-        <input placeholder="Title" value={title} onChange={(e) => setTitle(e.target.value)} />
+        <input autoFocus={focusCreate} placeholder="Title" value={title} onChange={(e) => setTitle(e.target.value)} />
         <textarea
           placeholder="Short statement"
           rows={2}

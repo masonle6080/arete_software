@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState, type FormEvent } from "react";
 import { toCoreError, type CoreError } from "../../shell/coreError";
+import { announceTreeChange } from "../../shell/treeChanges";
 import { Badge, Button, EmptyText, SectionHeader } from "../../ui";
 import type { Drop } from "../drop/types";
 import { styleApi } from "./api";
@@ -31,6 +32,7 @@ export function DropStyles({ drop, onOpen }: Props) {
       await styleApi.createStyle(drop.id, name, color);
       setName("");
       setColor("");
+      announceTreeChange();
     } catch (raw) {
       setError(toCoreError(raw));
     }
