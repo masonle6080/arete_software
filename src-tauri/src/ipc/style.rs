@@ -23,8 +23,11 @@ pub fn duplicate_style(app: AppHandle, state: State<AppState>, id: StyleId, colo
 }
 
 #[tauri::command]
-pub fn move_style(state: State<AppState>, id: StyleId, to: StyleStatus) -> CoreResult<Style> {
-    state.with_library(|lib| style::move_style(lib, id, to))
+pub fn move_style(app: AppHandle, state: State<AppState>, id: StyleId, to: StyleStatus) -> CoreResult<Style> {
+    state.with_library(|lib| {
+        allow_media(&app, lib);
+        style::move_style(lib, id, to)
+    })
 }
 
 #[tauri::command]
@@ -44,8 +47,16 @@ pub fn drop_styles(app: AppHandle, state: State<AppState>, drop_id: DropId) -> C
 }
 
 #[tauri::command]
-pub fn attach_style_files(state: State<AppState>, id: StyleId, sources: Vec<PathBuf>) -> CoreResult<Vec<StyleFile>> {
-    state.with_library(|lib| style::attach_style_files(lib, id, &sources))
+pub fn attach_style_files(
+    app: AppHandle,
+    state: State<AppState>,
+    id: StyleId,
+    sources: Vec<PathBuf>,
+) -> CoreResult<Vec<StyleFile>> {
+    state.with_library(|lib| {
+        allow_media(&app, lib);
+        style::attach_style_files(lib, id, &sources)
+    })
 }
 
 #[tauri::command]
@@ -57,8 +68,11 @@ pub fn style_files(app: AppHandle, state: State<AppState>, id: StyleId) -> CoreR
 }
 
 #[tauri::command]
-pub fn remove_style_file(state: State<AppState>, id: StyleId, file_id: i64) -> CoreResult<Vec<StyleFile>> {
-    state.with_library(|lib| style::remove_style_file(lib, id, file_id))
+pub fn remove_style_file(app: AppHandle, state: State<AppState>, id: StyleId, file_id: i64) -> CoreResult<Vec<StyleFile>> {
+    state.with_library(|lib| {
+        allow_media(&app, lib);
+        style::remove_style_file(lib, id, file_id)
+    })
 }
 
 #[tauri::command]
@@ -70,8 +84,11 @@ pub fn set_style_cover(app: AppHandle, state: State<AppState>, id: StyleId, file
 }
 
 #[tauri::command]
-pub fn clear_style_cover(state: State<AppState>, id: StyleId) -> CoreResult<Style> {
-    state.with_library(|lib| style::clear_style_cover(lib, id))
+pub fn clear_style_cover(app: AppHandle, state: State<AppState>, id: StyleId) -> CoreResult<Style> {
+    state.with_library(|lib| {
+        allow_media(&app, lib);
+        style::clear_style_cover(lib, id)
+    })
 }
 
 #[tauri::command]

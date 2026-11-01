@@ -24,7 +24,7 @@ use rusqlite::{params, OptionalExtension, Row};
 
 use crate::drop::{self, DropId};
 use crate::error::{CoreError, CoreResult};
-use crate::library::Library;
+use crate::library::{require_row, Library};
 use crate::lifecycle;
 use crate::media::{self, MediaRef};
 
@@ -147,17 +147,14 @@ pub fn style_files(lib: &Library, id: StyleId) -> CoreResult<Vec<StyleFile>> {
 }
 
 /// Removes design file `file_id` from Style `id`, and returns the files
-/// left. If the file was the Cover, the Style has no Cover after. The
+/// left. If the file was the Cover, the Style has no Cover after: the
+/// schema's `ON DELETE SET NULL` on `style.cover_file_id` clears it. The
 /// stored media stays: other records (a duplicated Style) can share it.
 pub fn remove_style_file(lib: &Library, id: StyleId, file_id: i64) -> CoreResult<Vec<StyleFile>> {
     get_style(lib, id)?;
-    let conn = lib.writer()?;
-    let tx = conn.unchecked_transaction()?;
-    tx.execute("UPDATE style SET cover_file_id = NULL WHERE id = ?1 AND cover_file_id = ?2", params![id, file_id])?;
-    if tx.execute("DELETE FROM style_file WHERE id = ?1 AND style_id = ?2", params![file_id, id])? == 0 {
+    if lib.writer()?.execute("DELETE FROM style_file WHERE id = ?1 AND style_id = ?2", params![file_id, id])? == 0 {
         return Err(CoreError::NotFound { record: "Style design file", id: file_id });
     }
-    tx.commit()?;
     style_files(lib, id)
 }
 
@@ -181,13 +178,19 @@ fn is_cover_image(file_name: &str) -> bool {
 /// earlier Cover. The file must be a PNG, JPEG, WebP, or HEIC image
 /// attached to this Style.
 pub fn set_style_cover(lib: &Library, id: StyleId, file_id: i64) -> CoreResult<Style> {
-    let file = style_files(lib, id)?.into_iter().find(|f| f.id == file_id).ok_or_else(|| CoreError::InvalidInput {
-        reason: "the Cover must be one of this Style's design files".into(),
-    })?;
-    if !is_cover_image(&file.file_name) {
+    let conn = lib.writer()?;
+    // Check and write in one transaction, so the file cannot go between them.
+    let tx = conn.unchecked_transaction()?;
+    require_row(&tx, "style", "Style", id)?;
+    let file_name: String = tx
+        .query_row("SELECT file_name FROM style_file WHERE id = ?1 AND style_id = ?2", params![file_id, id], |r| r.get(0))
+        .optional()?
+        .ok_or_else(|| CoreError::InvalidInput { reason: "the Cover must be one of this Style's design files".into() })?;
+    if !is_cover_image(&file_name) {
         return Err(CoreError::InvalidInput { reason: "the Cover must be a PNG, JPEG, WebP, or HEIC image".into() });
     }
-    lib.writer()?.execute("UPDATE style SET cover_file_id = ?2 WHERE id = ?1", params![id, file_id])?;
+    tx.execute("UPDATE style SET cover_file_id = ?2 WHERE id = ?1", params![id, file_id])?;
+    tx.commit()?;
     get_style(lib, id)
 }
 
