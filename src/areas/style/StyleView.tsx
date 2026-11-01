@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState, type FormEvent } from "react";
+import { convertFileSrc } from "@tauri-apps/api/core";
 import { toCoreError, type CoreError } from "../../shell/coreError";
 import { announceTreeChange } from "../../shell/treeChanges";
 import { Badge, Button, SectionHeader, SegmentedControl } from "../../ui";
@@ -94,6 +95,9 @@ export function StyleView({ id, onOpen, onOpenStyle }: Props) {
       {style && (
         <>
           <header>
+            {style.cover && (
+              <img className="style-cover" src={convertFileSrc(style.cover.path)} alt={`Cover of ${style.name}`} />
+            )}
             <Badge lifecycle="style" status={style.status} />
             <h1>{style.name}</h1>
             <p className="color">{style.color}</p>
