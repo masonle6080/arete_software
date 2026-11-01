@@ -3,11 +3,10 @@ import "./thesis.css";
 /**
  * The Thesis area. The shell centers its navigation on one current Thesis:
  * the sidebar picks it (`ThesisPicker`) and shows it as a tree (`ThesisTree`),
- * and `ThesisWorkspace` shows the open tab. `ThesisList` shows every Thesis.
+ * and `ThesisView` shows the open tab. `ThesisList` shows every Thesis.
  */
 export { loadCurrentThesis, saveCurrentThesis } from "./currentThesis";
 export { ThesisList } from "./ThesisList";
 export { ThesisPicker } from "./ThesisPicker";
 export { ThesisTree } from "./ThesisTree";
-export { thesisTabs } from "./ThesisView";
-export { ThesisWorkspace } from "./ThesisWorkspace";
+export { thesisTabs, ThesisView } from "./ThesisView";

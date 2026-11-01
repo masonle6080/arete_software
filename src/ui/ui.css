@@ -257,5 +257,23 @@ input[type="radio"] { accent-color: var(--accent); }
 }
 .row-button:hover,
 .row-button.open { background: var(--hover); }
-/* The "← Back" button at the top of a screen. */
-.back { margin-left: -8px; margin-bottom: var(--space-1); }
+/* The breadcrumb: where the open screen sits. Each part but the last opens its level. */
+.breadcrumb { min-width: 0; }
+.breadcrumb ol { display: flex; align-items: center; gap: 2px; margin: 0; padding: 0; list-style: none; }
+.breadcrumb li { display: flex; align-items: center; min-width: 0; }
+.breadcrumb li + li::before { content: "›"; color: var(--muted); padding: 0 4px; }
+.crumb {
+  max-width: 24ch;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  border: none;
+  background: transparent;
+  box-shadow: none;
+  padding: 2px 4px;
+  border-radius: var(--control-radius);
+  color: var(--muted);
+  font: inherit;
+}
+button.crumb:hover { background: var(--hover); color: var(--fg); }
+.crumb.current { color: var(--fg); font-weight: 600; }

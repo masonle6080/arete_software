@@ -85,6 +85,8 @@ body:has(.shell) { background: transparent; }
   flex-direction: column;
   background: var(--bg);
 }
+/* The content pane's top strip holds the breadcrumb; its empty part drags the window. */
+.content-titlebar { display: flex; align-items: center; padding: 0 28px; }
 .content { flex: 1; min-height: 0; overflow-y: auto; padding: 0 32px 24px; }
 
 .facts { display: grid; grid-template-columns: max-content 1fr; gap: 4px 16px; }

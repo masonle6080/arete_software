@@ -1,5 +1,5 @@
 import type { ComponentType } from "react";
-import type { Moodboard } from "../../moodboard/types";
+import type { Step } from "../../../shell/navPath";
 import type { Style } from "../types";
 import type { SegmentPlacement } from "../segments";
 import { filesSection } from "./FilesSection";
@@ -16,8 +16,8 @@ export interface StyleSectionProps {
   style: Style;
   /** Call after a section changes the Style itself (for example, its status). */
   onStyleChanged(): void;
-  /** Opens the Moodboard on its own screen, in place of the Style view. */
-  onOpenMoodboard(board: Moodboard): void;
+  /** Opens an item one level below the Style in the navigation path, for example its Moodboard. */
+  onOpen(step: Step): void;
 }
 
 /**

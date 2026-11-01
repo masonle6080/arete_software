@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState, type FormEvent } from "react";
 import { toCoreError, type CoreError } from "../../../shell/coreError";
+import { steps } from "../../../shell/navPath";
 import { Badge, Button, EmptyText } from "../../../ui";
 import { dropApi } from "../../drop/api";
 import { stageLabel, warningText, type Drop, type DropStage, type DropWarning, type ThesisDrops } from "../../drop/types";
@@ -13,7 +14,7 @@ interface PendingMove {
   warnings: DropWarning[];
 }
 
-function DropSectionView({ thesis, onThesisChanged, onOpenStyle }: ThesisSectionProps) {
+function DropSectionView({ thesis, onThesisChanged, onOpen }: ThesisSectionProps) {
   const [data, setData] = useState<ThesisDrops>();
   const [name, setName] = useState(thesis.title);
   const [error, setError] = useState<CoreError>();
@@ -98,7 +99,7 @@ function DropSectionView({ thesis, onThesisChanged, onOpenStyle }: ThesisSection
               <Button onClick={() => setPending(undefined)}>Keep {stageLabel[active.stage]}</Button>
             </div>
           )}
-          <DropStyles drop={active} onOpen={onOpenStyle} />
+          <DropStyles drop={active} onOpen={(style) => onOpen(steps.style(style))} />
           <DropProductionOrders drop={active} />
         </div>
       )}

@@ -1,5 +1,5 @@
 import type { ComponentType } from "react";
-import type { Moodboard } from "../../moodboard/types";
+import type { Step } from "../../../shell/navPath";
 import type { Thesis } from "../types";
 import { dropSection } from "./DropSection";
 import { essaysSection } from "./EssaysSection";
@@ -11,12 +11,11 @@ export interface ThesisSectionProps {
   thesis: Thesis;
   /** Call after a section changes the Thesis itself (for example, its status). */
   onThesisChanged(): void;
-  /** Opens the full Style view, in place of the Thesis view. */
-  onOpenStyle(styleId: number): void;
-  /** Opens one Essay, in place of the Thesis view. */
-  onOpenEssay(essayId: number): void;
-  /** Opens one Moodboard on its own screen, in place of the Thesis view. */
-  onOpenMoodboard(board: Moodboard): void;
+  /**
+   * Opens an item (a Style, an Essay, a Moodboard, or the Script) one level
+   * below the tab in the navigation path, so it stays inside this Thesis.
+   */
+  onOpen(step: Step): void;
 }
 
 /** One section of the Thesis view, for example Essays or Drop. Each is a sidebar tab. */

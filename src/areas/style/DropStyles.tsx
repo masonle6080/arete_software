@@ -12,7 +12,7 @@ import "./style.css";
 interface Props {
   drop: Drop;
   /** Opens the Style view. */
-  onOpen(styleId: number): void;
+  onOpen(style: Style): void;
 }
 
 /** The Styles of one Drop as a card grid of Covers, Cut ones included, with a form to add one while the Drop takes new Styles. */
@@ -51,7 +51,7 @@ export function DropStyles({ drop, onOpen }: Props) {
         <ul className="style-grid">
           {styles.map((s) => (
             <li key={s.id}>
-              <button type="button" className="style-card" onClick={() => onOpen(s.id)}>
+              <button type="button" className="style-card" onClick={() => onOpen(s)}>
                 <CardFaceView style={s} />
                 <span className="style-card-name">{s.name}</span>
                 <span className="style-card-meta">

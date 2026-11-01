@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState, type ReactNode } from "react";
 import { toCoreError, type CoreError } from "../../shell/coreError";
-import type { View } from "../../shell/sidebar";
+import { steps } from "../../shell/navPath";
+import { thesisTabLabel, type View } from "../../shell/sidebar";
 import { listenTreeChanges } from "../../shell/treeChanges";
 import { dropApi } from "../drop/api";
 import { essayThesisApi, type DocumentSummary } from "../essays/api";
@@ -81,9 +82,10 @@ export function ThesisTree({ thesisId, openKey, onGo }: Props) {
     </li>
   );
 
-  const tab = (id: string, label: string) => row(`thesis:${id}`, label, { kind: "thesis", tab: id }, "tree-top");
+  const tab = (id: string) => row(`thesis:${id}`, thesisTabLabel[id], { kind: "thesis", tab: id }, "tree-top");
 
-  const group = (id: Group, label: string, children: ReactNode[]) => {
+  const group = (id: Group, children: ReactNode[]) => {
+    const label = thesisTabLabel[id];
     const open = !closed.has(id);
     return (
       <li key={id}>
@@ -97,7 +99,7 @@ export function ThesisTree({ thesisId, openKey, onGo }: Props) {
           >
             {open ? "▾" : "▸"}
           </button>
-          <ul className="tree-inline">{tab(id, label)}</ul>
+          <ul className="tree-inline">{tab(id)}</ul>
         </div>
         {open && children.length > 0 && <ul className="tree-children">{children}</ul>}
       </li>
@@ -108,36 +110,33 @@ export function ThesisTree({ thesisId, openKey, onGo }: Props) {
     <div className="thesis-tree">
       {error && <p className="error">{error.message}</p>}
       <ul>
-        {tab("overview", "Overview")}
+        {tab("overview")}
         {group(
           "essays",
-          "Essays",
           (contents?.essays ?? []).map((e) =>
-            row(`essay:${e.id}`, e.title || "Untitled", { kind: "thesis", tab: "essays", open: { kind: "essay", id: e.id } }, "tree-leaf"),
+            row(`essay:${e.id}`, e.title || "Untitled", { kind: "thesis", tab: "essays", open: steps.essay(e.id, e.title) }, "tree-leaf"),
           ),
         )}
         {group(
           "moodboards",
-          "Moodboards",
           (contents?.moodboards ?? []).map((b) =>
-            row(`moodboard:${b.id}`, b.title, { kind: "thesis", tab: "moodboards", open: { kind: "moodboard", board: b } }, "tree-leaf"),
+            row(`moodboard:${b.id}`, b.title, { kind: "thesis", tab: "moodboards", open: steps.moodboard(b) }, "tree-leaf"),
           ),
         )}
         {group(
           "drop",
-          "Drop",
           (contents?.styles ?? []).map((s) =>
             row(
               `style:${s.id}`,
               <>
                 {s.name} <span className="tree-color">{s.color}</span>
               </>,
-              { kind: "thesis", tab: "drop", open: { kind: "style", id: s.id } },
+              { kind: "thesis", tab: "drop", open: steps.style(s) },
               s.status === "cut" ? "tree-leaf cut" : "tree-leaf",
             ),
           ),
         )}
-        {tab("documentary", "Documentary")}
+        {tab("documentary")}
       </ul>
     </div>
   );

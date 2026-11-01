@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { toCoreError, type CoreError } from "../../../shell/coreError";
+import { steps } from "../../../shell/navPath";
 import {
   designAspectLabel,
   designAspects,
@@ -8,7 +9,6 @@ import {
   type DesignDecision,
 } from "../../designDecision/api";
 import { decorationApi, decorationLabel, type Decoration } from "../../decoration/api";
-import { EssayScreen } from "../../essays";
 import { documentApi, type DocumentSummary } from "../../essays/api";
 import { passageApi, type Passage } from "../../passage/api";
 import type { StyleSection, StyleSectionProps } from ".";
@@ -17,14 +17,13 @@ import { Button, Chip, EmptyText, SegmentedControl } from "../../../ui";
 /**
  * The Design Decisions of the Style, each with its rationale and linked
  * Passages, and the one Decoration it is about. A linked Passage opens in
- * its Essay, selected and in view.
+ * its Essay, selected and in view, one level below the Style.
  */
-function DesignDecisionsSectionView({ style }: StyleSectionProps) {
+function DesignDecisionsSectionView({ style, onOpen }: StyleSectionProps) {
   const [decisions, setDecisions] = useState<DesignDecision[]>([]);
   const [decorations, setDecorations] = useState<Decoration[]>([]);
   const [aspect, setAspect] = useState<DesignAspect>("decoration");
   const [rationale, setRationale] = useState("");
-  const [opened, setOpened] = useState<Passage>();
   const [error, setError] = useState<CoreError>();
 
   const reload = useCallback(() => {
@@ -52,20 +51,6 @@ function DesignDecisionsSectionView({ style }: StyleSectionProps) {
 
   async function add() {
     if (await run(() => designDecisionApi.add(style.id, aspect, rationale))) setRationale("");
-  }
-
-  if (opened) {
-    return (
-      <EssayScreen
-        id={opened.documentId}
-        focusPassageId={opened.id}
-        backLabel={`← ${style.name}`}
-        onClose={() => {
-          setOpened(undefined);
-          reload();
-        }}
-      />
-    );
   }
 
   return (
@@ -100,7 +85,7 @@ function DesignDecisionsSectionView({ style }: StyleSectionProps) {
                 <ul className="linked-passages">
                   {d.passages.map((p) => (
                     <li key={p.id}>
-                      <Button className="open" title="Open in its Essay" onClick={() => setOpened(p)}>
+                      <Button className="open" title="Open in its Essay" onClick={() => onOpen(steps.essay(p.documentId, p.documentTitle, p.id))}>
                         “{p.lastKnownText}”
                         <span className="source">
                           {p.documentTitle || "Untitled"}

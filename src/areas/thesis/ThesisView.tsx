@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { toCoreError, type CoreError } from "../../shell/coreError";
 import { Badge, Button, SectionHeader } from "../../ui";
-import type { Moodboard } from "../moodboard/types";
+import type { Step } from "../../shell/navPath";
 import { thesisApi } from "./api";
 import { thesisSections } from "./sections";
 import { statusLabel, type Thesis, type ThesisStatus } from "./types";
@@ -16,19 +16,15 @@ interface Props {
   id: number;
   /** "overview" or a Thesis section ID. */
   tab: string;
-  /** Opens the Style view for one Style of this Thesis's Drop. */
-  onOpenStyle(styleId: number): void;
-  /** Opens one Essay linked to this Thesis. */
-  onOpenEssay(essayId: number): void;
-  /** Opens one Moodboard of this Thesis on its own screen. */
-  onOpenMoodboard(board: Moodboard): void;
+  /** Opens an item of this Thesis one level below the tab in the navigation path. */
+  onOpen(step: Step): void;
 }
 
 /**
  * One tab of a Thesis under its header. Overview shows the statement and the
  * status moves; any other tab shows that one section.
  */
-export function ThesisView({ id, tab, onOpenStyle, onOpenEssay, onOpenMoodboard }: Props) {
+export function ThesisView({ id, tab, onOpen }: Props) {
   const [thesis, setThesis] = useState<Thesis>();
   const [error, setError] = useState<CoreError>();
 
@@ -73,9 +69,7 @@ export function ThesisView({ id, tab, onOpenStyle, onOpenEssay, onOpenMoodboard 
               <section.Component
                 thesis={thesis}
                 onThesisChanged={reload}
-                onOpenStyle={onOpenStyle}
-                onOpenEssay={onOpenEssay}
-                onOpenMoodboard={onOpenMoodboard}
+                onOpen={onOpen}
               />
             </section>
           )}
