@@ -7,8 +7,12 @@ import type { Moodboard } from "../areas/moodboard/types";
 
 /** One place the content pane can show. */
 export type Place =
-  /** A tab of the current Thesis. The root of a Thesis path is its "overview" tab. */
-  | { kind: "thesis"; tab: string }
+  /**
+   * A tab of the current Thesis. The root of a Thesis path is its "overview"
+   * tab. A step may name a `thesisId`: opening it makes that Thesis current
+   * (see `openStep`). The path itself never keeps it.
+   */
+  | { kind: "thesis"; tab: string; thesisId?: number }
   /** Every Thesis. `create` focuses the "Add Thesis" form. */
   | { kind: "theses"; create?: boolean }
   /** A Shared area, or Settings. */
@@ -94,8 +98,22 @@ export function placeKey(place: Place): string {
 
 const titled = (title: string) => title.trim() || "Untitled";
 
+/** The label of each Thesis tab, in the tree and in the breadcrumb. */
+export const thesisTabLabel: Record<string, string> = {
+  overview: "Overview",
+  essays: "Essays",
+  moodboards: "Moodboards",
+  drop: "Drop",
+  documentary: "Documentary",
+};
+
 /** The steps that open an item, each with its breadcrumb label. */
 export const steps = {
+  /** A tab of the current Thesis, or of Thesis `thesisId`. */
+  thesis: (tab: string, thesisId?: number): Step => ({
+    place: thesisId === undefined ? { kind: "thesis", tab } : { kind: "thesis", tab, thesisId },
+    label: thesisTabLabel[tab] ?? tab,
+  }),
   /** A Style, labelled "Name (Color)". */
   style: (s: { id: number; name: string; color: string }): Step => ({
     place: { kind: "style", id: s.id },

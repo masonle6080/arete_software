@@ -25,6 +25,7 @@ mod documentary;
 mod export;
 mod cost_sheet;
 mod production_order;
+mod links;
 
 use std::sync::Mutex;
 
@@ -224,6 +225,10 @@ pub fn run() {
             production_order::set_order_quantity,
             production_order::set_delivery_date,
             production_order::move_production_order,
+            // links
+            links::thesis_links,
+            links::essay_links,
+            links::style_links,
         ])
         .run(tauri::generate_context!())
         .expect("error while running Arete");

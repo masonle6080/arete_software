@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { Moodboard } from "../areas/moodboard/types";
 import { push, steps, crumbs, type NavPath } from "./navPath";
-import { blocksBackShortcut, isBackShortcut, openRow, pathOf, shortcutTab, type View } from "./sidebar";
+import { blocksBackShortcut, isBackShortcut, openRow, openStep, pathOf, shortcutTab, type View } from "./sidebar";
 
 const tabs = ["overview", "essays", "moodboards", "drop", "documentary"];
 const key = (k: string, mods: Partial<{ metaKey: boolean; ctrlKey: boolean; altKey: boolean; shiftKey: boolean }> = {}) => ({
@@ -38,6 +38,41 @@ const names = { thesis: "Impermanence", area: (id: string) => ({ essays: "Essays
 const start = (view: View): NavPath => pathOf(view, names);
 const coat = steps.style({ id: 4, name: "Hooded Coat", color: "Ash" });
 const board = (id: number, owner: Moodboard["owner"]): Moodboard => ({ id, owner, title: "Moodboard" });
+
+describe("opening a step, as a chip does", () => {
+  const inDrop = push(start({ kind: "thesis", tab: "drop" }), coat);
+
+  it("pushes a place that is not on the path", () => {
+    const opened = openStep(inDrop, steps.essay(9, "On Ash"), 1, names);
+    expect(crumbs(opened.path)).toEqual(["Impermanence", "Drop", "Hooded Coat (Ash)", "On Ash"]);
+    expect(opened.thesisId).toBeUndefined();
+  });
+
+  it("goes back to a place that is already on the path, so the path never repeats it", () => {
+    const onBoard = push(inDrop, steps.moodboard(board(2, { kind: "style", id: 4 })));
+    expect(crumbs(openStep(onBoard, coat, 1, names).path)).toEqual(["Impermanence", "Drop", "Hooded Coat (Ash)"]);
+  });
+
+  it("opens a tab of the current Thesis from its root, wherever the path is", () => {
+    expect(crumbs(openStep(inDrop, steps.thesis("essays"), 1, names).path)).toEqual(["Impermanence", "Essays"]);
+    expect(crumbs(openStep(inDrop, steps.thesis("overview", 1), 1, names).path)).toEqual(["Impermanence"]);
+    expect(openStep(inDrop, steps.thesis("essays", 1), 1, names).thesisId).toBeUndefined();
+  });
+
+  it("makes another Thesis current to open its tab", () => {
+    const fromShared = start({ kind: "area", id: "essays" });
+    const opened = openStep(push(fromShared, steps.essay(9, "On Ash")), steps.thesis("overview", 7), 1, names);
+    expect(opened.thesisId).toBe(7);
+    expect(opened.path[0].place).toEqual({ kind: "thesis", tab: "overview" });
+    expect(opened.path).toHaveLength(1);
+  });
+
+  it("makes a Thesis current when none is", () => {
+    const opened = openStep(start({ kind: "theses" }), steps.thesis("drop", 7), undefined, names);
+    expect(opened.thesisId).toBe(7);
+    expect(crumbs(opened.path)[1]).toBe("Drop");
+  });
+});
 
 describe("the start path of a sidebar row", () => {
   it("starts at the Thesis title inside a Thesis", () => {

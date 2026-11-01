@@ -6,7 +6,7 @@ import { documentaryApi } from "../../documentary/api";
 import { documentaryStatusLabel, type Documentary, type DocumentaryStatus } from "../../documentary/types";
 import type { ThesisSection, ThesisSectionProps } from ".";
 
-function DocumentarySectionView({ thesis, onOpen }: ThesisSectionProps) {
+function DocumentarySectionView({ thesis, onThesisChanged, onOpen }: ThesisSectionProps) {
   // undefined: loading; null: this Thesis has no Documentary.
   const [doc, setDoc] = useState<Documentary | null>();
   const [title, setTitle] = useState(thesis.title);
@@ -27,6 +27,8 @@ function DocumentarySectionView({ thesis, onOpen }: ThesisSectionProps) {
       setError(toCoreError(raw));
     }
     reload();
+    // The Thesis header shows the Documentary status.
+    onThesisChanged();
   }
 
   async function create(e: FormEvent) {

@@ -7,6 +7,7 @@ import type { ButtonHTMLAttributes, ReactNode } from "react";
 import { badgeGroup, badgeLabel, type Lifecycle, type StatusOf } from "./badge";
 
 export { badgeGroup, badgeLabel, type BadgeGroup, type Lifecycle, type StatusOf } from "./badge";
+export { countLabel } from "./count";
 
 const cx = (...names: (string | false | undefined)[]) => names.filter(Boolean).join(" ");
 

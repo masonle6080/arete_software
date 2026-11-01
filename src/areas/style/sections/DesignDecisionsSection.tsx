@@ -16,10 +16,25 @@ import { Button, Chip, EmptyText, SegmentedControl } from "../../../ui";
 
 /**
  * The Design Decisions of the Style, each with its rationale and linked
- * Passages, and the one Decoration it is about. A linked Passage opens in
- * its Essay, selected and in view, one level below the Style.
+ * Passages, and the one Decoration it is about. Each motivating Passage is
+ * a chip that names its Essay or Script and opens it one level below the
+ * Style.
  */
-function DesignDecisionsSectionView({ style, onOpen }: StyleSectionProps) {
+/** A Passage chip names the Passage and its Essay or Script. */
+function passageChipLabel(p: Passage): string {
+  const text = p.lastKnownText.length > 40 ? `${p.lastKnownText.slice(0, 40)}…` : p.lastKnownText;
+  return `“${text}” · ${p.documentTitle || "Untitled"}${p.orphaned ? " (orphaned)" : ""}`;
+}
+
+/**
+ * Where a Passage chip leads: an Essay Passage opens in its Essay, selected
+ * and in view; a Script Passage opens on its own screen.
+ */
+function passageStep(p: Passage) {
+  return p.documentKind === "essay" ? steps.essay(p.documentId, p.documentTitle, p.id) : steps.passage(p.id);
+}
+
+function DesignDecisionsSectionView({ style, onStyleChanged, onOpen }: StyleSectionProps) {
   const [decisions, setDecisions] = useState<DesignDecision[]>([]);
   const [decorations, setDecorations] = useState<Decoration[]>([]);
   const [aspect, setAspect] = useState<DesignAspect>("decoration");
@@ -42,6 +57,8 @@ function DesignDecisionsSectionView({ style, onOpen }: StyleSectionProps) {
     try {
       await action();
       reload();
+      // The Style header counts the Passages that motivate it.
+      onStyleChanged();
       return true;
     } catch (raw) {
       setError(toCoreError(raw));
@@ -82,26 +99,19 @@ function DesignDecisionsSectionView({ style, onOpen }: StyleSectionProps) {
                 </select>
               </label>
               {d.passages.length > 0 && (
-                <ul className="linked-passages">
+                <div className="chips linked-passages">
                   {d.passages.map((p) => (
-                    <li key={p.id}>
-                      <Button className="open" title="Open in its Essay" onClick={() => onOpen(steps.essay(p.documentId, p.documentTitle, p.id))}>
-                        “{p.lastKnownText}”
-                        <span className="source">
-                          {p.documentTitle || "Untitled"}
-                          {p.orphaned && " · orphaned"}
-                        </span>
-                      </Button>
-                      <Button
-                        variant="plain"
-                        size="small"
-                        onClick={() => run(() => designDecisionApi.unlinkPassage(d.id, p.id))}
-                      >
-                        Unlink
-                      </Button>
-                    </li>
+                    <Chip
+                      key={p.id}
+                      title={`${p.orphaned ? "Orphaned Passage" : "Passage"} from ${p.documentTitle || "Untitled"}: open it`}
+                      onClick={() => onOpen(passageStep(p))}
+                      removeLabel="Unlink this Passage"
+                      onRemove={() => run(() => designDecisionApi.unlinkPassage(d.id, p.id))}
+                    >
+                      {passageChipLabel(p)}
+                    </Chip>
                   ))}
-                </ul>
+                </div>
               )}
               <PassagePicker
                 exclude={d.passages.map((p) => p.id)}

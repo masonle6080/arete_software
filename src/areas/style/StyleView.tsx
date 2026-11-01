@@ -8,6 +8,7 @@ import { steps, type Step } from "../../shell/navPath";
 import { styleApi } from "./api";
 import { styleSections } from "./sections";
 import { baseKindOf, sectionsIn, styleSegments, type BaseKind, type StyleSegment } from "./segments";
+import { StyleChips } from "./StyleChips";
 import { StyleTraceExport } from "./StyleTraceExport";
 import { styleStatusLabel, type Style, type StyleStatus } from "./types";
 import "./style.css";
@@ -101,6 +102,7 @@ export function StyleView({ id, onOpen, onOpenStyle }: Props) {
             <Badge lifecycle="style" status={style.status} />
             <h1>{style.name}</h1>
             <p className="color">{style.color}</p>
+            <StyleChips style={style} onOpen={onOpen} onSegment={setSegment} />
             {style.moves.length > 0 && (
               <div className="actions">
                 {style.moves

@@ -3,16 +3,9 @@
  * row a path marks as open, and the ⌘1–⌘5 and ⌘[ shortcuts. Pure, so it is
  * tested without a DOM.
  */
-import { push, type NavPath, type Step } from "./navPath";
+import { placeKey, popTo, push, thesisTabLabel, type NavPath, type Step } from "./navPath";
 
-/** The label of each Thesis tab, in the tree and in the breadcrumb. */
-export const thesisTabLabel: Record<string, string> = {
-  overview: "Overview",
-  essays: "Essays",
-  moodboards: "Moodboards",
-  drop: "Drop",
-  documentary: "Documentary",
-};
+export { thesisTabLabel };
 
 /**
  * What a sidebar row or shortcut opens: a tab of the current Thesis (with
@@ -49,6 +42,33 @@ export function pathOf(view: View, names: PathNames): NavPath {
       return view.open ? push(path, view.open) : path;
     }
   }
+}
+
+/**
+ * What opening `step` does, for example from a chip: the new path, and the
+ * Thesis to make current when it is not `currentThesis`.
+ *
+ * - A Thesis tab opens from the Thesis root, as its tree row does. A tab of
+ *   another Thesis makes that Thesis current first.
+ * - A place already on the path goes back to that level, so the path never
+ *   holds a place twice (a Style's Moodboard links back to the Style).
+ * - Any other place opens one level down.
+ */
+export function openStep(
+  path: NavPath,
+  step: Step,
+  currentThesis: number | undefined,
+  names: PathNames,
+): { path: NavPath; thesisId?: number } {
+  const { place } = step;
+  if (place.kind === "thesis") {
+    const target = place.thesisId ?? currentThesis;
+    const next = pathOf({ kind: "thesis", tab: place.tab }, names);
+    return target === currentThesis ? { path: next } : { path: next, thesisId: target };
+  }
+  const key = placeKey(place);
+  const depth = path.findIndex((s) => placeKey(s.place) === key);
+  return { path: depth < 0 ? push(path, step) : popTo(path, depth) };
 }
 
 /** The tree row of one step, if it has one. */
