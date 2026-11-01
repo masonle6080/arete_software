@@ -13,7 +13,7 @@ interface Props {
   passageId?: string;
   /** The current Thesis, for a Thesis tab. */
   thesisId?: number;
-  /** Opens an item one level down. */
+  /** Opens an item: one level down, back to its level if it is on the path, or a Thesis tab (see `openStep`). */
   onPush(step: Step): void;
   /** Shows another item in place of this one, for example a Style's new copy. */
   onReplace(step: Step): void;
@@ -37,12 +37,13 @@ export function PlaceScreen({ place, passageId, thesisId, onPush, onReplace, onR
           passageId={passageId}
           onOpenPassage={openPassage}
           onTitle={(title) => onRelabel(steps.essay(place.id, title).label)}
+          onOpen={onPush}
         />
       );
     case "script":
       return <ScriptScreen documentaryId={place.documentaryId} passageId={passageId} onOpenPassage={openPassage} />;
     case "moodboard":
-      return <MoodboardScreen board={place.board} />;
+      return <MoodboardScreen board={place.board} onOpen={onPush} />;
     case "passage":
       return <PassageView id={place.id} />;
     case "theses":

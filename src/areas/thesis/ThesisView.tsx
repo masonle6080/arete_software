@@ -4,6 +4,7 @@ import { Badge, Button, SectionHeader } from "../../ui";
 import type { Step } from "../../shell/navPath";
 import { thesisApi } from "./api";
 import { thesisSections } from "./sections";
+import { ThesisChips } from "./ThesisChips";
 import { statusLabel, type Thesis, type ThesisStatus } from "./types";
 
 /** The sidebar tabs of the current Thesis: Overview, then every registered section. */
@@ -52,6 +53,7 @@ export function ThesisView({ id, tab, onOpen }: Props) {
           <header>
             <Badge lifecycle="thesis" status={thesis.status} />
             <h1>{thesis.title}</h1>
+            <ThesisChips thesis={thesis} onOpen={onOpen} />
             {!section && thesis.statement && <p className="statement">{thesis.statement}</p>}
             {!section && thesis.manualMoves.length > 0 && (
               <div className="actions">

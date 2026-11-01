@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { Area, AreaProps } from "../../shell/area";
 import { useLeaveGuard } from "../../shell/leaveGuards";
-import { steps } from "../../shell/navPath";
+import { steps, type Step } from "../../shell/navPath";
 import { toCoreError } from "../../shell/coreError";
 import { announceTreeChange } from "../../shell/treeChanges";
 import { DocumentEditor, type DocumentEditorHandle, type DocumentSave } from "../../document/DocumentEditor";
@@ -62,6 +62,8 @@ interface EssayScreenProps {
   onOpenPassage(passageId: string): void;
   /** Receives the title when the Essay loads and after each save that changes it, for the breadcrumb. */
   onTitle?(title: string): void;
+  /** Opens what a header chip names, such as a Thesis the Essay supports. */
+  onOpen(step: Step): void;
 }
 
 /**
@@ -70,7 +72,7 @@ interface EssayScreenProps {
  * editor stays mounted, so undo still works after coming back. The shell
  * saves the editor before it leaves this screen.
  */
-export function EssayScreen({ id, focusPassageId, passageId, onOpenPassage, onTitle }: EssayScreenProps) {
+export function EssayScreen({ id, focusPassageId, passageId, onOpenPassage, onTitle, onOpen }: EssayScreenProps) {
   const [essay, setEssay] = useState<StoredDocument | null>(null);
   const [error, setError] = useState<string | null>(null);
   const editor = useRef<DocumentEditorHandle>(null);
@@ -120,7 +122,7 @@ export function EssayScreen({ id, focusPassageId, passageId, onOpenPassage, onTi
       {passageId && <PassageView key={passageId} id={passageId} />}
       <div hidden={passageId !== undefined}>
         {error && <p className="error">{error}</p>}
-        {essay && <EssayTheses essayId={essay.id} />}
+        {essay && <EssayTheses essayId={essay.id} version={saves} onOpen={onOpen} />}
         {essay && <EssayExport essayId={essay.id} flush={async () => editor.current?.flush()} />}
         {essay && <OrphanedPassages documentId={essay.id} version={saves} onOpen={openPassage} />}
         {essay && (

@@ -7,7 +7,16 @@ import { Breadcrumb, Button } from "../ui";
 import { runLeaveGuards } from "./leaveGuards";
 import { crumbs, placeKey, pop, popTo, push, relabel, screenLevel, type NavPath, type Step } from "./navPath";
 import { PlaceScreen } from "./PlaceScreen";
-import { blocksBackShortcut, isBackShortcut, openRow, pathOf, shortcutTab, type PathNames, type View } from "./sidebar";
+import {
+  blocksBackShortcut,
+  isBackShortcut,
+  openRow,
+  openStep,
+  pathOf,
+  shortcutTab,
+  type PathNames,
+  type View,
+} from "./sidebar";
 
 interface Props {
   library: LibraryInfo;
@@ -61,17 +70,34 @@ export function Workspace({ library, onSwitchLibrary }: Props) {
   }, []);
 
   const go = useCallback((view: View) => navigate(() => pathOf(view, names.current), true), [navigate]);
-  const open = useCallback((step: Step) => navigate((p) => push(p, step)), [navigate]);
-
-  const pickThesis = useCallback(
+  const makeCurrent = useCallback(
     (id: number | undefined) => {
       setThesisId(id);
       saveCurrentThesis(library.path, id);
+    },
+    [library.path],
+  );
+
+  /** Opens an item, for example from a chip. A Thesis tab of another Thesis makes that Thesis current. */
+  const open = useCallback(
+    async (step: Step) => {
+      await runLeaveGuards();
+      // Which Thesis becomes current depends on the step only, not on the path.
+      const switchTo = openStep(path, step, thesisId, names.current).thesisId;
+      if (switchTo !== undefined) makeCurrent(switchTo);
+      setPath((p) => openStep(p, step, thesisId, names.current).path);
+    },
+    [path, thesisId, makeCurrent],
+  );
+
+  const pickThesis = useCallback(
+    (id: number | undefined) => {
+      makeCurrent(id);
       if (id === undefined) return void go({ kind: "theses" });
       const tab = path[0].place.kind === "thesis" && path[1]?.place.kind === "thesis" ? path[1].place.tab : "overview";
       void go({ kind: "thesis", tab });
     },
-    [library.path, go, path],
+    [makeCurrent, go, path],
   );
 
   useEffect(() => {
