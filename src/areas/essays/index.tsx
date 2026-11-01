@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { Area } from "../../shell/area";
 import { toCoreError } from "../../shell/coreError";
+import { announceTreeChange } from "../../shell/treeChanges";
 import { DocumentEditor, type DocumentEditorHandle, type DocumentSave } from "../../document/DocumentEditor";
 import { OrphanedPassages } from "../passage/OrphanedPassages";
 import { PassageView } from "../passage/PassageView";
@@ -69,15 +70,27 @@ export function EssayScreen({ id, onClose, backLabel = "← Essays", focusPassag
   const editor = useRef<DocumentEditorHandle>(null);
   const [saves, setSaves] = useState(0);
   const [passageId, setPassageId] = useState<string | null>(null);
+  /** The last saved title, to tell the sidebar tree when it changes. */
+  const savedTitle = useRef<string>();
 
   useEffect(() => {
-    documentApi.open(id).then(setEssay, (e) => setError(toCoreError(e).message));
+    documentApi.open(id).then(
+      (doc) => {
+        savedTitle.current = doc.title;
+        setEssay(doc);
+      },
+      (e) => setError(toCoreError(e).message),
+    );
   }, [id]);
 
   const save = useCallback(
     async ({ title, markdown, passages }: DocumentSave) => {
       await documentApi.save(id, { title, markdown }, passages);
       setSaves((n) => n + 1);
+      if (title !== savedTitle.current) {
+        savedTitle.current = title;
+        announceTreeChange();
+      }
     },
     [id],
   );

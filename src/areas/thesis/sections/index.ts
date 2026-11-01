@@ -13,6 +13,8 @@ export interface ThesisSectionProps {
   onThesisChanged(): void;
   /** Opens the full Style view, in place of the Thesis view. */
   onOpenStyle(styleId: number): void;
+  /** Opens one Essay, in place of the Thesis view. */
+  onOpenEssay(essayId: number): void;
   /** Opens one Moodboard on its own screen, in place of the Thesis view. */
   onOpenMoodboard(board: Moodboard): void;
 }

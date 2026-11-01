@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { toCoreError } from "../../shell/coreError";
+import { announceTreeChange } from "../../shell/treeChanges";
 import { thesisApi } from "../thesis/api";
 import type { Thesis } from "../thesis/types";
 import { essayThesisApi } from "./api";
@@ -30,6 +31,7 @@ export function EssayTheses({ essayId }: { essayId: number }) {
       setError(toCoreError(e).message);
     }
     reload();
+    announceTreeChange();
   };
 
   const unlinked = all.filter((t) => !linked.some((l) => l.id === t.id));

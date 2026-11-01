@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState, type FormEvent } from "react";
 import { toCoreError, type CoreError } from "../../shell/coreError";
+import { announceTreeChange } from "../../shell/treeChanges";
 import { Badge, Button, SectionHeader } from "../../ui";
 import { dropApi } from "../drop/api";
 import type { Moodboard } from "../moodboard/types";
@@ -57,6 +58,7 @@ export function StyleView({ id, backLabel, onBack, onOpenStyle, onOpenMoodboard 
     try {
       const copy = await styleApi.duplicateStyle(id, copyColor ?? "");
       setCopyColor(undefined);
+      announceTreeChange();
       onOpenStyle?.(copy.id);
     } catch (raw) {
       setError(toCoreError(raw));
