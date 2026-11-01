@@ -151,4 +151,4 @@ function SampleDetail({ sample, vendorName, run }: DetailProps) {
   );
 }
 
-export const samplesSection: StyleSection = { id: "samples", title: "Samples", Component: SamplesSectionView };
+export const samplesSection: StyleSection = { id: "samples", title: "Samples", segment: "make", Component: SamplesSectionView };

@@ -7,6 +7,9 @@
 .style-view h1 { margin: var(--space-1) 0 0; }
 .style-view .color { color: var(--muted); margin: 0; }
 .style-view header .actions { margin-top: var(--space-2); }
+.style-view header .style-trace-export { margin: var(--space-2) 0 0; }
+.style-view header > .segmented { margin-top: var(--space-4); }
+.style-base-kind { margin-top: var(--space-4); }
 .style-section { margin-top: var(--space-6); border-top: 1px solid var(--line); padding-top: var(--space-3); }
 .style-files ul { list-style: none; margin: 0 0 var(--space-2); padding: 0; }
 

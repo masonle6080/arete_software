@@ -180,5 +180,6 @@ function DecorationForm({ initial, vendors, submitLabel, onSubmit, onCancel }: F
 export const decorationsSection: StyleSection = {
   id: "decorations",
   title: "Decorations",
+  segment: "design",
   Component: DecorationsSectionView,
 };

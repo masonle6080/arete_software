@@ -220,5 +220,6 @@ function CostSheetSectionView({ style }: StyleSectionProps) {
 export const costSheetSection: StyleSection = {
   id: "cost-sheet",
   title: "Cost Sheet",
+  segment: "make",
   Component: CostSheetSectionView,
 };

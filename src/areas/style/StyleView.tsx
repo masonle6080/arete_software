@@ -1,12 +1,24 @@
 import { useCallback, useEffect, useState, type FormEvent } from "react";
 import { toCoreError, type CoreError } from "../../shell/coreError";
-import { Badge, Button, SectionHeader } from "../../ui";
+import { Badge, Button, SectionHeader, SegmentedControl } from "../../ui";
 import { dropApi } from "../drop/api";
 import type { Moodboard } from "../moodboard/types";
 import { styleApi } from "./api";
 import { styleSections } from "./sections";
+import { baseKindOf, sectionsIn, styleSegments, type BaseKind, type StyleSegment } from "./segments";
+import { StyleTraceExport } from "./StyleTraceExport";
 import { styleStatusLabel, type Style, type StyleStatus } from "./types";
 import "./style.css";
+
+/**
+ * The Base kind switch at the top of Build. A Style uses one kind of base,
+ * so Build shows one section; the switch reaches the other kind, for
+ * example to move a Tech Pack Style back to a Blank.
+ */
+const baseKinds: readonly { value: BaseKind; label: string }[] = [
+  { value: "blank", label: "Blank" },
+  { value: "techPack", label: "Tech Pack" },
+];
 
 interface Props {
   id: number;
@@ -19,7 +31,10 @@ interface Props {
   onOpenMoodboard(board: Moodboard): void;
 }
 
-/** One Style: its header and status moves, then every registered section. */
+/**
+ * One Style: its header (status moves, Duplicate, Export), then the sections
+ * of one segment: Design, Build, or Make.
+ */
 export function StyleView({ id, backLabel, onBack, onOpenStyle, onOpenMoodboard }: Props) {
   const [style, setStyle] = useState<Style>();
   const [error, setError] = useState<CoreError>();
@@ -30,12 +45,23 @@ export function StyleView({ id, backLabel, onBack, onOpenStyle, onOpenMoodboard 
   /** Whether the Style's Drop takes duplicated Styles now. */
   const [canDuplicate, setCanDuplicate] = useState(false);
 
+  /** The open segment. It stays open when the Style reloads. */
+  const [segment, setSegment] = useState<StyleSegment>("design");
+  /**
+   * The base kind the Build segment shows. It follows the Style's base each
+   * time the Style loads; the Base kind switch changes it to start the other
+   * kind of base.
+   */
+  const [baseKind, setBaseKind] = useState<BaseKind>("techPack");
+
   const reload = useCallback(() => {
     styleApi
       .getStyle(id)
       .then(async (s) => {
+        const [drop, base] = await Promise.all([dropApi.getDrop(s.dropId), styleApi.styleBase(s.id)]);
         setStyle(s);
-        setCanDuplicate((await dropApi.getDrop(s.dropId)).canAddStyles);
+        setCanDuplicate(drop.canAddStyles);
+        setBaseKind(baseKindOf(base));
       })
       .catch((raw) => setError(toCoreError(raw)));
   }, [id]);
@@ -117,8 +143,15 @@ export function StyleView({ id, backLabel, onBack, onOpenStyle, onOpenMoodboard 
                 </Button>
               </form>
             )}
+            <StyleTraceExport style={style} />
+            <SegmentedControl<StyleSegment> label="Style segment" options={styleSegments} value={segment} onChange={setSegment} />
           </header>
-          {styleSections.map(({ id: sectionId, title, Component }) => (
+          {segment === "build" && (
+            <div className="style-base-kind">
+              <SegmentedControl<BaseKind> label="Base kind" options={baseKinds} value={baseKind} onChange={setBaseKind} />
+            </div>
+          )}
+          {sectionsIn(styleSections, segment, baseKind).map(({ id: sectionId, title, Component }) => (
             <section key={sectionId} className="style-section">
               <SectionHeader title={title} />
               <Component style={style} onStyleChanged={reload} onOpenMoodboard={onOpenMoodboard} />
