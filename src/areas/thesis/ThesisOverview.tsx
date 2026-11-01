@@ -1,10 +1,10 @@
-import { useCallback, useEffect, useState } from "react";
-import { toCoreError, type CoreError } from "../../shell/coreError";
-import type { View } from "../../shell/sidebar";
+import { useEffect } from "react";
+import { useCoreQuery } from "../../shell/coreQuery";
+import { thesisTabLabel, type ThesisTab, type View } from "../../shell/sidebar";
 import { listenTreeChanges } from "../../shell/treeChanges";
-import { Button, EmptyText, SectionHeader } from "../../ui";
+import { Button, countLabel, EmptyText, SectionHeader } from "../../ui";
 import { CardFaceView } from "../style/DropStyles";
-import { itemView, loadThesisContents, type ThesisContents } from "./contents";
+import { itemView, loadThesisContents } from "./contents";
 import type { Thesis } from "./types";
 
 interface Props {
@@ -20,31 +20,18 @@ interface Props {
  * opens that item.
  */
 export function ThesisOverview({ thesis, onGo }: Props) {
-  const [contents, setContents] = useState<ThesisContents>();
-  const [error, setError] = useState<CoreError>();
-
-  const reload = useCallback(() => {
-    loadThesisContents(thesis.id).then(
-      (c) => {
-        setContents(c);
-        setError(undefined);
-      },
-      (raw) => setError(toCoreError(raw)),
-    );
-  }, [thesis]);
-  useEffect(() => {
-    reload();
-    return listenTreeChanges(reload);
-  }, [reload]);
+  const { data: contents, error, reload } = useCoreQuery(() => loadThesisContents(thesis.id), [thesis]);
+  useEffect(() => listenTreeChanges(reload), [reload]);
 
   if (error) return <p className="error">{error.message}</p>;
   if (!contents) return null;
   const { styles, essays, moodboards } = contents;
 
-  const header = (tab: string, title: string, count: number) => (
+  /** A section title, with the count it shows, that opens tab `tab`. */
+  const header = (tab: ThesisTab, title: string, count?: number) => (
     <SectionHeader title={title} count={count}>
       <Button size="small" onClick={() => onGo(itemView.tab(tab))}>
-        Open {title}
+        Open {thesisTabLabel[tab]}
       </Button>
     </SectionHeader>
   );
@@ -52,7 +39,7 @@ export function ThesisOverview({ thesis, onGo }: Props) {
   return (
     <div className="thesis-overview">
       <section className="thesis-section">
-        {header("drop", "Drop", styles.length)}
+        {header("drop", `Drop · ${countLabel(styles.length, "Style")}`)}
         {styles.length === 0 ? (
           <EmptyText>No Styles yet.</EmptyText>
         ) : (
@@ -69,7 +56,7 @@ export function ThesisOverview({ thesis, onGo }: Props) {
         )}
       </section>
       <section className="thesis-section">
-        {header("essays", "Essays", essays.length)}
+        {header("essays", thesisTabLabel.essays, essays.length)}
         {essays.length === 0 ? (
           <EmptyText>No Essays yet.</EmptyText>
         ) : (
@@ -85,7 +72,7 @@ export function ThesisOverview({ thesis, onGo }: Props) {
         )}
       </section>
       <section className="thesis-section">
-        {header("moodboards", "Moodboards", moodboards.length)}
+        {header("moodboards", thesisTabLabel.moodboards, moodboards.length)}
         {moodboards.length === 0 ? (
           <EmptyText>No Moodboards yet.</EmptyText>
         ) : (

@@ -3,9 +3,9 @@
  * row a path marks as open, and the ⌘1–⌘5 and ⌘[ shortcuts. Pure, so it is
  * tested without a DOM.
  */
-import { placeKey, popTo, push, thesisTabLabel, type NavPath, type Step } from "./navPath";
+import { placeKey, popTo, push, thesisTabLabel, thesisTabs, type NavPath, type Step, type ThesisTab } from "./navPath";
 
-export { thesisTabLabel };
+export { thesisTabLabel, thesisTabs, type ThesisTab };
 
 /**
  * What a sidebar row or shortcut opens: a tab of the current Thesis (with
@@ -13,7 +13,7 @@ export { thesisTabLabel };
  * "Add Thesis" form), or one Shared area or Settings.
  */
 export type View =
-  | { kind: "thesis"; tab: string; open?: Step }
+  | { kind: "thesis"; tab: ThesisTab; open?: Step }
   | { kind: "theses"; create?: boolean }
   | { kind: "area"; id: string };
 
@@ -37,7 +37,7 @@ export function pathOf(view: View, names: PathNames): NavPath {
     case "thesis": {
       let path: NavPath = [{ place: { kind: "thesis", tab: "overview" }, label: names.thesis }];
       if (view.tab !== "overview") {
-        path = push(path, { place: { kind: "thesis", tab: view.tab }, label: thesisTabLabel[view.tab] ?? view.tab });
+        path = push(path, { place: { kind: "thesis", tab: view.tab }, label: thesisTabLabel[view.tab] });
       }
       return view.open ? push(path, view.open) : path;
     }
@@ -116,13 +116,14 @@ export interface ShortcutKey {
 }
 
 /**
- * The Thesis tab that ⌘1–⌘5 opens: ⌘1 the first of `tabs`, up to ⌘5 the
- * fifth. Undefined for any other key or modifier.
+ * The Thesis tab that ⌘1–⌘5 opens: ⌘1 the first of `thesisTabs`, up to ⌘5
+ * the fifth, the same order as the sidebar tree. Undefined for any other
+ * key or modifier.
  */
-export function shortcutTab(e: ShortcutKey, tabs: readonly string[]): string | undefined {
+export function shortcutTab(e: ShortcutKey): ThesisTab | undefined {
   if (!e.metaKey || e.ctrlKey || e.altKey || e.shiftKey) return undefined;
   const n = "12345".indexOf(e.key);
-  return n < 0 ? undefined : tabs[n];
+  return n < 0 ? undefined : thesisTabs[n];
 }
 
 /** Whether a keydown is ⌘[, which goes back one breadcrumb level. */

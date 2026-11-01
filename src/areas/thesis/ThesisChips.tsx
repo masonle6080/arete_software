@@ -1,11 +1,11 @@
-import { useEffect, useState } from "react";
-import { toCoreError } from "../../shell/coreError";
+import { useEffect } from "react";
+import { useCoreQuery } from "../../shell/coreQuery";
 import { steps, type Step } from "../../shell/navPath";
 import { listenTreeChanges } from "../../shell/treeChanges";
 import { Chip, countLabel } from "../../ui";
 import { documentaryStatusLabel } from "../documentary/types";
 import { stageLabel } from "../drop/types";
-import { linksApi, type ThesisLinks } from "../links/api";
+import { linksApi } from "../links/api";
 import type { Thesis } from "./types";
 
 interface Props {
@@ -16,24 +16,11 @@ interface Props {
 
 /** The Thesis header chips: Drop status · N Essays · Documentary status. Each opens its tab. */
 export function ThesisChips({ thesis, onOpen }: Props) {
-  const [links, setLinks] = useState<ThesisLinks>();
-  const [error, setError] = useState<string>();
+  const { data: links, error, reload } = useCoreQuery(() => linksApi.thesis(thesis.id), [thesis]);
   // Linking an Essay announces a tree change; the Essay count follows it.
-  const [changes, setChanges] = useState(0);
-  useEffect(() => listenTreeChanges(() => setChanges((n) => n + 1)), []);
+  useEffect(() => listenTreeChanges(reload), [reload]);
 
-  useEffect(() => {
-    let live = true;
-    linksApi.thesis(thesis.id).then(
-      (l) => live && setLinks(l),
-      (raw) => live && setError(toCoreError(raw).message),
-    );
-    return () => {
-      live = false;
-    };
-  }, [thesis, changes]);
-
-  if (error) return <p className="error">{error}</p>;
+  if (error) return <p className="error">{error.message}</p>;
   if (!links) return null;
   const { drop, essayCount, documentary } = links;
   return (

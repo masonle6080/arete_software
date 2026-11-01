@@ -1,8 +1,8 @@
-import { useCallback, useEffect, useState, type ReactNode } from "react";
-import { toCoreError, type CoreError } from "../../shell/coreError";
-import { thesisTabLabel, type View } from "../../shell/sidebar";
+import { useEffect, useState, type ReactNode } from "react";
+import { useCoreQuery } from "../../shell/coreQuery";
+import { thesisTabLabel, thesisTabs, type ThesisTab, type View } from "../../shell/sidebar";
 import { listenTreeChanges } from "../../shell/treeChanges";
-import { itemView, loadThesisContents, type ThesisContents } from "./contents";
+import { itemView, loadThesisContents } from "./contents";
 
 interface Props {
   thesisId: number;
@@ -12,31 +12,19 @@ interface Props {
 }
 
 /** The parts of the tree that open and close. */
-type Group = "essays" | "moodboards" | "drop";
+type Group = Extract<ThesisTab, "essays" | "moodboards" | "drop">;
+
+const isGroup = (tab: ThesisTab): tab is Group => tab === "essays" || tab === "moodboards" || tab === "drop";
 
 /**
- * The source-list tree of the current Thesis: Overview, Essays, Moodboards,
- * Drop with each Style, and Documentary. Essays, Moodboards, and Drop open
+ * The source-list tree of the current Thesis: its tabs in `thesisTabs`
+ * order (Overview, Essays, Moodboards, Drop with each Style, Documentary). Essays, Moodboards, and Drop open
  * and close. The tree reloads on every announced tree change.
  */
 export function ThesisTree({ thesisId, openKey, onGo }: Props) {
-  const [contents, setContents] = useState<ThesisContents>();
-  const [error, setError] = useState<CoreError>();
+  const { data: contents, error, reload } = useCoreQuery(() => loadThesisContents(thesisId), [thesisId]);
+  useEffect(() => listenTreeChanges(reload), [reload]);
   const [closed, setClosed] = useState<Set<Group>>(() => new Set());
-
-  const reload = useCallback(() => {
-    loadThesisContents(thesisId).then(
-      (c) => {
-        setContents(c);
-        setError(undefined);
-      },
-      (raw) => setError(toCoreError(raw)),
-    );
-  }, [thesisId]);
-  useEffect(() => {
-    reload();
-    return listenTreeChanges(reload);
-  }, [reload]);
 
   const toggle = (group: Group) =>
     setClosed((s) => {
@@ -58,7 +46,7 @@ export function ThesisTree({ thesisId, openKey, onGo }: Props) {
     </li>
   );
 
-  const tab = (id: string) => row(`thesis:${id}`, thesisTabLabel[id], itemView.tab(id), "tree-top");
+  const tab = (id: ThesisTab) => row(`thesis:${id}`, thesisTabLabel[id], itemView.tab(id), "tree-top");
 
   const group = (id: Group, children: ReactNode[]) => {
     const label = thesisTabLabel[id];
@@ -82,37 +70,30 @@ export function ThesisTree({ thesisId, openKey, onGo }: Props) {
     );
   };
 
+  /** The rows under each group: the Essays, the Moodboards, and the Styles of the active Drop. */
+  const children: Record<Group, () => ReactNode[]> = {
+    essays: () =>
+      (contents?.essays ?? []).map((e) => row(`essay:${e.id}`, e.title || "Untitled", itemView.essay(e), "tree-leaf")),
+    moodboards: () =>
+      (contents?.moodboards ?? []).map((b) => row(`moodboard:${b.id}`, b.title, itemView.moodboard(b), "tree-leaf")),
+    drop: () =>
+      (contents?.styles ?? []).map((s) =>
+        row(
+          `style:${s.id}`,
+          <>
+            {s.name} <span className="tree-color">{s.color}</span>
+          </>,
+          itemView.style(s),
+          s.status === "cut" ? "tree-leaf cut" : "tree-leaf",
+        ),
+      ),
+  };
+
   return (
     <div className="thesis-tree">
       {error && <p className="error">{error.message}</p>}
       <ul>
-        {tab("overview")}
-        {group(
-          "essays",
-          (contents?.essays ?? []).map((e) =>
-            row(`essay:${e.id}`, e.title || "Untitled", itemView.essay(e), "tree-leaf"),
-          ),
-        )}
-        {group(
-          "moodboards",
-          (contents?.moodboards ?? []).map((b) =>
-            row(`moodboard:${b.id}`, b.title, itemView.moodboard(b), "tree-leaf"),
-          ),
-        )}
-        {group(
-          "drop",
-          (contents?.styles ?? []).map((s) =>
-            row(
-              `style:${s.id}`,
-              <>
-                {s.name} <span className="tree-color">{s.color}</span>
-              </>,
-              itemView.style(s),
-              s.status === "cut" ? "tree-leaf cut" : "tree-leaf",
-            ),
-          ),
-        )}
-        {tab("documentary")}
+        {thesisTabs.map((t) => (isGroup(t) ? group(t, children[t]()) : tab(t)))}
       </ul>
     </div>
   );

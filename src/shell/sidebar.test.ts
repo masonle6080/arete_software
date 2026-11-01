@@ -1,9 +1,8 @@
 import { describe, expect, it } from "vitest";
 import type { Moodboard } from "../areas/moodboard/types";
-import { push, steps, crumbs, type NavPath } from "./navPath";
+import { push, steps, crumbs, thesisTabLabel, thesisTabs, type NavPath } from "./navPath";
 import { blocksBackShortcut, isBackShortcut, openRow, openStep, pathOf, shortcutTab, type View } from "./sidebar";
 
-const tabs = ["overview", "essays", "moodboards", "drop", "documentary"];
 const key = (k: string, mods: Partial<{ metaKey: boolean; ctrlKey: boolean; altKey: boolean; shiftKey: boolean }> = {}) => ({
   key: k,
   metaKey: false,
@@ -13,9 +12,15 @@ const key = (k: string, mods: Partial<{ metaKey: boolean; ctrlKey: boolean; altK
   ...mods,
 });
 
+describe("the Thesis tabs", () => {
+  it("run Overview, Essays, Moodboards, Drop, Documentary in the tree and for ⌘1–⌘5", () => {
+    expect(thesisTabs.map((t) => thesisTabLabel[t])).toEqual(["Overview", "Essays", "Moodboards", "Drop", "Documentary"]);
+  });
+});
+
 describe("⌘1–⌘5", () => {
   it("open the five Thesis tree items in order", () => {
-    expect(["1", "2", "3", "4", "5"].map((k) => shortcutTab(key(k, { metaKey: true }), tabs))).toEqual([
+    expect(["1", "2", "3", "4", "5"].map((k) => shortcutTab(key(k, { metaKey: true })))).toEqual([
       "overview",
       "essays",
       "moodboards",
@@ -25,12 +30,12 @@ describe("⌘1–⌘5", () => {
   });
 
   it("do nothing without ⌘, with another modifier, or for other digits", () => {
-    expect(shortcutTab(key("1"), tabs)).toBeUndefined();
-    expect(shortcutTab(key("1", { metaKey: true, shiftKey: true }), tabs)).toBeUndefined();
-    expect(shortcutTab(key("1", { metaKey: true, altKey: true }), tabs)).toBeUndefined();
-    expect(shortcutTab(key("1", { metaKey: true, ctrlKey: true }), tabs)).toBeUndefined();
-    expect(shortcutTab(key("6", { metaKey: true }), tabs)).toBeUndefined();
-    expect(shortcutTab(key("0", { metaKey: true }), tabs)).toBeUndefined();
+    expect(shortcutTab(key("1"))).toBeUndefined();
+    expect(shortcutTab(key("1", { metaKey: true, shiftKey: true }))).toBeUndefined();
+    expect(shortcutTab(key("1", { metaKey: true, altKey: true }))).toBeUndefined();
+    expect(shortcutTab(key("1", { metaKey: true, ctrlKey: true }))).toBeUndefined();
+    expect(shortcutTab(key("6", { metaKey: true }))).toBeUndefined();
+    expect(shortcutTab(key("0", { metaKey: true }))).toBeUndefined();
   });
 });
 

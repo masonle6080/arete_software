@@ -5,6 +5,15 @@
  */
 import type { Moodboard } from "../areas/moodboard/types";
 
+/**
+ * The tabs of a Thesis, in order. The sidebar tree shows them in this order,
+ * and ⌘1–⌘5 open them in this order, so the two cannot drift.
+ */
+export const thesisTabs = ["overview", "essays", "moodboards", "drop", "documentary"] as const;
+
+/** One tab of a Thesis: its Overview or one of its sections. */
+export type ThesisTab = (typeof thesisTabs)[number];
+
 /** One place the content pane can show. */
 export type Place =
   /**
@@ -12,7 +21,7 @@ export type Place =
    * tab. A step may name a `thesisId`: opening it makes that Thesis current
    * (see `openStep`). The path itself never keeps it.
    */
-  | { kind: "thesis"; tab: string; thesisId?: number }
+  | { kind: "thesis"; tab: ThesisTab; thesisId?: number }
   /** Every Thesis. `create` focuses the "Add Thesis" form. */
   | { kind: "theses"; create?: boolean }
   /** A Shared area, or Settings. */
@@ -99,7 +108,7 @@ export function placeKey(place: Place): string {
 const titled = (title: string) => title.trim() || "Untitled";
 
 /** The label of each Thesis tab, in the tree and in the breadcrumb. */
-export const thesisTabLabel: Record<string, string> = {
+export const thesisTabLabel: Record<ThesisTab, string> = {
   overview: "Overview",
   essays: "Essays",
   moodboards: "Moodboards",
@@ -110,9 +119,9 @@ export const thesisTabLabel: Record<string, string> = {
 /** The steps that open an item, each with its breadcrumb label. */
 export const steps = {
   /** A tab of the current Thesis, or of Thesis `thesisId`. */
-  thesis: (tab: string, thesisId?: number): Step => ({
+  thesis: (tab: ThesisTab, thesisId?: number): Step => ({
     place: thesisId === undefined ? { kind: "thesis", tab } : { kind: "thesis", tab, thesisId },
-    label: thesisTabLabel[tab] ?? tab,
+    label: thesisTabLabel[tab],
   }),
   /** A Style, labelled "Name (Color)". */
   style: (s: { id: number; name: string; color: string }): Step => ({

@@ -9,4 +9,4 @@ export { loadCurrentThesis, saveCurrentThesis } from "./currentThesis";
 export { ThesisList } from "./ThesisList";
 export { ThesisPicker } from "./ThesisPicker";
 export { ThesisTree } from "./ThesisTree";
-export { thesisTabs, ThesisView } from "./ThesisView";
+export { ThesisView } from "./ThesisView";

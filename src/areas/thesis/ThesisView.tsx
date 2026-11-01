@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { toCoreError, type CoreError } from "../../shell/coreError";
 import { Badge, Button, SectionHeader } from "../../ui";
-import type { Step } from "../../shell/navPath";
+import type { Step, ThesisTab } from "../../shell/navPath";
 import type { View } from "../../shell/sidebar";
 import { thesisApi } from "./api";
 import { thesisSections } from "./sections";
@@ -9,16 +9,9 @@ import { ThesisChips } from "./ThesisChips";
 import { ThesisOverview } from "./ThesisOverview";
 import { statusLabel, type Thesis, type ThesisStatus } from "./types";
 
-/** The sidebar tabs of the current Thesis: Overview, then every registered section. */
-export const thesisTabs: { id: string; title: string }[] = [
-  { id: "overview", title: "Overview" },
-  ...thesisSections.map(({ id, title }) => ({ id, title })),
-];
-
 interface Props {
   id: number;
-  /** "overview" or a Thesis section ID. */
-  tab: string;
+  tab: ThesisTab;
   /** Opens an item of this Thesis one level below the tab in the navigation path. */
   onOpen(step: Step): void;
   /** Opens a tab of this Thesis, or an item on top of its tab, as the sidebar tree does. */
@@ -49,7 +42,7 @@ export function ThesisView({ id, tab, onOpen, onGo }: Props) {
     }
   }
 
-  const section = thesisSections.find((s) => s.id === tab);
+  const section = tab === "overview" ? undefined : thesisSections[tab];
 
   return (
     <section className="thesis-view">
