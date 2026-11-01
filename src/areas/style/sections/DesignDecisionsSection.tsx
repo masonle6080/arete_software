@@ -11,7 +11,6 @@ import { decorationApi, decorationLabel, type Decoration } from "../../decoratio
 import { EssayScreen } from "../../essays";
 import { documentApi, type DocumentSummary } from "../../essays/api";
 import { passageApi, type Passage } from "../../passage/api";
-import { StyleTraceExport } from "../StyleTraceExport";
 import type { StyleSection, StyleSectionProps } from ".";
 import { Button, Chip, EmptyText, SegmentedControl } from "../../../ui";
 
@@ -71,7 +70,6 @@ function DesignDecisionsSectionView({ style }: StyleSectionProps) {
 
   return (
     <div className="design-decisions">
-      <StyleTraceExport style={style} />
       {error && <p className="error">{error.message}</p>}
       {decisions.length === 0 ? (
         <EmptyText>No Design Decisions yet.</EmptyText>
@@ -231,5 +229,6 @@ function PassagePicker({ exclude, onPick }: PickerProps) {
 export const designDecisionsSection: StyleSection = {
   id: "design-decisions",
   title: "Design Decisions",
+  segment: "design",
   Component: DesignDecisionsSectionView,
 };
