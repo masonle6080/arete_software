@@ -1,9 +1,11 @@
+import { convertFileSrc } from "@tauri-apps/api/core";
 import { useCallback, useEffect, useState, type FormEvent } from "react";
 import { toCoreError, type CoreError } from "../../shell/coreError";
 import { announceTreeChange } from "../../shell/treeChanges";
 import { Badge, Button, EmptyText, SectionHeader } from "../../ui";
 import type { Drop } from "../drop/types";
 import { styleApi } from "./api";
+import { cardFace } from "./cover";
 import type { Style } from "./types";
 import "./style.css";
 
@@ -13,7 +15,7 @@ interface Props {
   onOpen(styleId: number): void;
 }
 
-/** The Styles of one Drop, Cut ones included, with a form to add one while the Drop takes new Styles. */
+/** The Styles of one Drop as a card grid of Covers, Cut ones included, with a form to add one while the Drop takes new Styles. */
 export function DropStyles({ drop, onOpen }: Props) {
   const [styles, setStyles] = useState<Style[]>([]);
   const [name, setName] = useState("");
@@ -46,15 +48,17 @@ export function DropStyles({ drop, onOpen }: Props) {
       {styles.length === 0 ? (
         <EmptyText>No Styles yet.</EmptyText>
       ) : (
-        <ul>
+        <ul className="style-grid">
           {styles.map((s) => (
             <li key={s.id}>
-              <Button className="row-button style-row" onClick={() => onOpen(s.id)}>
-                <span>
-                  {s.name} <span className="color">· {s.color}</span>
+              <button type="button" className="style-card" onClick={() => onOpen(s.id)}>
+                <CardFaceView style={s} />
+                <span className="style-card-name">{s.name}</span>
+                <span className="style-card-meta">
+                  <span className="color">{s.color}</span>
+                  <Badge lifecycle="style" status={s.status} />
                 </span>
-                <Badge lifecycle="style" status={s.status} />
-              </Button>
+              </button>
             </li>
           ))}
         </ul>
@@ -69,5 +73,15 @@ export function DropStyles({ drop, onOpen }: Props) {
         </form>
       )}
     </div>
+  );
+}
+
+/** The top of a Style's card: its Cover small, or a neutral placeholder with its color name. */
+function CardFaceView({ style }: { style: Style }) {
+  const face = cardFace(style);
+  return face.kind === "cover" ? (
+    <img className="style-card-face" src={convertFileSrc(face.path)} alt={`Cover of ${style.name}`} />
+  ) : (
+    <span className="style-card-face style-card-placeholder">{face.color}</span>
   );
 }
