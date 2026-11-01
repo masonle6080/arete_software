@@ -1,10 +1,10 @@
-import { useCallback, useEffect, useState } from "react";
-import { toCoreError, type CoreError } from "../../shell/coreError";
+import { useEffect } from "react";
+import { useCoreQuery } from "../../shell/coreQuery";
 import type { View } from "../../shell/sidebar";
 import { listenTreeChanges } from "../../shell/treeChanges";
 import { Button, EmptyText, SectionHeader } from "../../ui";
 import { CardFaceView } from "../style/DropStyles";
-import { itemView, loadThesisContents, type ThesisContents } from "./contents";
+import { itemView, loadThesisContents } from "./contents";
 import type { Thesis } from "./types";
 
 interface Props {
@@ -20,22 +20,8 @@ interface Props {
  * opens that item.
  */
 export function ThesisOverview({ thesis, onGo }: Props) {
-  const [contents, setContents] = useState<ThesisContents>();
-  const [error, setError] = useState<CoreError>();
-
-  const reload = useCallback(() => {
-    loadThesisContents(thesis.id).then(
-      (c) => {
-        setContents(c);
-        setError(undefined);
-      },
-      (raw) => setError(toCoreError(raw)),
-    );
-  }, [thesis]);
-  useEffect(() => {
-    reload();
-    return listenTreeChanges(reload);
-  }, [reload]);
+  const { data: contents, error, reload } = useCoreQuery(() => loadThesisContents(thesis.id), [thesis]);
+  useEffect(() => listenTreeChanges(reload), [reload]);
 
   if (error) return <p className="error">{error.message}</p>;
   if (!contents) return null;

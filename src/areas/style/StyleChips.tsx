@@ -1,9 +1,8 @@
-import { useEffect, useState } from "react";
-import { toCoreError } from "../../shell/coreError";
+import { useCoreQuery } from "../../shell/coreQuery";
 import { steps, type Step } from "../../shell/navPath";
 import { Chip, countLabel } from "../../ui";
 import { blankLabel } from "../blank/api";
-import { linksApi, type StyleLinks } from "../links/api";
+import { linksApi } from "../links/api";
 import type { StyleSegment } from "./segments";
 import type { Style } from "./types";
 
@@ -22,21 +21,9 @@ interface Props {
  * Passage chip opens Design, where the Design Decisions show their Passages.
  */
 export function StyleChips({ style, onOpen, onSegment }: Props) {
-  const [links, setLinks] = useState<StyleLinks>();
-  const [error, setError] = useState<string>();
+  const { data: links, error } = useCoreQuery(() => linksApi.style(style.id), [style]);
 
-  useEffect(() => {
-    let live = true;
-    linksApi.style(style.id).then(
-      (l) => live && setLinks(l),
-      (raw) => live && setError(toCoreError(raw).message),
-    );
-    return () => {
-      live = false;
-    };
-  }, [style]);
-
-  if (error) return <p className="error">{error}</p>;
+  if (error) return <p className="error">{error.message}</p>;
   if (!links) return null;
   const { thesis, drop, base, passageCount } = links;
   return (
