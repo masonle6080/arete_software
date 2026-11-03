@@ -1,6 +1,6 @@
 //! Thesis status and its lifecycle rules.
 //!
-//! A Thesis is its Drop, so one lifecycle covers the idea and its release:
+//! A Thesis is both the idea and its release, so one lifecycle covers both:
 //! Seed → Developing → Design → Sampling → Production → Released →
 //! Archived. Abandoned is reached from any status before Released. Every
 //! move is manual. The guards that need more than the two statuses (Style
@@ -43,5 +43,15 @@ impl ThesisStatus {
     /// fixed.
     pub fn takes_new_styles(self) -> bool {
         matches!(self, ThesisStatus::Developing | ThesisStatus::Design | ThesisStatus::Sampling)
+    }
+
+    /// Whether a Thesis in this status takes new Production Orders. Only the
+    /// Drop does (Design to Released): before Design there is nothing to
+    /// make, and after Released the release is over.
+    pub fn takes_production_orders(self) -> bool {
+        matches!(
+            self,
+            ThesisStatus::Design | ThesisStatus::Sampling | ThesisStatus::Production | ThesisStatus::Released
+        )
     }
 }

@@ -1,5 +1,6 @@
 //! Thesis: a philosophical idea from the founder's life, and the release of
-//! clothing (its Drop) that expresses it. One record covers both.
+//! clothing that expresses it. One record covers both; the Drop is the
+//! release phase of its lifecycle (Design to Released), not a record.
 //!
 //! Domain command functions for this area: [`create_thesis`],
 //! [`move_thesis`], [`list_theses`], [`get_thesis`]. The lifecycle rules
@@ -28,10 +29,13 @@ pub struct Thesis {
     pub status: ThesisStatus,
     /// The statuses the founder can move this Thesis to now, so the UI never
     /// repeats the lifecycle rules. A move can still be refused by a guard.
-    pub manual_moves: Vec<ThesisStatus>,
+    pub moves: Vec<ThesisStatus>,
     /// Whether the founder can add or duplicate Styles on this Thesis now
     /// ([`ThesisStatus::takes_new_styles`]).
     pub can_add_styles: bool,
+    /// Whether the founder can add a Production Order to this Thesis now
+    /// ([`ThesisStatus::takes_production_orders`]).
+    pub can_add_production_orders: bool,
 }
 
 /// Refuses new or duplicated Styles on a Thesis that does not take them.
@@ -41,10 +45,35 @@ pub(crate) fn check_takes_new_styles(thesis: &Thesis) -> CoreResult<()> {
     }
     Err(CoreError::InvalidInput {
         reason: format!(
-            "a Thesis in {} takes no new Styles; add Styles only in Developing, Design or Sampling",
-            thesis.status.label()
+            "a Thesis in {} takes no new Styles; add Styles only in {}",
+            thesis.status.label(),
+            status_list(ThesisStatus::takes_new_styles)
         ),
     })
+}
+
+/// Refuses a new Production Order on a Thesis that does not take them.
+pub(crate) fn check_takes_production_orders(thesis: &Thesis) -> CoreResult<()> {
+    if thesis.can_add_production_orders {
+        return Ok(());
+    }
+    Err(CoreError::InvalidInput {
+        reason: format!(
+            "a Thesis in {} takes no Production Orders; add them only in {}",
+            thesis.status.label(),
+            status_list(ThesisStatus::takes_production_orders)
+        ),
+    })
+}
+
+/// The labels of the statuses that pass `rule`, in lifecycle order, as
+/// "A, B or C".
+fn status_list(rule: fn(ThesisStatus) -> bool) -> String {
+    let labels: Vec<&str> = ThesisStatus::ALL.into_iter().filter(|s| rule(*s)).map(ThesisStatus::label).collect();
+    match labels.split_last() {
+        Some((last, rest)) if !rest.is_empty() => format!("{} or {last}", rest.join(", ")),
+        _ => labels.join(""),
+    }
 }
 
 const COLUMNS: &str = "id, title, statement, status";
@@ -59,8 +88,9 @@ fn from_row(row: &Row) -> rusqlite::Result<Thesis> {
         title: row.get(1)?,
         statement: row.get(2)?,
         status,
-        manual_moves: status.moves(),
+        moves: status.moves(),
         can_add_styles: status.takes_new_styles(),
+        can_add_production_orders: status.takes_production_orders(),
     })
 }
 
@@ -85,7 +115,7 @@ pub fn create_thesis(lib: &Library, title: &str, statement: &str) -> CoreResult<
 #[serde(rename_all = "camelCase", tag = "kind")]
 pub enum ThesisWarning {
     /// Releasing the Thesis while its Documentary is not Released. The
-    /// Documentary should come out before the Drop.
+    /// Documentary should come out before the Thesis is Released.
     #[serde(rename_all = "camelCase")]
     DocumentaryNotReleased { documentary_id: DocumentaryId, title: String, status: DocumentaryStatus },
 }
@@ -112,7 +142,7 @@ pub fn move_thesis(lib: &Library, id: ThesisId, to: ThesisStatus, confirmed: boo
     if !warnings.is_empty() && !confirmed {
         return Ok(ThesisMove::NeedsConfirmation { thesis, warnings });
     }
-    lifecycle::move_status(lib, "thesis", id, thesis.status, to)?;
+    lib.writer()?.execute("UPDATE thesis SET status = ?1 WHERE id = ?2", params![to.as_db(), id])?;
     Ok(ThesisMove::Moved(get_thesis(lib, id)?))
 }
 

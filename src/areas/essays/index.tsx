@@ -3,7 +3,7 @@ import type { Area, AreaProps } from "../../shell/area";
 import { useLeaveGuard } from "../../shell/leaveGuards";
 import { steps, type Step } from "../../shell/navPath";
 import { toCoreError } from "../../shell/coreError";
-import { announceTreeChange } from "../../shell/treeChanges";
+import { announceThesisChange } from "../../shell/thesisChanges";
 import { DocumentEditor, type DocumentEditorHandle, type DocumentSave } from "../../document/DocumentEditor";
 import { OrphanedPassages } from "../passage/OrphanedPassages";
 import { PassageView } from "../passage/PassageView";
@@ -102,7 +102,7 @@ export function EssayScreen({ id, focusPassageId, passageId, onOpenPassage, onTi
       if (title !== savedTitle.current) {
         savedTitle.current = title;
         onTitleRef.current?.(title);
-        announceTreeChange();
+        announceThesisChange();
       }
     },
     [id],

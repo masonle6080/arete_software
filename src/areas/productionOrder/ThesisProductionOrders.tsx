@@ -80,7 +80,7 @@ export function ThesisProductionOrders({ thesis }: { thesis: Thesis }) {
           </tbody>
         </table>
       )}
-      {thesis.status !== "abandoned" && (
+      {thesis.canAddProductionOrders && (
         <form className="order-create" onSubmit={add}>
           <select value={vendorId ?? ""} onChange={(e) => setVendorId(e.target.value ? Number(e.target.value) : undefined)}>
             <option value="">Choose a Vendor</option>

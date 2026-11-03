@@ -22,6 +22,11 @@ pub enum CoreError {
     #[error("this library was made by a newer version of Arete (unknown migration {migration})")]
     NewerSchema { migration: String },
 
+    /// A migration left a row that points at a missing row. The library is
+    /// not changed: the migration rolls back.
+    #[error("migration {migration} leaves a broken reference in table {table}")]
+    BrokenMigration { migration: String, table: String },
+
     #[error("no library is open")]
     NoLibraryOpen,
 
@@ -74,6 +79,7 @@ impl CoreError {
             CoreError::AlreadyALibrary { .. } => "AlreadyALibrary",
             CoreError::FolderNotEmpty { .. } => "FolderNotEmpty",
             CoreError::NewerSchema { .. } => "NewerSchema",
+            CoreError::BrokenMigration { .. } => "BrokenMigration",
             CoreError::NoLibraryOpen => "NoLibraryOpen",
             CoreError::StatusMoveRefused { .. } => "StatusMoveRefused",
             CoreError::StylesNotReady { .. } => "StylesNotReady",

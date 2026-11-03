@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { toCoreError, type CoreError } from "../../shell/coreError";
-import { announceTreeChange } from "../../shell/treeChanges";
+import { announceThesisChange } from "../../shell/thesisChanges";
 import { Badge, Button, SectionHeader } from "../../ui";
 import type { Step, ThesisTab } from "../../shell/navPath";
 import type { View } from "../../shell/sidebar";
@@ -54,7 +54,7 @@ export function ThesisView({ id, tab, onOpen, onGo }: Props) {
       } else {
         const { outcome: _, ...moved } = result;
         setThesis(moved);
-        announceTreeChange();
+        announceThesisChange();
       }
     } catch (raw) {
       setError(toCoreError(raw));
@@ -73,16 +73,16 @@ export function ThesisView({ id, tab, onOpen, onGo }: Props) {
             <h1>{thesis.title}</h1>
             <ThesisChips thesis={thesis} onOpen={onOpen} />
             {!section && thesis.statement && <p className="statement">{thesis.statement}</p>}
-            {!section && thesis.manualMoves.length > 0 && (
+            {!section && thesis.moves.length > 0 && (
               <div className="actions">
-                {thesis.manualMoves
+                {thesis.moves
                   .filter((to) => to !== "abandoned")
                   .map((to) => (
                     <Button key={to} onClick={() => move(to)}>
                       Move to {statusLabel[to]}
                     </Button>
                   ))}
-                {thesis.manualMoves.includes("abandoned") &&
+                {thesis.moves.includes("abandoned") &&
                   (confirmAbandon ? (
                     <Button variant="destructive" onClick={() => move("abandoned")}>
                       Confirm: abandon this Thesis

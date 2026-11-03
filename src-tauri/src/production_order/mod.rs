@@ -24,7 +24,7 @@ use std::collections::HashMap;
 use rusqlite::{params, OptionalExtension, Row};
 
 use crate::cost_sheet::{self, HomeAmount, TierUnitCost};
-use crate::thesis::{self, ThesisId, ThesisStatus};
+use crate::thesis::{self, ThesisId};
 use crate::error::{CoreError, CoreResult};
 use crate::library::Library;
 use crate::lifecycle;
@@ -117,13 +117,10 @@ fn from_row(row: &Row) -> rusqlite::Result<ProductionOrder> {
     })
 }
 
-/// Creates a Draft Production Order on a Thesis for one Vendor. Refuses an
-/// Abandoned Thesis.
+/// Creates a Draft Production Order on a Thesis for one Vendor. Refuses a
+/// Thesis that takes no orders ([`thesis::ThesisStatus::takes_production_orders`]).
 pub fn create_production_order(lib: &Library, thesis_id: ThesisId, vendor_id: VendorId) -> CoreResult<ProductionOrder> {
-    let t = thesis::get_thesis(lib, thesis_id)?;
-    if t.status == ThesisStatus::Abandoned {
-        return Err(CoreError::InvalidInput { reason: "an Abandoned Thesis takes no Production Orders".into() });
-    }
+    thesis::check_takes_production_orders(&thesis::get_thesis(lib, thesis_id)?)?;
     vendor::get_vendor(lib, vendor_id)?;
     let conn = lib.writer()?;
     conn.execute(

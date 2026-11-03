@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { toCoreError, type CoreError } from "../../shell/coreError";
-import { listenTreeChanges } from "../../shell/treeChanges";
+import { listenThesisChanges } from "../../shell/thesisChanges";
 import { thesisApi } from "./api";
 import { ALL_THESES, areaOption, NEW_THESIS, pickerChoice } from "./pickerChoice";
 import { statusLabel, type ThesisGroup } from "./types";
@@ -38,7 +38,7 @@ export function ThesisPicker({ value, version, sharedAreas, openArea, onArea, on
   }, []);
   useEffect(reload, [reload, version]);
   // A status move regroups the Thesis.
-  useEffect(() => listenTreeChanges(reload), [reload]);
+  useEffect(() => listenThesisChanges(reload), [reload]);
 
   const missing = groups !== undefined && value !== undefined && !groups.some((g) => g.theses.some((t) => t.id === value));
   useEffect(() => {

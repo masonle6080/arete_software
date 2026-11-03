@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { toCoreError } from "../../../shell/coreError";
 import { steps } from "../../../shell/navPath";
-import { announceTreeChange } from "../../../shell/treeChanges";
+import { announceThesisChange } from "../../../shell/thesisChanges";
 import { Button, EmptyText } from "../../../ui";
 import { documentApi, essayThesisApi, type DocumentSummary } from "../../essays/api";
 import type { ThesisSection, ThesisSectionProps } from ".";
@@ -30,7 +30,7 @@ function EssaysSection({ thesis, onOpen }: ThesisSectionProps) {
       setError(toCoreError(e).message);
     }
     reload();
-    announceTreeChange();
+    announceThesisChange();
   };
 
   const create = async () => {
@@ -38,7 +38,7 @@ function EssaysSection({ thesis, onOpen }: ThesisSectionProps) {
     try {
       const essay = await documentApi.create("essay", "");
       await essayThesisApi.link(essay.id, thesis.id);
-      announceTreeChange();
+      announceThesisChange();
       onOpen(steps.essay(essay.id, essay.title));
     } catch (e) {
       setError(toCoreError(e).message);

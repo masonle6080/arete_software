@@ -44,6 +44,22 @@ pub fn move_to(lib: &Library, id: ThesisId, to: ThesisStatus) -> Thesis {
     }
 }
 
+/// Moves a new Thesis along the lifecycle to `at`, or straight to
+/// Abandoned. The Thesis must have no Style that blocks Production.
+pub fn walk_to(lib: &Library, id: i64, at: ThesisStatus) {
+    use ThesisStatus::*;
+    if at == Abandoned {
+        move_to(lib, id, Abandoned);
+        return;
+    }
+    for step in [Developing, Design, Sampling, Production, Released, Archived] {
+        if thesis::get_thesis(lib, id).unwrap().status == at {
+            return;
+        }
+        move_to(lib, id, step);
+    }
+}
+
 /// A new Thesis moved to Design, so it takes new Styles.
 pub fn design_thesis(lib: &Library, title: &str) -> Thesis {
     let t = thesis::create_thesis(lib, title, "").unwrap();

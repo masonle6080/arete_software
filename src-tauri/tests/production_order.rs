@@ -16,7 +16,7 @@ use arete_lib::library::Library;
 use arete_lib::note::{self, NoteInput, NoteOwner};
 use arete_lib::production_order::{self as po, ProductionOrderStatus as Status};
 use arete_lib::style::{self, StyleBase, StyleId, StyleStatus};
-use arete_lib::thesis::{ThesisId, ThesisStatus};
+use arete_lib::thesis::{self, ThesisId, ThesisStatus};
 use arete_lib::vendor::{self, VendorId, VendorInput, VendorRole};
 use common::TestEnv;
 
@@ -106,16 +106,30 @@ fn production_orders_are_listed_by_their_own_thesis() {
 }
 
 #[test]
-fn an_abandoned_thesis_takes_no_production_orders() {
+fn only_a_thesis_from_design_to_released_takes_production_orders() {
+    use ThesisStatus::*;
+    let takes: Vec<ThesisStatus> = ThesisStatus::ALL.into_iter().filter(|s| s.takes_production_orders()).collect();
+    assert_eq!(takes, vec![Design, Sampling, Production, Released]);
+
     let env = TestEnv::new();
     let lib = env.library();
-    let f = a_thesis(&lib);
-    common::move_to(&lib, f.thesis_id, ThesisStatus::Abandoned);
+    let vendor_id = a_vendor(&lib, "Atlas Knit");
+    for (i, at) in ThesisStatus::ALL.into_iter().enumerate() {
+        let t = thesis::create_thesis(&lib, &format!("Idea {i}"), "").unwrap();
+        common::walk_to(&lib, t.id, at);
+        let t = thesis::get_thesis(&lib, t.id).unwrap();
+        let open = [Design, Sampling, Production, Released].contains(&at);
+        assert_eq!(t.can_add_production_orders, open, "{at}");
 
-    let err = po::create_production_order(&lib, f.thesis_id, f.vendor_id).unwrap_err();
+        let created = po::create_production_order(&lib, t.id, vendor_id);
 
-    assert!(matches!(err, CoreError::InvalidInput { .. }), "{err:?}");
-    assert_eq!(po::thesis_production_orders(&lib, f.thesis_id).unwrap(), []);
+        if open {
+            assert!(created.is_ok(), "{at}: {created:?}");
+        } else {
+            assert!(matches!(created, Err(CoreError::InvalidInput { .. })), "{at}: {created:?}");
+            assert_eq!(po::thesis_production_orders(&lib, t.id).unwrap(), [], "{at}");
+        }
+    }
 }
 
 /// The quantities of an order as (style, size, quantity), in order.

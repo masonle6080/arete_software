@@ -1,4 +1,4 @@
-//! Library core: Thesis capture, its one lifecycle (the idea and its Drop),
+//! Library core: Thesis capture, its one lifecycle (the idea and its release),
 //! the guards on its moves, and the grouped list.
 //!
 //! These tests call the domain API directly (no IPC) against a fresh
@@ -11,7 +11,7 @@ use arete_lib::error::CoreError;
 use arete_lib::library::Library;
 use arete_lib::style::{self, StyleStatus};
 use arete_lib::thesis::{self, Thesis, ThesisMove, ThesisStatus, ThesisWarning};
-use common::{move_to, TestEnv};
+use common::{move_to, walk_to, TestEnv};
 
 #[test]
 fn a_new_thesis_starts_as_seed_with_its_title_and_statement() {
@@ -43,7 +43,7 @@ fn a_thesis_moves_through_every_status_in_order() {
     let env = TestEnv::new();
     let lib = env.library();
     let t = thesis::create_thesis(&lib, "Amor fati", "").unwrap();
-    assert_eq!(t.manual_moves, vec![Developing, Abandoned]);
+    assert_eq!(t.moves, vec![Developing, Abandoned]);
 
     let expected_moves = [
         (Developing, vec![Design, Abandoned]),
@@ -56,7 +56,7 @@ fn a_thesis_moves_through_every_status_in_order() {
     for (to, moves) in expected_moves {
         let moved = move_to(&lib, t.id, to);
         assert_eq!(moved.status, to);
-        assert_eq!(moved.manual_moves, moves, "moves from {to}");
+        assert_eq!(moved.moves, moves, "moves from {to}");
         assert_eq!(thesis::get_thesis(&lib, t.id).unwrap(), moved);
     }
 }
@@ -122,7 +122,7 @@ fn a_thesis_can_be_abandoned_from_any_status_before_released() {
         let gone = move_to(&lib, t.id, Abandoned);
 
         assert_eq!(gone.status, Abandoned, "from {at}");
-        assert_eq!(gone.manual_moves, vec![], "from {at}");
+        assert_eq!(gone.moves, vec![], "from {at}");
     }
 }
 
@@ -317,20 +317,6 @@ fn the_thesis_list_groups_theses_by_status_in_lifecycle_order() {
 
 /// Moves Thesis `id` forward from Seed, one step at a time, until it is
 /// `at`. Abandoned is reached from Seed.
-fn walk_to(lib: &Library, id: i64, at: ThesisStatus) {
-    use ThesisStatus::*;
-    if at == Abandoned {
-        move_to(lib, id, Abandoned);
-        return;
-    }
-    for step in [Developing, Design, Sampling, Production, Released, Archived] {
-        if thesis::get_thesis(lib, id).unwrap().status == at {
-            return;
-        }
-        move_to(lib, id, step);
-    }
-}
-
 fn approve(lib: &Library, style_id: i64) {
     style::move_style(lib, style_id, StyleStatus::Sampling).unwrap();
     style::move_style(lib, style_id, StyleStatus::Approved).unwrap();

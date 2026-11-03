@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { toCoreError } from "../../shell/coreError";
 import { steps, type Step } from "../../shell/navPath";
-import { announceTreeChange } from "../../shell/treeChanges";
+import { announceThesisChange } from "../../shell/thesisChanges";
 import { linksApi, type EssayLinks } from "../links/api";
 import { thesisApi } from "../thesis/api";
 import type { Thesis } from "../thesis/types";
@@ -45,7 +45,7 @@ export function EssayTheses({ essayId, version, onOpen }: Props) {
       setError(toCoreError(e).message);
     }
     reload();
-    announceTreeChange();
+    announceThesisChange();
   };
 
   if (!links) return error ? <p className="error">{error}</p> : null;

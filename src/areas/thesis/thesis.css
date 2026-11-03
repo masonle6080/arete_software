@@ -46,5 +46,7 @@
 
 .overview-covers { list-style: none; margin: 0; padding: 0 0 var(--space-1); display: flex; gap: var(--space-3); overflow-x: auto; }
 .overview-covers li { flex: 0 0 96px; }
-.overview-covers li.cut { opacity: 0.5; }
+/* A Cut Style stays listed but muted, on the Overview and in the Styles tab. */
+.overview-covers li.cut,
+.style-grid li.cut { opacity: 0.5; }
 .overview-covers .style-card-name { font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
