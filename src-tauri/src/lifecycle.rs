@@ -1,4 +1,4 @@
-//! The shared shape of every status lifecycle (Thesis, Drop, Style,
+//! The shared shape of every status lifecycle (Thesis, Style,
 //! Documentary, Production Order).
 //!
 //! Each lifecycle declares its enum with [`status_enum!`], which adds the

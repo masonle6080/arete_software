@@ -7,6 +7,7 @@
 use std::path::PathBuf;
 
 use arete_lib::library::{self, AppConfig, Library};
+use arete_lib::thesis::{self, Thesis, ThesisId, ThesisMove, ThesisStatus};
 use tempfile::TempDir;
 
 pub struct TestEnv {
@@ -32,4 +33,20 @@ impl TestEnv {
     pub fn library(&self) -> Library {
         library::create_library(&self.config, &self.path("library")).unwrap()
     }
+}
+
+/// Moves Thesis `id` to `to` with `confirmed` set, and expects the move to
+/// go through.
+pub fn move_to(lib: &Library, id: ThesisId, to: ThesisStatus) -> Thesis {
+    match thesis::move_thesis(lib, id, to, true).unwrap() {
+        ThesisMove::Moved(t) => t,
+        other => panic!("→ {to}: {other:?}"),
+    }
+}
+
+/// A new Thesis moved to Design, so it takes new Styles.
+pub fn design_thesis(lib: &Library, title: &str) -> Thesis {
+    let t = thesis::create_thesis(lib, title, "").unwrap();
+    move_to(lib, t.id, ThesisStatus::Developing);
+    move_to(lib, t.id, ThesisStatus::Design)
 }

@@ -1,7 +1,7 @@
 //! Style status and its lifecycle rules.
 //!
 //! Draft → Sampling → Approved, plus Cut from any status. Cut is final, and
-//! a Cut Style stays visible on its Drop.
+//! a Cut Style stays visible on its Thesis.
 
 use crate::lifecycle::status_enum;
 
@@ -21,7 +21,7 @@ impl StyleStatus {
         matches!((self, to), (Draft, Sampling) | (Sampling, Approved) | (Draft | Sampling | Approved, Cut))
     }
 
-    /// Whether a Style in this status lets its Drop move to Production.
+    /// Whether a Style in this status lets its Thesis move to Production.
     pub fn ready_for_production(self) -> bool {
         matches!(self, StyleStatus::Approved | StyleStatus::Cut)
     }

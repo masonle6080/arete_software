@@ -1,6 +1,6 @@
 //! Duplicating a Style: the same design in another color (spec #1, ticket #22).
 //!
-//! The copy is a new Draft Style on the same Drop, with the same name and
+//! The copy is a new Draft Style on the same Thesis, with the same name and
 //! the founder's new color. It gets a copy of the base and sizes, the Tech
 //! Pack (new Point of Measure and size IDs), the design files (and the
 //! Cover, on the copy's own copy of the file), the Decorations, the Design
@@ -17,23 +17,23 @@ use rusqlite::{params, Connection};
 use super::{base, get_style, Style, StyleId, StyleStatus};
 use crate::error::{CoreError, CoreResult};
 use crate::library::Library;
-use crate::{cost_sheet, decoration, design_decision, drop, moodboard, tech_pack};
+use crate::{cost_sheet, decoration, design_decision, moodboard, tech_pack, thesis};
 
-/// Copies Style `id` into a new Draft Style in `color`, on the same Drop,
+/// Copies Style `id` into a new Draft Style in `color`, on the same Thesis,
 /// and returns the copy. The color must not be blank. Samples stay with the
-/// original. The Drop must be in Design or Sampling.
+/// original. The Thesis must take new Styles (Developing, Design or Sampling).
 pub fn duplicate_style(lib: &Library, id: StyleId, color: &str) -> CoreResult<Style> {
     let color = color.trim();
     if color.is_empty() {
         return Err(CoreError::InvalidInput { reason: "the copy needs a color".into() });
     }
     let original = get_style(lib, id)?;
-    drop::check_takes_new_styles(&drop::get_drop(lib, original.drop_id)?)?;
+    thesis::check_takes_new_styles(&thesis::get_thesis(lib, original.thesis_id)?)?;
     let conn = lib.writer()?;
     let tx = conn.unchecked_transaction()?;
     tx.execute(
-        "INSERT INTO style (drop_id, name, color, status) VALUES (?1, ?2, ?3, ?4)",
-        params![original.drop_id, original.name, color, StyleStatus::Draft.as_db()],
+        "INSERT INTO style (thesis_id, name, color, status) VALUES (?1, ?2, ?3, ?4)",
+        params![original.thesis_id, original.name, color, StyleStatus::Draft.as_db()],
     )?;
     let copy = tx.last_insert_rowid();
     copy_areas(&tx, id, copy)?;

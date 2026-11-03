@@ -6,11 +6,9 @@
 mod common;
 
 use arete_lib::blank::{self, BlankInput};
-use arete_lib::drop;
 use arete_lib::error::CoreError;
 use arete_lib::library::Library;
 use arete_lib::style::{self, Style, StyleBase};
-use arete_lib::thesis;
 use arete_lib::vendor::{self, VendorId, VendorInput, VendorRole};
 use common::TestEnv;
 
@@ -38,9 +36,8 @@ fn tee_input(vendor_id: VendorId) -> BlankInput {
 }
 
 fn new_style(lib: &Library) -> Style {
-    let t = thesis::create_thesis(lib, "Amor fati", "").unwrap();
-    let d = drop::create_drop(lib, t.id, "Amor fati SS27").unwrap();
-    style::create_style(lib, d.id, "Heavy tee", "Bone").unwrap()
+    let t = common::design_thesis(lib, "Amor fati");
+    style::create_style(lib, t.id, "Heavy tee", "Bone").unwrap()
 }
 
 #[test]
@@ -249,14 +246,13 @@ fn a_blank_edit_cannot_remove_a_size_a_style_uses() {
 }
 
 #[test]
-fn one_blank_can_be_the_base_of_styles_on_different_drops() {
+fn one_blank_can_be_the_base_of_styles_on_different_theses() {
     let env = TestEnv::new();
     let lib = env.library();
     let b = blank::create_blank(&lib, tee_input(new_vendor(&lib, "LA Apparel"))).unwrap();
     let first = new_style(&lib);
-    let t = thesis::create_thesis(&lib, "Memento mori", "").unwrap();
-    let d = drop::create_drop(&lib, t.id, "Memento mori FW27").unwrap();
-    let second = style::create_style(&lib, d.id, "Heavy tee", "Black").unwrap();
+    let t = common::design_thesis(&lib, "Memento mori");
+    let second = style::create_style(&lib, t.id, "Heavy tee", "Black").unwrap();
 
     for s in [&first, &second] {
         style::set_style_base(&lib, s.id, StyleBase::Blank { blank_id: b.id }).unwrap();

@@ -13,21 +13,19 @@ use arete_lib::blank::{self, BlankInput};
 use arete_lib::decoration::{self, DecorationInput};
 use arete_lib::design_decision::{self, DesignAspect};
 use arete_lib::document::{self, DocumentEdit, DocumentKind, PassageText};
-use arete_lib::drop;
 use arete_lib::moodboard::{self, MoodboardOwner};
 use arete_lib::sample;
 use arete_lib::error::CoreError;
 use arete_lib::library::Library;
 use arete_lib::style::{self, StyleBase, StyleId, StyleStatus};
 use arete_lib::tech_pack::{self, Fabric, TechPackDetails};
-use arete_lib::thesis;
+use arete_lib::thesis::ThesisStatus;
 use arete_lib::vendor::{self, VendorId, VendorInput, VendorRole};
 use common::TestEnv;
 
 fn a_style(lib: &Library) -> StyleId {
-    let t = thesis::create_thesis(lib, "Amor fati", "").unwrap();
-    let d = drop::create_drop(lib, t.id, "Amor fati SS27").unwrap();
-    style::create_style(lib, d.id, "Heavy tee", "Bone").unwrap().id
+    let t = common::design_thesis(lib, "Amor fati");
+    style::create_style(lib, t.id, "Heavy tee", "Bone").unwrap().id
 }
 
 fn a_vendor(lib: &Library, name: &str, role: VendorRole) -> VendorId {
@@ -65,7 +63,7 @@ fn source_file(env: &TestEnv, name: &str, bytes: &[u8]) -> PathBuf {
 }
 
 #[test]
-fn a_duplicate_is_a_new_draft_style_in_the_new_color_on_the_same_drop() {
+fn a_duplicate_is_a_new_draft_style_in_the_new_color_on_the_same_thesis() {
     let env = TestEnv::new();
     let lib = env.library();
     let original = style::get_style(&lib, a_style(&lib)).unwrap();
@@ -74,12 +72,12 @@ fn a_duplicate_is_a_new_draft_style_in_the_new_color_on_the_same_drop() {
     let copy = style::duplicate_style(&lib, original.id, "  Black ").unwrap();
 
     assert_ne!(copy.id, original.id);
-    assert_eq!(copy.drop_id, original.drop_id);
+    assert_eq!(copy.thesis_id, original.thesis_id);
     assert_eq!(copy.name, "Heavy tee");
     assert_eq!(copy.color, "Black");
     assert_eq!(copy.status, StyleStatus::Draft);
     assert_eq!(style::get_style(&lib, original.id).unwrap().status, StyleStatus::Sampling);
-    let ids: Vec<StyleId> = style::drop_styles(&lib, original.drop_id).unwrap().iter().map(|s| s.id).collect();
+    let ids: Vec<StyleId> = style::thesis_styles(&lib, original.thesis_id).unwrap().iter().map(|s| s.id).collect();
     assert_eq!(ids, vec![original.id, copy.id]);
 }
 
@@ -91,25 +89,25 @@ fn a_duplicate_needs_a_color_and_an_existing_style() {
 
     assert!(matches!(style::duplicate_style(&lib, id, "  "), Err(CoreError::InvalidInput { .. })));
     assert!(matches!(style::duplicate_style(&lib, 999, "Black"), Err(CoreError::NotFound { .. })));
-    assert_eq!(style::drop_styles(&lib, style::get_style(&lib, id).unwrap().drop_id).unwrap().len(), 1);
+    assert_eq!(style::thesis_styles(&lib, style::get_style(&lib, id).unwrap().thesis_id).unwrap().len(), 1);
 }
 
 #[test]
-fn a_style_is_not_duplicated_once_its_drop_is_in_production() {
+fn a_style_is_not_duplicated_once_its_thesis_is_in_production() {
     let env = TestEnv::new();
     let lib = env.library();
     let id = a_style(&lib);
-    let drop_id = style::get_style(&lib, id).unwrap().drop_id;
+    let thesis_id = style::get_style(&lib, id).unwrap().thesis_id;
     style::move_style(&lib, id, StyleStatus::Sampling).unwrap();
     style::move_style(&lib, id, StyleStatus::Approved).unwrap();
-    drop::move_drop(&lib, drop_id, drop::DropStage::Sampling, false).unwrap();
+    common::move_to(&lib, thesis_id, ThesisStatus::Sampling);
     style::duplicate_style(&lib, id, "Black").map(|c| style::move_style(&lib, c.id, StyleStatus::Cut)).unwrap().unwrap();
-    drop::move_drop(&lib, drop_id, drop::DropStage::Production, false).unwrap();
+    common::move_to(&lib, thesis_id, ThesisStatus::Production);
 
     let err = style::duplicate_style(&lib, id, "Olive").unwrap_err();
 
     assert!(matches!(err, CoreError::InvalidInput { .. }), "{err:?}");
-    assert_eq!(style::drop_styles(&lib, drop_id).unwrap().len(), 2);
+    assert_eq!(style::thesis_styles(&lib, thesis_id).unwrap().len(), 2);
 }
 
 #[test]

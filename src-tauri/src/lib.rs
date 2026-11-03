@@ -19,7 +19,6 @@ pub mod document;
 pub mod media;
 pub mod note;
 pub mod vendor;
-pub mod drop;
 pub mod moodboard;
 pub mod clip;
 pub mod style;
