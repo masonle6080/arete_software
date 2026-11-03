@@ -9,7 +9,6 @@ export type CoreErrorKind =
   | "NewerSchema"
   | "NoLibraryOpen"
   | "StatusMoveRefused"
-  | "ActiveDropExists"
   | "StylesNotReady"
   | "DocumentaryExists"
   | "LibraryDisconnected"

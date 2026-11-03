@@ -11,7 +11,7 @@ export const styleStatusLabel: Record<StyleStatus, string> = {
 /** Mirrors `Style` in `src-tauri/src/style/mod.rs`. */
 export interface Style {
   id: number;
-  dropId: number;
+  thesisId: number;
   name: string;
   /** The one color of this Style. */
   color: string;

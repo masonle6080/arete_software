@@ -137,7 +137,7 @@ interface BreadcrumbProps {
   onOpen(depth: number): void;
 }
 
-/** Where the open screen sits, such as `Impermanence › Drop › Hooded Coat (Ash)`. Each part opens its level. */
+/** Where the open screen sits, such as `Impermanence › Styles › Hooded Coat (Ash)`. Each part opens its level. */
 export function Breadcrumb({ items, onOpen }: BreadcrumbProps) {
   return (
     <nav className="breadcrumb" aria-label="Breadcrumb">

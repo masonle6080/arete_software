@@ -1,19 +1,9 @@
-import { useCoreQuery } from "../../../shell/coreQuery";
-import { EmptyText } from "../../../ui";
-import { dropApi } from "../../drop/api";
-import { DropProductionOrders } from "../../productionOrder/DropProductionOrders";
+import { ThesisProductionOrders } from "../../productionOrder/ThesisProductionOrders";
 import type { ThesisSection, ThesisSectionProps } from ".";
 
-/**
- * Stop-gap until the Drop record goes (spec #44): the Production Orders of
- * the Thesis's active Drop.
- */
+/** The Production Orders of the Thesis and their cost roll-up. */
 function ProductionSectionView({ thesis }: ThesisSectionProps) {
-  const { data, error } = useCoreQuery(() => dropApi.thesisDrops(thesis.id), [thesis.id]);
-  if (error) return <p className="error">{error.message}</p>;
-  if (!data) return null;
-  const active = data.drops.find((d) => d.stage !== "cancelled");
-  return active ? <DropProductionOrders drop={active} /> : <EmptyText>No Production Orders yet.</EmptyText>;
+  return <ThesisProductionOrders thesis={thesis} />;
 }
 
 export const productionSection: ThesisSection = { id: "production", title: "Production", Component: ProductionSectionView };

@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { toCoreError, type CoreError } from "../../shell/coreError";
+import { announceTreeChange } from "../../shell/treeChanges";
 import { Badge, Button, SectionHeader } from "../../ui";
 import type { Step, ThesisTab } from "../../shell/navPath";
 import type { View } from "../../shell/sidebar";
@@ -7,7 +8,13 @@ import { thesisApi } from "./api";
 import { thesisSections } from "./sections";
 import { ThesisChips } from "./ThesisChips";
 import { ThesisOverview } from "./ThesisOverview";
-import { statusLabel, type Thesis, type ThesisStatus } from "./types";
+import { statusLabel, warningText, type Thesis, type ThesisStatus, type ThesisWarning } from "./types";
+
+/** A move that the core stopped until the founder confirms it. */
+interface PendingMove {
+  to: ThesisStatus;
+  warnings: ThesisWarning[];
+}
 
 interface Props {
   id: number;
@@ -27,16 +34,28 @@ interface Props {
 export function ThesisView({ id, tab, onOpen, onGo }: Props) {
   const [thesis, setThesis] = useState<Thesis>();
   const [error, setError] = useState<CoreError>();
+  const [pending, setPending] = useState<PendingMove>();
+  const [confirmAbandon, setConfirmAbandon] = useState(false);
 
   const reload = useCallback(() => {
     thesisApi.getThesis(id).then(setThesis, (raw) => setError(toCoreError(raw)));
   }, [id]);
   useEffect(reload, [reload]);
 
-  async function move(to: ThesisStatus) {
+  async function move(to: ThesisStatus, confirmed = false) {
     setError(undefined);
+    setPending(undefined);
+    setConfirmAbandon(false);
     try {
-      setThesis(await thesisApi.moveThesis(id, to));
+      const result = await thesisApi.moveThesis(id, to, confirmed);
+      if (result.outcome === "needsConfirmation") {
+        setThesis(result.thesis);
+        setPending({ to, warnings: result.warnings });
+      } else {
+        const { outcome: _, ...moved } = result;
+        setThesis(moved);
+        announceTreeChange();
+      }
     } catch (raw) {
       setError(toCoreError(raw));
     }
@@ -56,11 +75,35 @@ export function ThesisView({ id, tab, onOpen, onGo }: Props) {
             {!section && thesis.statement && <p className="statement">{thesis.statement}</p>}
             {!section && thesis.manualMoves.length > 0 && (
               <div className="actions">
-                {thesis.manualMoves.map((to) => (
-                  <Button key={to} onClick={() => move(to)}>
-                    Move to {statusLabel[to]}
-                  </Button>
-                ))}
+                {thesis.manualMoves
+                  .filter((to) => to !== "abandoned")
+                  .map((to) => (
+                    <Button key={to} onClick={() => move(to)}>
+                      Move to {statusLabel[to]}
+                    </Button>
+                  ))}
+                {thesis.manualMoves.includes("abandoned") &&
+                  (confirmAbandon ? (
+                    <Button variant="destructive" onClick={() => move("abandoned")}>
+                      Confirm: abandon this Thesis
+                    </Button>
+                  ) : (
+                    <Button variant="destructive" onClick={() => setConfirmAbandon(true)}>
+                      Abandon
+                    </Button>
+                  ))}
+              </div>
+            )}
+            {!section && pending && (
+              <div className="move-warning">
+                <p>Moving to {statusLabel[pending.to]} needs confirmation:</p>
+                <ul>
+                  {pending.warnings.map((w, i) => (
+                    <li key={i}>{warningText(w)}</li>
+                  ))}
+                </ul>
+                <Button onClick={() => move(pending.to, true)}>Move to {statusLabel[pending.to]} anyway</Button>
+                <Button onClick={() => setPending(undefined)}>Keep {statusLabel[thesis.status]}</Button>
               </div>
             )}
           </header>
