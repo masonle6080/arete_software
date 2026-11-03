@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { open } from "@tauri-apps/plugin-dialog";
 import { toCoreError, type CoreError } from "../../../shell/coreError";
-import { announceTreeChange } from "../../../shell/treeChanges";
+import { announceThesisChange } from "../../../shell/thesisChanges";
 import { Button, EmptyText } from "../../../ui";
 import { styleApi } from "../api";
 import { canBeCover } from "../cover";
@@ -39,8 +39,8 @@ function FilesSectionView({ style, onStyleChanged }: StyleSectionProps) {
 
   /**
    * Runs one change, shows its error, and reloads the Style for its Cover.
-   * A change to the Cover also tells the Thesis tree and Overview, which
-   * show Covers, to reload.
+   * A change to the Cover also tells the Thesis Overview, which shows
+   * Covers, to reload.
    */
   async function change(run: () => Promise<unknown>, changesCover: boolean) {
     setBusy(true);
@@ -48,7 +48,7 @@ function FilesSectionView({ style, onStyleChanged }: StyleSectionProps) {
     try {
       await run();
       onStyleChanged();
-      if (changesCover) announceTreeChange();
+      if (changesCover) announceThesisChange();
     } catch (raw) {
       setError(toCoreError(raw));
     } finally {

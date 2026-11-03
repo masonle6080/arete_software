@@ -1,7 +1,7 @@
 import { convertFileSrc } from "@tauri-apps/api/core";
 import { useCallback, useEffect, useState, type FormEvent } from "react";
 import { toCoreError, type CoreError } from "../../shell/coreError";
-import { announceTreeChange } from "../../shell/treeChanges";
+import { announceThesisChange } from "../../shell/thesisChanges";
 import { Badge, Button, EmptyText } from "../../ui";
 import type { Thesis } from "../thesis/types";
 import { styleApi } from "./api";
@@ -34,7 +34,7 @@ export function ThesisStyles({ thesis, onOpen }: Props) {
       await styleApi.createStyle(thesis.id, name, color);
       setName("");
       setColor("");
-      announceTreeChange();
+      announceThesisChange();
     } catch (raw) {
       setError(toCoreError(raw));
     }

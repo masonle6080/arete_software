@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { toCoreError, type CoreError } from "../../shell/coreError";
-import { announceTreeChange } from "../../shell/treeChanges";
+import { announceThesisChange } from "../../shell/thesisChanges";
 import { Badge, Button, SectionHeader } from "../../ui";
 import type { Step, ThesisTab } from "../../shell/navPath";
 import type { View } from "../../shell/sidebar";
@@ -54,7 +54,7 @@ export function ThesisView({ id, tab, onOpen, onGo }: Props) {
       } else {
         const { outcome: _, ...moved } = result;
         setThesis(moved);
-        announceTreeChange();
+        announceThesisChange();
       }
     } catch (raw) {
       setError(toCoreError(raw));

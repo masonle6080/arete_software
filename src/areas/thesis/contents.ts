@@ -42,9 +42,9 @@ export async function loadThesisContents(thesisId: number, sources = coreSources
 }
 
 /**
- * What opening each item of the current Thesis does, in the sidebar and on the
- * Overview and the sidebar: a tab opens from the Thesis root, and an item opens on top of
- * its tab, so the breadcrumb reads `Thesis › Styles › Style`.
+ * What opening each item of the current Thesis does on the Overview: a tab
+ * opens from the Thesis root, and an item opens on top of its tab, so the
+ * breadcrumb reads `Thesis › Styles › Style`.
  */
 export const itemView = {
   tab: (tab: ThesisTab): View => ({ kind: "thesis", tab }),

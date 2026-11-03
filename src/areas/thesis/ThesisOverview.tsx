@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { useCoreQuery } from "../../shell/coreQuery";
 import { thesisTabLabel, type ThesisTab, type View } from "../../shell/sidebar";
-import { listenTreeChanges } from "../../shell/treeChanges";
+import { listenThesisChanges } from "../../shell/thesisChanges";
 import { Button, EmptyText, SectionHeader } from "../../ui";
 import { CardFaceView } from "../style/ThesisStyles";
 import { itemView, loadThesisContents } from "./contents";
@@ -21,7 +21,7 @@ interface Props {
  */
 export function ThesisOverview({ thesis, onGo }: Props) {
   const { data: contents, error, reload } = useCoreQuery(() => loadThesisContents(thesis.id), [thesis]);
-  useEffect(() => listenTreeChanges(reload), [reload]);
+  useEffect(() => listenThesisChanges(reload), [reload]);
 
   if (error) return <p className="error">{error.message}</p>;
   if (!contents) return null;

@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState, type FormEvent } from "react";
 import { convertFileSrc } from "@tauri-apps/api/core";
 import { toCoreError, type CoreError } from "../../shell/coreError";
-import { announceTreeChange } from "../../shell/treeChanges";
+import { announceThesisChange } from "../../shell/thesisChanges";
 import { Badge, Button, SectionHeader, SegmentedControl } from "../../ui";
 import { thesisApi } from "../thesis/api";
 import { steps, type Step } from "../../shell/navPath";
@@ -72,7 +72,7 @@ export function StyleView({ id, onOpen, onOpenStyle }: Props) {
     setConfirmCut(false);
     try {
       setStyle(await styleApi.moveStyle(id, to));
-      announceTreeChange();
+      announceThesisChange();
     } catch (raw) {
       setError(toCoreError(raw));
     }
@@ -84,7 +84,7 @@ export function StyleView({ id, onOpen, onOpenStyle }: Props) {
     try {
       const copy = await styleApi.duplicateStyle(id, copyColor ?? "");
       setCopyColor(undefined);
-      announceTreeChange();
+      announceThesisChange();
       onOpenStyle(steps.style(copy));
     } catch (raw) {
       setError(toCoreError(raw));
