@@ -25,7 +25,7 @@ export function ThesisChips({ thesis, onOpen }: Props) {
   const { drop, essayCount, documentary } = links;
   return (
     <div className="chips header-chips">
-      <Chip onClick={() => onOpen(steps.thesis("drop"))}>{drop ? `Drop · ${stageLabel[drop.stage]}` : "No Drop"}</Chip>
+      <Chip onClick={() => onOpen(steps.thesis("styles"))}>{drop ? `Drop · ${stageLabel[drop.stage]}` : "No Drop"}</Chip>
       <Chip onClick={() => onOpen(steps.thesis("essays"))}>{countLabel(essayCount, "Essay")}</Chip>
       <Chip onClick={() => onOpen(steps.thesis("documentary"))}>
         {documentary ? `Documentary · ${documentaryStatusLabel[documentary.status]}` : "No Documentary"}

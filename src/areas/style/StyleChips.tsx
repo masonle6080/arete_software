@@ -31,7 +31,7 @@ export function StyleChips({ style, onOpen, onSegment }: Props) {
       <Chip title="Open the Thesis" onClick={() => onOpen(steps.thesis("overview", thesis.id))}>
         {thesis.title}
       </Chip>
-      <Chip title="Open the Drop" onClick={() => onOpen(steps.thesis("drop", thesis.id))}>
+      <Chip title="Open Styles" onClick={() => onOpen(steps.thesis("styles", thesis.id))}>
         Drop · {drop.name}
       </Chip>
       <Chip title="Open Build" onClick={() => onSegment("build")}>

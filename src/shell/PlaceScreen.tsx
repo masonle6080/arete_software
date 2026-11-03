@@ -16,7 +16,7 @@ interface Props {
   thesisId?: number;
   /** Opens an item: one level down, back to its level if it is on the path, or a Thesis tab (see `openStep`). */
   onPush(step: Step): void;
-  /** Starts the path of a sidebar view, for example a Style under the Drop tab from the Thesis Overview. */
+  /** Starts the path of a sidebar view, for example a Style under the Styles tab from the Thesis Overview. */
   onGo(view: View): void;
   /** Shows another item in place of this one, for example a Style's new copy. */
   onReplace(step: Step): void;

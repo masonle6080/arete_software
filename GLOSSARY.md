@@ -1,6 +1,6 @@
 # Arete
 
-A creative and operations system for a solo, concept-led clothing brand. Each drop of clothing expresses one philosophical idea, which essays and a documentary develop.
+A creative and operations system for a solo, concept-led clothing brand. Each release of clothing expresses one philosophical idea, which essays and a documentary develop.
 
 ## Language
 
@@ -13,8 +13,8 @@ _Avoid_: Workspace, vault, database, project
 ### Ideas and storytelling
 
 **Thesis**:
-A philosophical idea from the founder's life that a Drop expresses. A Thesis can exist and develop before any Drop is made from it.
-_Avoid_: Theme, concept, idea
+A philosophical idea from the founder's life, together with the one release of clothing that expresses it. Its lifecycle is Seed → Developing → Design → Sampling → Production → Released → Archived, and it can become Abandoned at any status before Released.
+_Avoid_: Theme, concept, idea, collection
 
 **Essay**:
 A long-form written piece, authored in the app, that explores one idea. An Essay can support any number of Theses, including none.
@@ -29,7 +29,7 @@ A freeform canvas of visual references, text, and color swatches, attached to a 
 _Avoid_: Inspiration board, board
 
 **Documentary**:
-A film that develops one Thesis. A Thesis has at most one Documentary, and when it has one, the Documentary is released before the Drop.
+A film that develops one Thesis. A Thesis has at most one Documentary, and when it has one, the Documentary is released before the Thesis is Released.
 _Avoid_: Video, episode, chapter
 
 **Script**:
@@ -43,11 +43,11 @@ _Avoid_: Footage item, video, shot
 ### Products
 
 **Drop**:
-A release of clothing made from exactly one Thesis. Each Thesis has at most one Drop that is not cancelled.
-_Avoid_: Collection, release, season
+The release phase of a Thesis, from Design to Released. A Drop is a phase, not a record: the Thesis is the release, and the Thesis title is its only name.
+_Avoid_: Collection, season, Drop name
 
 **Style**:
-A single garment design in a single color, made in a range of sizes. The same design in another color is a separate Style.
+A single garment design in a single color, made in a range of sizes, that belongs to one Thesis. The same design in another color is a separate Style.
 _Avoid_: Product, item, piece, colorway, SKU
 
 **Cover**:
@@ -59,7 +59,7 @@ A choice made on a Style, classified by aspect (Decoration, fabric, color, silho
 _Avoid_: Design note, spec
 
 **Blank**:
-A ready-made garment model bought from a Vendor, which a Style can use as its base. A Blank can be reused across Drops.
+A ready-made garment model bought from a Vendor, which a Style can use as its base. A Blank can be reused across Theses.
 _Avoid_: Base garment, stock garment
 
 **Tech Pack**:
@@ -97,5 +97,5 @@ An order quantity at which a Cost Sheet gives unit costs, such as 50, 100, or 30
 _Avoid_: Price break, MOQ level
 
 **Production Order**:
-A committed order to a Vendor for a Drop's Styles, with quantities per size, unit costs, and a delivery date. It is the last step the system tracks.
+A committed order to a Vendor for the Styles of one Thesis, with quantities per size, unit costs, and a delivery date. It is the last step the system tracks.
 _Avoid_: PO, purchase order, bulk order

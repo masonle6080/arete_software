@@ -13,7 +13,7 @@ import {
   type VendorRole,
 } from "./api";
 import "./vendor.css";
-import { Button, EmptyText, SectionHeader } from "../../ui";
+import { Button, EmptyText, SectionHeader, icons } from "../../ui";
 
 /** `null` id: a new Vendor. */
 type Editing = { id: number | null; input: VendorInput };
@@ -217,4 +217,4 @@ function VendorDetail({ vendor }: { vendor: Vendor }) {
   );
 }
 
-export const vendorArea: Area = { id: "vendor", label: "Vendors", Screen: VendorScreen };
+export const vendorArea: Area = { id: "vendor", label: "Vendors", icon: icons.vendor, Screen: VendorScreen };

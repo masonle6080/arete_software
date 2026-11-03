@@ -127,4 +127,5 @@ function DropSectionView({ thesis, onThesisChanged, onOpen }: ThesisSectionProps
   );
 }
 
-export const dropSection: ThesisSection = { id: "drop", title: "Drop & Styles", Component: DropSectionView };
+/** Stop-gap until the Drop record goes (spec #44): the Styles tab shows the Drop screen. */
+export const stylesSection: ThesisSection = { id: "styles", title: "Styles", Component: DropSectionView };

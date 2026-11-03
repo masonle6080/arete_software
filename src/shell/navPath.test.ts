@@ -6,8 +6,8 @@ const coat = steps.style({ id: 4, name: "Hooded Coat", color: "Ash" });
 
 describe("the navigation path", () => {
   it("push adds a place on top, and the breadcrumb shows every label from the root", () => {
-    const path = push(push(thesisRoot, { place: { kind: "thesis", tab: "drop" }, label: "Drop" }), coat);
-    expect(crumbs(path)).toEqual(["Impermanence", "Drop", "Hooded Coat (Ash)"]);
+    const path = push(push(thesisRoot, { place: { kind: "thesis", tab: "styles" }, label: "Styles" }), coat);
+    expect(crumbs(path)).toEqual(["Impermanence", "Styles", "Hooded Coat (Ash)"]);
     expect(current(path).place).toEqual({ kind: "style", id: 4 });
   });
 
@@ -21,8 +21,8 @@ describe("the navigation path", () => {
   });
 
   it("popTo goes back to one level of the breadcrumb", () => {
-    const path = push(push(push(thesisRoot, { place: { kind: "thesis", tab: "drop" }, label: "Drop" }), coat), steps.passage("p1"));
-    expect(crumbs(popTo(path, 1))).toEqual(["Impermanence", "Drop"]);
+    const path = push(push(push(thesisRoot, { place: { kind: "thesis", tab: "styles" }, label: "Styles" }), coat), steps.passage("p1"));
+    expect(crumbs(popTo(path, 1))).toEqual(["Impermanence", "Styles"]);
     expect(crumbs(popTo(path, 0))).toEqual(["Impermanence"]);
     expect(popTo(path, 3)).toBe(path);
   });
