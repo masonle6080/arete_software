@@ -1,7 +1,7 @@
 /**
- * Tells the sidebar's Thesis tree and the Thesis Overview to reload. A
- * screen that adds, renames, or removes a Style, an Essay, or a Moodboard,
- * moves a Style's status, or changes a Style's Cover calls
+ * Tells the Thesis dropdown and the Thesis Overview to reload. A screen
+ * that adds, renames, or removes a Style, an Essay, or a Moodboard, moves a
+ * Style's or a Thesis's status, or changes a Style's Cover calls
  * `announceTreeChange()`.
  * Screens in many areas do this, so a signal is simpler than a callback
  * passed through every screen. Announcing a change that is not in the

@@ -1,13 +1,10 @@
 import { call } from "../../shell/invoke";
 import type { Blank } from "../blank/api";
 import type { Documentary } from "../documentary/types";
-import type { Drop } from "../drop/types";
 import type { Thesis } from "../thesis/types";
 
 /** Mirrors `ThesisLinks` in `src-tauri/src/links/mod.rs`. */
 export interface ThesisLinks {
-  /** The one Drop that is not Cancelled, if any. */
-  drop: Drop | null;
   essayCount: number;
   documentary: Documentary | null;
 }
@@ -26,7 +23,6 @@ export type BaseLink = { kind: "blank"; blank: Blank } | { kind: "techPack" };
 
 /** Mirrors `StyleLinks` in `src-tauri/src/links/mod.rs`. */
 export interface StyleLinks {
-  drop: Drop;
   thesis: Thesis;
   base: BaseLink | null;
   /** Passages that motivate the Style's Design Decisions, orphaned ones included. */

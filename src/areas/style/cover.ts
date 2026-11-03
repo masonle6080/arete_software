@@ -13,10 +13,10 @@ export function canBeCover(fileName: string): boolean {
   return dot > 0 && coverExtensions.includes(fileName.slice(dot + 1).toLowerCase());
 }
 
-/** What a Style's card in the Drop grid shows: its Cover, or a neutral placeholder with its color name. */
+/** What a Style's card in the Styles grid shows: its Cover, or a neutral placeholder with its color name. */
 export type CardFace = { kind: "cover"; path: string } | { kind: "placeholder"; color: string };
 
-/** Picks the face of a Style's card in the Drop grid. */
+/** Picks the face of a Style's card in the Styles grid. */
 export function cardFace(style: Pick<Style, "cover" | "color">): CardFace {
   return style.cover ? { kind: "cover", path: style.cover.path } : { kind: "placeholder", color: style.color };
 }

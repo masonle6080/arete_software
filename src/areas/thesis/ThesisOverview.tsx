@@ -3,7 +3,7 @@ import { useCoreQuery } from "../../shell/coreQuery";
 import { thesisTabLabel, type ThesisTab, type View } from "../../shell/sidebar";
 import { listenTreeChanges } from "../../shell/treeChanges";
 import { Button, EmptyText, SectionHeader } from "../../ui";
-import { CardFaceView } from "../style/DropStyles";
+import { CardFaceView } from "../style/ThesisStyles";
 import { itemView, loadThesisContents } from "./contents";
 import type { Thesis } from "./types";
 

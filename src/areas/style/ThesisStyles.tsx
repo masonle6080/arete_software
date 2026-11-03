@@ -2,36 +2,36 @@ import { convertFileSrc } from "@tauri-apps/api/core";
 import { useCallback, useEffect, useState, type FormEvent } from "react";
 import { toCoreError, type CoreError } from "../../shell/coreError";
 import { announceTreeChange } from "../../shell/treeChanges";
-import { Badge, Button, EmptyText, SectionHeader } from "../../ui";
-import type { Drop } from "../drop/types";
+import { Badge, Button, EmptyText } from "../../ui";
+import type { Thesis } from "../thesis/types";
 import { styleApi } from "./api";
 import { cardFace } from "./cover";
 import type { Style } from "./types";
 import "./style.css";
 
 interface Props {
-  drop: Drop;
+  thesis: Thesis;
   /** Opens the Style view. */
   onOpen(style: Style): void;
 }
 
-/** The Styles of one Drop as a card grid of Covers, Cut ones included, with a form to add one while the Drop takes new Styles. */
-export function DropStyles({ drop, onOpen }: Props) {
+/** The Styles of one Thesis as a card grid of Covers, Cut ones included, with a form to add one while the Thesis takes new Styles. */
+export function ThesisStyles({ thesis, onOpen }: Props) {
   const [styles, setStyles] = useState<Style[]>([]);
   const [name, setName] = useState("");
   const [color, setColor] = useState("");
   const [error, setError] = useState<CoreError>();
 
   const reload = useCallback(() => {
-    styleApi.dropStyles(drop.id).then(setStyles, (raw) => setError(toCoreError(raw)));
-  }, [drop.id]);
+    styleApi.thesisStyles(thesis.id).then(setStyles, (raw) => setError(toCoreError(raw)));
+  }, [thesis.id]);
   useEffect(reload, [reload]);
 
   async function add(e: FormEvent) {
     e.preventDefault();
     setError(undefined);
     try {
-      await styleApi.createStyle(drop.id, name, color);
+      await styleApi.createStyle(thesis.id, name, color);
       setName("");
       setColor("");
       announceTreeChange();
@@ -42,8 +42,7 @@ export function DropStyles({ drop, onOpen }: Props) {
   }
 
   return (
-    <div className="drop-styles">
-      <SectionHeader level={3} title="Styles" />
+    <div className="thesis-styles">
       {error && <p className="error">{error.message}</p>}
       {styles.length === 0 ? (
         <EmptyText>No Styles yet.</EmptyText>
@@ -63,7 +62,7 @@ export function DropStyles({ drop, onOpen }: Props) {
           ))}
         </ul>
       )}
-      {drop.canAddStyles && (
+      {thesis.canAddStyles && (
         <form className="style-create" onSubmit={add}>
           <input placeholder="Style name" value={name} onChange={(e) => setName(e.target.value)} />
           <input placeholder="Color" value={color} onChange={(e) => setColor(e.target.value)} />

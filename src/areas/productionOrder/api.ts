@@ -36,7 +36,7 @@ export interface OrderStyle {
 /** Mirrors `ProductionOrder` in `src-tauri/src/production_order/mod.rs`. */
 export interface ProductionOrder {
   id: number;
-  dropId: number;
+  thesisId: number;
   vendorId: number;
   vendorName: string;
   status: ProductionOrderStatus;
@@ -54,10 +54,11 @@ export interface ProductionOrder {
 
 /** IPC wrappers for `src-tauri/src/ipc/production_order.rs`. */
 export const productionOrderApi = {
-  createProductionOrder: (dropId: number, vendorId: number) =>
-    call<ProductionOrder>("create_production_order", { dropId, vendorId }),
+  createProductionOrder: (thesisId: number, vendorId: number) =>
+    call<ProductionOrder>("create_production_order", { thesisId, vendorId }),
   getProductionOrder: (id: number) => call<ProductionOrder>("get_production_order", { id }),
-  dropProductionOrders: (dropId: number) => call<ProductionOrder[]>("drop_production_orders", { dropId }),
+  thesisProductionOrders: (thesisId: number) =>
+    call<ProductionOrder[]>("thesis_production_orders", { thesisId }),
   /** Zero removes the size. Draft orders only. */
   setOrderQuantity: (id: number, styleId: number, size: string, quantity: number) =>
     call<ProductionOrder>("set_order_quantity", { id, styleId, size, quantity }),

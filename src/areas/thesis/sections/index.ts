@@ -1,7 +1,7 @@
 import type { ComponentType } from "react";
 import type { Step, ThesisTab } from "../../../shell/navPath";
 import type { Thesis } from "../types";
-import { stylesSection } from "./DropSection";
+import { stylesSection } from "./StylesSection";
 import { productionSection } from "./ProductionSection";
 import { essaysSection } from "./EssaysSection";
 import { moodboardsSection } from "./MoodboardsSection";
