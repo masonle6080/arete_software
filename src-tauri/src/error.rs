@@ -30,11 +30,7 @@ pub enum CoreError {
     #[error("a {what} cannot move from {from} to {to}")]
     StatusMoveRefused { what: &'static str, from: &'static str, to: &'static str },
 
-    /// A Thesis has at most one Drop that is not Cancelled.
-    #[error("this Thesis already has a Drop; cancel it before you make a new one")]
-    ActiveDropExists { thesis_id: i64 },
-
-    /// A Drop moves to Production only when every Style is Approved or Cut.
+    /// A Thesis moves to Production only when every Style is Approved or Cut.
     /// `styles` names the others as "<name> (<color>)".
     #[error("approve or cut every Style before Production; not ready: {}", styles.join(", "))]
     StylesNotReady { styles: Vec<String> },
@@ -80,7 +76,6 @@ impl CoreError {
             CoreError::NewerSchema { .. } => "NewerSchema",
             CoreError::NoLibraryOpen => "NoLibraryOpen",
             CoreError::StatusMoveRefused { .. } => "StatusMoveRefused",
-            CoreError::ActiveDropExists { .. } => "ActiveDropExists",
             CoreError::StylesNotReady { .. } => "StylesNotReady",
             CoreError::DocumentaryExists { .. } => "DocumentaryExists",
             CoreError::LibraryDisconnected { .. } => "LibraryDisconnected",

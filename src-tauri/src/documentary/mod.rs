@@ -5,8 +5,8 @@
 //! [`list_documentaries`], and the Clip links [`add_clip`], [`remove_clip`],
 //! [`documentary_clips`], [`clip_documentaries`], and the Script
 //! [`documentary_script`]. The lifecycle rules live on
-//! [`DocumentaryStatus`]. Releasing a Drop before its Thesis's Documentary
-//! is Released warns (see `guard_move` in `drop/mod.rs`).
+//! [`DocumentaryStatus`]. Releasing a Thesis before its Documentary
+//! is Released warns (see `guard_move` in `thesis/mod.rs`).
 
 mod status;
 

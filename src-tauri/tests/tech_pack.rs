@@ -9,21 +9,18 @@ mod common;
 use std::path::PathBuf;
 
 use arete_lib::blank::{self, BlankInput};
-use arete_lib::drop;
 use arete_lib::error::CoreError;
 use arete_lib::library::Library;
 use arete_lib::media;
 use arete_lib::style::{self, Style, StyleBase};
 use arete_lib::tech_pack::{self, Fabric, TechPack, TechPackDetails};
-use arete_lib::thesis;
 use arete_lib::vendor::{self, VendorInput, VendorRole};
 use common::TestEnv;
 
-/// A new Style on a new Drop.
+/// A new Style on a new Thesis in Design.
 fn new_style(lib: &Library) -> Style {
-    let t = thesis::create_thesis(lib, "Amor fati", "").unwrap();
-    let d = drop::create_drop(lib, t.id, "Amor fati SS27").unwrap();
-    style::create_style(lib, d.id, "Heavy hoodie", "Black").unwrap()
+    let t = common::design_thesis(lib, "Amor fati");
+    style::create_style(lib, t.id, "Heavy hoodie", "Black").unwrap()
 }
 
 /// Sets a Style's base to a Tech Pack and returns the Tech Pack.

@@ -6,7 +6,6 @@
 use crate::blank::{self, Blank};
 use crate::document;
 use crate::documentary::{self, Documentary};
-use crate::drop::{self, Drop, DropStage};
 use crate::error::CoreResult;
 use crate::library::Library;
 use crate::style::{self, StyleBase, StyleId};
@@ -16,8 +15,6 @@ use crate::thesis::{self, Thesis, ThesisId};
 #[derive(Debug, Clone, PartialEq, Eq, serde::Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ThesisLinks {
-    /// The one Drop of the Thesis that is not Cancelled, if any.
-    pub drop: Option<Drop>,
     /// The Essays that support the Thesis.
     pub essay_count: i64,
     pub documentary: Option<Documentary>,
@@ -25,11 +22,11 @@ pub struct ThesisLinks {
 
 /// The links of a Thesis.
 pub fn thesis_links(lib: &Library, thesis_id: ThesisId) -> CoreResult<ThesisLinks> {
-    let drop = drop::thesis_drops(lib, thesis_id)?.drops.into_iter().find(|d| d.stage != DropStage::Cancelled);
+    thesis::get_thesis(lib, thesis_id)?;
     let essay_count =
         lib.db().query_row("SELECT COUNT(*) FROM essay_thesis WHERE thesis_id = ?1", [thesis_id], |r| r.get(0))?;
     let documentary = documentary::thesis_documentary(lib, thesis_id)?;
-    Ok(ThesisLinks { drop, essay_count, documentary })
+    Ok(ThesisLinks { essay_count, documentary })
 }
 
 /// The links of an Essay.
@@ -67,8 +64,7 @@ pub fn essay_links(lib: &Library, essay_id: i64) -> CoreResult<EssayLinks> {
 #[derive(Debug, Clone, PartialEq, Eq, serde::Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct StyleLinks {
-    pub drop: Drop,
-    /// The Thesis of the Style's Drop.
+    /// The Thesis the Style belongs to.
     pub thesis: Thesis,
     /// What the Style is built on, or `None` when the founder has not set it.
     pub base: Option<BaseLink>,
@@ -88,8 +84,7 @@ pub enum BaseLink {
 /// The links of a Style.
 pub fn style_links(lib: &Library, style_id: StyleId) -> CoreResult<StyleLinks> {
     let found = style::get_style(lib, style_id)?;
-    let drop = drop::get_drop(lib, found.drop_id)?;
-    let thesis = thesis::get_thesis(lib, drop.thesis_id)?;
+    let thesis = thesis::get_thesis(lib, found.thesis_id)?;
     let base = match style::style_base(lib, style_id)? {
         None => None,
         Some(StyleBase::TechPack) => Some(BaseLink::TechPack),
@@ -102,5 +97,5 @@ pub fn style_links(lib: &Library, style_id: StyleId) -> CoreResult<StyleLinks> {
         [style_id],
         |r| r.get(0),
     )?;
-    Ok(StyleLinks { drop, thesis, base, passage_count })
+    Ok(StyleLinks { thesis, base, passage_count })
 }

@@ -1,13 +1,13 @@
-//! Style: a single garment design in a single color, on one Drop.
+//! Style: a single garment design in a single color, on one Thesis.
 //!
 //! Domain command functions for this area: [`create_style`], [`move_style`],
-//! [`get_style`], [`drop_styles`], [`attach_style_files`], [`style_files`],
+//! [`get_style`], [`thesis_styles`], [`attach_style_files`], [`style_files`],
 //! [`remove_style_file`], the Cover ([`set_style_cover`],
 //! [`clear_style_cover`]), and, for the base and sizes (`base.rs`),
 //! [`style_base`], [`set_style_base`], [`style_sizes`], [`set_style_sizes`],
 //! and [`duplicate_style`] (`duplicate.rs`).
-//! The status rules live on [`StyleStatus`]. The Drop's Production guard
-//! reads Style statuses (see `guard_move` in `drop/mod.rs`).
+//! The status rules live on [`StyleStatus`]. The Thesis's Production guard
+//! reads Style statuses (see `guard_move` in `thesis/mod.rs`).
 //!
 //! Later areas hang off a Style (Design Decisions, base, Decorations,
 //! Moodboard, Samples, Cost Sheet). Give each its own module and table with a
@@ -22,7 +22,7 @@ use std::path::{Path, PathBuf};
 
 use rusqlite::{params, OptionalExtension, Row};
 
-use crate::drop::{self, DropId};
+use crate::thesis::{self, ThesisId};
 use crate::error::{CoreError, CoreResult};
 use crate::library::{require_row, Library};
 use crate::lifecycle;
@@ -39,7 +39,7 @@ pub type StyleId = i64;
 #[serde(rename_all = "camelCase")]
 pub struct Style {
     pub id: StyleId,
-    pub drop_id: DropId,
+    pub thesis_id: ThesisId,
     pub name: String,
     /// The one color of this Style. The same design in another color is a
     /// separate Style.
@@ -54,7 +54,7 @@ pub struct Style {
 
 /// The Style columns, then its Cover file's columns (NULL with no Cover).
 /// Select them `FROM style s LEFT JOIN style_file f ON f.id = s.cover_file_id`.
-const COLUMNS: &str = "s.id, s.drop_id, s.name, s.color, s.status, f.id, f.media, f.file_name";
+const COLUMNS: &str = "s.id, s.thesis_id, s.name, s.color, s.status, f.id, f.media, f.file_name";
 const FROM: &str = "style s LEFT JOIN style_file f ON f.id = s.cover_file_id";
 
 fn from_row(lib: &Library, row: &Row) -> rusqlite::Result<Style> {
@@ -64,7 +64,7 @@ fn from_row(lib: &Library, row: &Row) -> rusqlite::Result<Style> {
     })?;
     Ok(Style {
         id: row.get(0)?,
-        drop_id: row.get(1)?,
+        thesis_id: row.get(1)?,
         name: row.get(2)?,
         color: row.get(3)?,
         status,
@@ -76,10 +76,10 @@ fn from_row(lib: &Library, row: &Row) -> rusqlite::Result<Style> {
     })
 }
 
-/// Adds a Style in one color to a Drop. A new Style starts as Draft. The
-/// name and the color must not be blank. The Drop must be in Design or
-/// Sampling ([`drop::DropStage::takes_new_styles`]).
-pub fn create_style(lib: &Library, drop_id: DropId, name: &str, color: &str) -> CoreResult<Style> {
+/// Adds a Style in one color to a Thesis. A new Style starts as Draft. The
+/// name and the color must not be blank. The Thesis must be in Developing,
+/// Design or Sampling ([`thesis::ThesisStatus::takes_new_styles`]).
+pub fn create_style(lib: &Library, thesis_id: ThesisId, name: &str, color: &str) -> CoreResult<Style> {
     let (name, color) = (name.trim(), color.trim());
     if name.is_empty() {
         return Err(CoreError::InvalidInput { reason: "a Style needs a name".into() });
@@ -87,11 +87,11 @@ pub fn create_style(lib: &Library, drop_id: DropId, name: &str, color: &str) -> 
     if color.is_empty() {
         return Err(CoreError::InvalidInput { reason: "a Style needs a color".into() });
     }
-    drop::check_takes_new_styles(&drop::get_drop(lib, drop_id)?)?;
+    thesis::check_takes_new_styles(&thesis::get_thesis(lib, thesis_id)?)?;
     let conn = lib.writer()?;
     conn.execute(
-        "INSERT INTO style (drop_id, name, color, status) VALUES (?1, ?2, ?3, ?4)",
-        params![drop_id, name, color, StyleStatus::Draft.as_db()],
+        "INSERT INTO style (thesis_id, name, color, status) VALUES (?1, ?2, ?3, ?4)",
+        params![thesis_id, name, color, StyleStatus::Draft.as_db()],
     )?;
     get_style(lib, conn.last_insert_rowid())
 }
@@ -205,11 +205,11 @@ fn display_name(source: &Path) -> String {
     source.file_name().map(|n| n.to_string_lossy().into_owned()).unwrap_or_else(|| source.display().to_string())
 }
 
-/// Every Style of a Drop, Cut ones included, oldest first.
-pub fn drop_styles(lib: &Library, drop_id: DropId) -> CoreResult<Vec<Style>> {
-    drop::get_drop(lib, drop_id)?;
-    let mut stmt = lib.db().prepare(&format!("SELECT {COLUMNS} FROM {FROM} WHERE s.drop_id = ?1 ORDER BY s.id"))?;
-    let styles = stmt.query_map([drop_id], |row| from_row(lib, row))?.collect::<Result<_, _>>()?;
+/// Every Style of a Thesis, Cut ones included, oldest first.
+pub fn thesis_styles(lib: &Library, thesis_id: ThesisId) -> CoreResult<Vec<Style>> {
+    thesis::get_thesis(lib, thesis_id)?;
+    let mut stmt = lib.db().prepare(&format!("SELECT {COLUMNS} FROM {FROM} WHERE s.thesis_id = ?1 ORDER BY s.id"))?;
+    let styles = stmt.query_map([thesis_id], |row| from_row(lib, row))?.collect::<Result<_, _>>()?;
     Ok(styles)
 }
 

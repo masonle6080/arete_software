@@ -10,7 +10,6 @@ mod common;
 use arete_lib::design_decision::{self, DesignAspect};
 use arete_lib::document::{self, DocumentEdit, DocumentKind, PassageText};
 use arete_lib::documentary;
-use arete_lib::drop::{self, DropStage};
 use arete_lib::error::CoreError;
 use arete_lib::library::Library;
 use arete_lib::blank::{self, BlankInput};
@@ -50,9 +49,8 @@ fn an_essay_counts_the_passages_in_its_text_and_not_the_orphaned_ones() {
 }
 
 fn a_style(lib: &Library, thesis_title: &str) -> StyleId {
-    let t = thesis::create_thesis(lib, thesis_title, "").unwrap();
-    let d = drop::create_drop(lib, t.id, &format!("{thesis_title} SS27")).unwrap();
-    style::create_style(lib, d.id, "Heavy tee", "Bone").unwrap().id
+    let t = common::design_thesis(lib, thesis_title);
+    style::create_style(lib, t.id, "Heavy tee", "Bone").unwrap().id
 }
 
 /// A new Design Decision on `style` motivated by the Passages.
@@ -152,15 +150,14 @@ fn a_style_still_counts_an_orphaned_passage_that_motivates_it() {
 }
 
 #[test]
-fn a_style_names_its_drop_and_the_drops_thesis() {
+fn a_style_names_its_thesis() {
     let env = TestEnv::new();
     let lib = env.library();
     let tee = a_style(&lib, "Impermanence");
 
     let found = links::style_links(&lib, tee).unwrap();
-    assert_eq!(found.drop.name, "Impermanence SS27");
     assert_eq!(found.thesis.title, "Impermanence");
-    assert_eq!(found.drop.thesis_id, found.thesis.id);
+    assert_eq!(found.thesis.id, style::get_style(&lib, tee).unwrap().thesis_id);
 }
 
 #[test]
@@ -211,21 +208,6 @@ fn a_thesis_counts_the_essays_that_support_it() {
     an_essay(&lib, "Unlinked", &[]);
 
     assert_eq!(links::thesis_links(&lib, t.id).unwrap().essay_count, 2);
-}
-
-#[test]
-fn a_thesis_shows_its_drop_that_is_not_cancelled() {
-    let env = TestEnv::new();
-    let lib = env.library();
-    let t = thesis::create_thesis(&lib, "Impermanence", "").unwrap();
-    assert_eq!(links::thesis_links(&lib, t.id).unwrap().drop, None);
-
-    let first = drop::create_drop(&lib, t.id, "First").unwrap();
-    drop::move_drop(&lib, first.id, DropStage::Cancelled, true).unwrap();
-    assert_eq!(links::thesis_links(&lib, t.id).unwrap().drop, None);
-
-    let second = drop::create_drop(&lib, t.id, "Second").unwrap();
-    assert_eq!(links::thesis_links(&lib, t.id).unwrap().drop, Some(second));
 }
 
 #[test]

@@ -8,13 +8,11 @@
 mod common;
 
 use arete_lib::blank::{self, BlankInput};
-use arete_lib::drop;
 use arete_lib::error::CoreError;
 use arete_lib::library::Library;
 use arete_lib::sample::{self, FitCell, Sample};
 use arete_lib::style::{self, StyleBase, StyleId};
 use arete_lib::tech_pack::{self, PointOfMeasureId, SizeId};
-use arete_lib::thesis;
 use arete_lib::vendor::{self, VendorInput, VendorRole};
 use common::TestEnv;
 
@@ -29,9 +27,8 @@ struct Fixture {
 }
 
 fn a_style(lib: &Library) -> StyleId {
-    let t = thesis::create_thesis(lib, "Amor fati", "").unwrap();
-    let d = drop::create_drop(lib, t.id, "Amor fati SS27").unwrap();
-    style::create_style(lib, d.id, "Heavy hoodie", "Black").unwrap().id
+    let t = common::design_thesis(lib, "Amor fati");
+    style::create_style(lib, t.id, "Heavy hoodie", "Black").unwrap().id
 }
 
 fn a_vendor(lib: &Library) -> vendor::VendorId {

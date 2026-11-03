@@ -10,24 +10,21 @@ use std::path::PathBuf;
 
 use arete_lib::decoration::{self, DecorationInput};
 use arete_lib::design_decision::{self, DesignAspect};
-use arete_lib::drop;
 use arete_lib::error::CoreError;
 use arete_lib::library::Library;
 use arete_lib::media;
 use arete_lib::style::{self, StyleId};
-use arete_lib::thesis;
 use arete_lib::vendor::{self, VendorId, VendorInput, VendorRole};
 use common::TestEnv;
 
-/// A Thesis with a Drop, and one Style on it. Returns the Drop's ID too.
-fn a_drop_with_style(lib: &Library) -> (i64, StyleId) {
-    let t = thesis::create_thesis(lib, "Amor fati", "").unwrap();
-    let d = drop::create_drop(lib, t.id, "Amor fati SS27").unwrap();
-    (d.id, style::create_style(lib, d.id, "Heavy tee", "Bone").unwrap().id)
+/// A Thesis in Design, and one Style on it. Returns the Thesis ID too.
+fn a_thesis_with_style(lib: &Library) -> (i64, StyleId) {
+    let t = common::design_thesis(lib, "Amor fati");
+    (t.id, style::create_style(lib, t.id, "Heavy tee", "Bone").unwrap().id)
 }
 
 fn a_style(lib: &Library) -> StyleId {
-    a_drop_with_style(lib).1
+    a_thesis_with_style(lib).1
 }
 
 fn a_vendor(lib: &Library, name: &str) -> VendorId {
@@ -185,8 +182,8 @@ fn a_design_decision_links_to_one_decoration_on_the_same_style() {
 fn a_decoration_on_another_style_is_refused() {
     let env = TestEnv::new();
     let lib = env.library();
-    let (drop_id, style_id) = a_drop_with_style(&lib);
-    let other_style = style::create_style(&lib, drop_id, "Heavy tee", "Black").unwrap().id;
+    let (thesis_id, style_id) = a_thesis_with_style(&lib);
+    let other_style = style::create_style(&lib, thesis_id, "Heavy tee", "Black").unwrap().id;
     let other_print = decoration::add_decoration(&lib, other_style, screen_print(None)).unwrap();
     let own_print = decoration::add_decoration(&lib, style_id, screen_print(None)).unwrap();
     let decision = design_decision::add_design_decision(&lib, style_id, DesignAspect::Decoration, "Why").unwrap();

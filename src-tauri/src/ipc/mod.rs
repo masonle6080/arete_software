@@ -12,7 +12,6 @@ mod library;
 mod note;
 mod vendor;
 mod thesis;
-mod drop;
 mod style;
 mod tech_pack;
 mod sample;
@@ -99,16 +98,11 @@ pub fn run() {
             thesis::move_thesis,
             thesis::list_theses,
             thesis::get_thesis,
-            // drop
-            drop::create_drop,
-            drop::move_drop,
-            drop::thesis_drops,
-            drop::get_drop,
             // style
             style::create_style,
             style::move_style,
             style::get_style,
-            style::drop_styles,
+            style::thesis_styles,
             style::attach_style_files,
             style::style_files,
             style::remove_style_file,
@@ -221,7 +215,7 @@ pub fn run() {
             // production_order
             production_order::create_production_order,
             production_order::get_production_order,
-            production_order::drop_production_orders,
+            production_order::thesis_production_orders,
             production_order::set_order_quantity,
             production_order::set_delivery_date,
             production_order::move_production_order,
