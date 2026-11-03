@@ -58,9 +58,7 @@ fn apply_missing(conn: &mut Connection, migrations: &[Migration], applied: &[Str
         let broken: Option<String> =
             tx.query_row("PRAGMA foreign_key_check", [], |r| r.get(0)).optional()?;
         if let Some(table) = broken {
-            return Err(CoreError::InvalidInput {
-                reason: format!("migration {} leaves a broken reference in table {table}", m.name),
-            });
+            return Err(CoreError::BrokenMigration { migration: m.name.to_string(), table });
         }
         tx.execute("INSERT INTO schema_migration (name) VALUES (?1)", [m.name])?;
         tx.commit()?;

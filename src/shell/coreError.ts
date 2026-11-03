@@ -7,6 +7,7 @@ export type CoreErrorKind =
   | "AlreadyALibrary"
   | "FolderNotEmpty"
   | "NewerSchema"
+  | "BrokenMigration"
   | "NoLibraryOpen"
   | "StatusMoveRefused"
   | "StylesNotReady"
