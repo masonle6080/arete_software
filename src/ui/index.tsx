@@ -8,6 +8,7 @@ import { badgeGroup, badgeLabel, type Lifecycle, type StatusOf } from "./badge";
 
 export { badgeGroup, badgeLabel, type BadgeGroup, type Lifecycle, type StatusOf } from "./badge";
 export { countLabel } from "./count";
+export { icons, type Icon } from "./icons";
 
 const cx = (...names: (string | false | undefined)[]) => names.filter(Boolean).join(" ");
 

@@ -1,5 +1,6 @@
 import type { ComponentType } from "react";
 import type { LibraryInfo } from "../areas/library/session";
+import type { Icon } from "../ui";
 import type { Step } from "./navPath";
 
 /** Props every area screen receives from the shell. */
@@ -13,5 +14,7 @@ export interface AreaProps {
 export interface Area {
   id: string;
   label: string;
+  /** The icon of its sidebar row, from the one icon set (`icons`). */
+  icon: Icon;
   Screen: ComponentType<AreaProps>;
 }

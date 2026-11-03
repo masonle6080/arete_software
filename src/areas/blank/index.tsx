@@ -4,7 +4,7 @@ import { toCoreError } from "../../shell/coreError";
 import { vendorApi, type Vendor } from "../vendor/api";
 import { blankApi, blankLabel, formatCost, type Blank, type BlankInput } from "./api";
 import "./blank.css";
-import { Button, EmptyText } from "../../ui";
+import { Button, EmptyText, icons } from "../../ui";
 
 /** The form's text fields. Lists are comma-separated; cost is in major units. */
 interface Draft {
@@ -212,4 +212,4 @@ function BlankForm(props: {
   );
 }
 
-export const blankArea: Area = { id: "blank", label: "Blanks", Screen: BlankScreen };
+export const blankArea: Area = { id: "blank", label: "Blanks", icon: icons.blank, Screen: BlankScreen };
