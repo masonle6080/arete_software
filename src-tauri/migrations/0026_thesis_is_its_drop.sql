@@ -1,5 +1,5 @@
--- A Thesis is its Drop (spec #44, ticket #46). The separate Drop record goes
--- away: Styles and Production Orders belong to a Thesis, and the Thesis
+-- Merge Drop into Thesis (spec #44, ticket #46). The separate Drop record goes
+-- away; a Drop is now the release phase of a Thesis, not a record. Styles and Production Orders belong to a Thesis, and the Thesis
 -- status covers the release (Design → Released). Status values match
 -- `ThesisStatus` in src/thesis/status.rs.
 --

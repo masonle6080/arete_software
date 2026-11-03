@@ -29,9 +29,11 @@ export interface Thesis {
   statement: string;
   status: ThesisStatus;
   /** Statuses the founder can move to by hand now. The core owns this rule. */
-  manualMoves: ThesisStatus[];
+  moves: ThesisStatus[];
   /** Whether the Thesis takes new or duplicated Styles now. The core owns this rule. */
   canAddStyles: boolean;
+  /** Whether the Thesis takes new Production Orders now. The core owns this rule. */
+  canAddProductionOrders: boolean;
 }
 
 /** One status group of the Thesis list. The core sends every group, in lifecycle order. */

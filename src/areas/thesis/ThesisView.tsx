@@ -73,16 +73,16 @@ export function ThesisView({ id, tab, onOpen, onGo }: Props) {
             <h1>{thesis.title}</h1>
             <ThesisChips thesis={thesis} onOpen={onOpen} />
             {!section && thesis.statement && <p className="statement">{thesis.statement}</p>}
-            {!section && thesis.manualMoves.length > 0 && (
+            {!section && thesis.moves.length > 0 && (
               <div className="actions">
-                {thesis.manualMoves
+                {thesis.moves
                   .filter((to) => to !== "abandoned")
                   .map((to) => (
                     <Button key={to} onClick={() => move(to)}>
                       Move to {statusLabel[to]}
                     </Button>
                   ))}
-                {thesis.manualMoves.includes("abandoned") &&
+                {thesis.moves.includes("abandoned") &&
                   (confirmAbandon ? (
                     <Button variant="destructive" onClick={() => move("abandoned")}>
                       Confirm: abandon this Thesis
