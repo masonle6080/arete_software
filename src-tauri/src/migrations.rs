@@ -7,7 +7,7 @@
 //! The database records each applied migration by name. The schema version is
 //! the number of applied migrations, and is also kept in `PRAGMA user_version`.
 
-use rusqlite::Connection;
+use rusqlite::{Connection, OptionalExtension};
 
 use crate::error::{CoreError, CoreResult};
 
@@ -36,15 +36,35 @@ pub fn apply(conn: &mut Connection, migrations: &[Migration]) -> CoreResult<()> 
         return Err(CoreError::NewerSchema { migration: unknown.clone() });
     }
 
-    for m in migrations.iter().filter(|m| !applied.iter().any(|n| n == m.name)) {
-        let tx = conn.transaction()?;
-        tx.execute_batch(m.sql)?;
-        tx.execute("INSERT INTO schema_migration (name) VALUES (?1)", [m.name])?;
-        tx.commit()?;
-    }
+    // A migration that makes a table again (drop, then create) must not
+    // trip the foreign key checks on the way. As SQLite's documented
+    // schema-change procedure says, foreign keys are off while migrations
+    // run, and `foreign_key_check` must pass before each one commits.
+    let foreign_keys: bool = conn.query_row("PRAGMA foreign_keys", [], |r| r.get(0))?;
+    conn.pragma_update(None, "foreign_keys", false)?;
+    let result = apply_missing(conn, migrations, &applied);
+    conn.pragma_update(None, "foreign_keys", foreign_keys)?;
+    result?;
 
     let version = schema_version(conn)?;
     conn.pragma_update(None, "user_version", version)?;
+    Ok(())
+}
+
+fn apply_missing(conn: &mut Connection, migrations: &[Migration], applied: &[String]) -> CoreResult<()> {
+    for m in migrations.iter().filter(|m| !applied.iter().any(|n| n == m.name)) {
+        let tx = conn.transaction()?;
+        tx.execute_batch(m.sql)?;
+        let broken: Option<String> =
+            tx.query_row("PRAGMA foreign_key_check", [], |r| r.get(0)).optional()?;
+        if let Some(table) = broken {
+            return Err(CoreError::InvalidInput {
+                reason: format!("migration {} leaves a broken reference in table {table}", m.name),
+            });
+        }
+        tx.execute("INSERT INTO schema_migration (name) VALUES (?1)", [m.name])?;
+        tx.commit()?;
+    }
     Ok(())
 }
 
