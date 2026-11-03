@@ -49,7 +49,7 @@ export function ThesisStyles({ thesis, onOpen }: Props) {
       ) : (
         <ul className="style-grid">
           {styles.map((s) => (
-            <li key={s.id}>
+            <li key={s.id} className={s.status === "cut" ? "cut" : undefined}>
               <button type="button" className="style-card" onClick={() => onOpen(s)}>
                 <CardFaceView style={s} />
                 <span className="style-card-name">{s.name}</span>
