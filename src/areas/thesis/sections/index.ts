@@ -1,7 +1,8 @@
 import type { ComponentType } from "react";
 import type { Step, ThesisTab } from "../../../shell/navPath";
 import type { Thesis } from "../types";
-import { dropSection } from "./DropSection";
+import { stylesSection } from "./DropSection";
+import { productionSection } from "./ProductionSection";
 import { essaysSection } from "./EssaysSection";
 import { moodboardsSection } from "./MoodboardsSection";
 import { documentarySection } from "./DocumentarySection";
@@ -21,7 +22,7 @@ export interface ThesisSectionProps {
 /** The Thesis tabs that show a section: every tab but Overview. */
 export type SectionTab = Exclude<ThesisTab, "overview">;
 
-/** One section of the Thesis view, for example Essays or Drop. Each is a sidebar tab. */
+/** One section of the Thesis view, for example Essays or Styles. Each is a sidebar tab. */
 export interface ThesisSection {
   id: SectionTab;
   title: string;
@@ -38,6 +39,7 @@ export interface ThesisSection {
 export const thesisSections: Record<SectionTab, ThesisSection> = {
   essays: essaysSection,
   moodboards: moodboardsSection,
-  drop: dropSection,
+  styles: stylesSection,
   documentary: documentarySection,
+  production: productionSection,
 };

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { Moodboard } from "../areas/moodboard/types";
-import { push, steps, crumbs, thesisTabLabel, thesisTabs, type NavPath } from "./navPath";
+import { push, steps, crumbs, thesisTabLabel, thesisTabs, type NavPath, type Step } from "./navPath";
 import { blocksBackShortcut, isBackShortcut, openRow, openStep, pathOf, shortcutTab, type View } from "./sidebar";
 
 const key = (k: string, mods: Partial<{ metaKey: boolean; ctrlKey: boolean; altKey: boolean; shiftKey: boolean }> = {}) => ({
@@ -13,19 +13,33 @@ const key = (k: string, mods: Partial<{ metaKey: boolean; ctrlKey: boolean; altK
 });
 
 describe("the Thesis tabs", () => {
-  it("run Overview, Essays, Moodboards, Drop, Documentary in the tree and for ⌘1–⌘5", () => {
-    expect(thesisTabs.map((t) => thesisTabLabel[t])).toEqual(["Overview", "Essays", "Moodboards", "Drop", "Documentary"]);
+  it("run Overview, Essays, Moodboards, Styles, Documentary, Production in the sidebar and for ⌘1–⌘6", () => {
+    expect(thesisTabs).toEqual(["overview", "essays", "moodboards", "styles", "documentary", "production"]);
+    expect(thesisTabs.map((t) => thesisTabLabel[t])).toEqual([
+      "Overview",
+      "Essays",
+      "Moodboards",
+      "Styles",
+      "Documentary",
+      "Production",
+    ]);
+  });
+
+  it("label the breadcrumb level of each tab", () => {
+    expect(crumbs(pathOf({ kind: "thesis", tab: "styles" }, names))).toEqual(["Impermanence", "Styles"]);
+    expect(crumbs(pathOf({ kind: "thesis", tab: "production" }, names))).toEqual(["Impermanence", "Production"]);
   });
 });
 
-describe("⌘1–⌘5", () => {
-  it("open the five Thesis tree items in order", () => {
-    expect(["1", "2", "3", "4", "5"].map((k) => shortcutTab(key(k, { metaKey: true })))).toEqual([
+describe("⌘1–⌘6", () => {
+  it("open the six Thesis tabs in order", () => {
+    expect(["1", "2", "3", "4", "5", "6"].map((k) => shortcutTab(key(k, { metaKey: true })))).toEqual([
       "overview",
       "essays",
       "moodboards",
-      "drop",
+      "styles",
       "documentary",
+      "production",
     ]);
   });
 
@@ -34,7 +48,7 @@ describe("⌘1–⌘5", () => {
     expect(shortcutTab(key("1", { metaKey: true, shiftKey: true }))).toBeUndefined();
     expect(shortcutTab(key("1", { metaKey: true, altKey: true }))).toBeUndefined();
     expect(shortcutTab(key("1", { metaKey: true, ctrlKey: true }))).toBeUndefined();
-    expect(shortcutTab(key("6", { metaKey: true }))).toBeUndefined();
+    expect(shortcutTab(key("7", { metaKey: true }))).toBeUndefined();
     expect(shortcutTab(key("0", { metaKey: true }))).toBeUndefined();
   });
 });
@@ -45,23 +59,23 @@ const coat = steps.style({ id: 4, name: "Hooded Coat", color: "Ash" });
 const board = (id: number, owner: Moodboard["owner"]): Moodboard => ({ id, owner, title: "Moodboard" });
 
 describe("opening a step, as a chip does", () => {
-  const inDrop = push(start({ kind: "thesis", tab: "drop" }), coat);
+  const inStyles = push(start({ kind: "thesis", tab: "styles" }), coat);
 
   it("pushes a place that is not on the path", () => {
-    const opened = openStep(inDrop, steps.essay(9, "On Ash"), 1, names);
-    expect(crumbs(opened.path)).toEqual(["Impermanence", "Drop", "Hooded Coat (Ash)", "On Ash"]);
+    const opened = openStep(inStyles, steps.essay(9, "On Ash"), 1, names);
+    expect(crumbs(opened.path)).toEqual(["Impermanence", "Styles", "Hooded Coat (Ash)", "On Ash"]);
     expect(opened.thesisId).toBeUndefined();
   });
 
   it("goes back to a place that is already on the path, so the path never repeats it", () => {
-    const onBoard = push(inDrop, steps.moodboard(board(2, { kind: "style", id: 4 })));
-    expect(crumbs(openStep(onBoard, coat, 1, names).path)).toEqual(["Impermanence", "Drop", "Hooded Coat (Ash)"]);
+    const onBoard = push(inStyles, steps.moodboard(board(2, { kind: "style", id: 4 })));
+    expect(crumbs(openStep(onBoard, coat, 1, names).path)).toEqual(["Impermanence", "Styles", "Hooded Coat (Ash)"]);
   });
 
   it("opens a tab of the current Thesis from its root, wherever the path is", () => {
-    expect(crumbs(openStep(inDrop, steps.thesis("essays"), 1, names).path)).toEqual(["Impermanence", "Essays"]);
-    expect(crumbs(openStep(inDrop, steps.thesis("overview", 1), 1, names).path)).toEqual(["Impermanence"]);
-    expect(openStep(inDrop, steps.thesis("essays", 1), 1, names).thesisId).toBeUndefined();
+    expect(crumbs(openStep(inStyles, steps.thesis("essays"), 1, names).path)).toEqual(["Impermanence", "Essays"]);
+    expect(crumbs(openStep(inStyles, steps.thesis("overview", 1), 1, names).path)).toEqual(["Impermanence"]);
+    expect(openStep(inStyles, steps.thesis("essays", 1), 1, names).thesisId).toBeUndefined();
   });
 
   it("makes another Thesis current to open its tab", () => {
@@ -73,17 +87,17 @@ describe("opening a step, as a chip does", () => {
   });
 
   it("makes a Thesis current when none is", () => {
-    const opened = openStep(start({ kind: "theses" }), steps.thesis("drop", 7), undefined, names);
+    const opened = openStep(start({ kind: "theses" }), steps.thesis("production", 7), undefined, names);
     expect(opened.thesisId).toBe(7);
-    expect(crumbs(opened.path)[1]).toBe("Drop");
+    expect(crumbs(opened.path)[1]).toBe("Production");
   });
 });
 
 describe("the start path of a sidebar row", () => {
   it("starts at the Thesis title inside a Thesis", () => {
     expect(crumbs(start({ kind: "thesis", tab: "overview" }))).toEqual(["Impermanence"]);
-    expect(crumbs(start({ kind: "thesis", tab: "drop" }))).toEqual(["Impermanence", "Drop"]);
-    expect(crumbs(start({ kind: "thesis", tab: "drop", open: coat }))).toEqual(["Impermanence", "Drop", "Hooded Coat (Ash)"]);
+    expect(crumbs(start({ kind: "thesis", tab: "styles" }))).toEqual(["Impermanence", "Styles"]);
+    expect(crumbs(start({ kind: "thesis", tab: "styles", open: coat }))).toEqual(["Impermanence", "Styles", "Hooded Coat (Ash)"]);
   });
 
   it("keeps the Thesis root for an Essay opened from the Thesis", () => {
@@ -103,26 +117,35 @@ describe("the start path of a sidebar row", () => {
 
 describe("the open row", () => {
   it("is the Thesis tab while nothing is open on top of it", () => {
-    expect(openRow(start({ kind: "thesis", tab: "drop" }))).toBe("thesis:drop");
-    expect(openRow(start({ kind: "thesis", tab: "overview" }))).toBe("thesis:overview");
+    for (const tab of thesisTabs) expect(openRow(start({ kind: "thesis", tab }))).toBe(`thesis:${tab}`);
   });
 
-  it("is the Style, Essay, or Thesis Moodboard that is open", () => {
-    expect(openRow(start({ kind: "thesis", tab: "drop", open: coat }))).toBe("style:4");
-    expect(openRow(start({ kind: "thesis", tab: "essays", open: steps.essay(9, "On Ash") }))).toBe("essay:9");
+  it("is the owning tab of the open Style, Essay, or Thesis Moodboard, because the sidebar has no item rows", () => {
+    expect(openRow(start({ kind: "thesis", tab: "styles", open: coat }))).toBe("thesis:styles");
+    expect(openRow(start({ kind: "thesis", tab: "essays", open: steps.essay(9, "On Ash") }))).toBe("thesis:essays");
     expect(openRow(start({ kind: "thesis", tab: "moodboards", open: steps.moodboard(board(2, { kind: "thesis", id: 1 })) }))).toBe(
-      "moodboard:2",
+      "thesis:moodboards",
     );
   });
 
-  it("is the Style for the Moodboard of a Style, because the tree stops at Style", () => {
-    const path = push(start({ kind: "thesis", tab: "drop", open: coat }), steps.moodboard(board(2, { kind: "style", id: 4 })));
-    expect(openRow(path)).toBe("style:4");
+  it("is the owning tab even when the item opened from another tab, for example the Overview", () => {
+    const fromOverview = (open: Step) => openRow(start({ kind: "thesis", tab: "overview", open }));
+    expect(fromOverview(coat)).toBe("thesis:styles");
+    expect(fromOverview(steps.essay(9, "On Ash"))).toBe("thesis:essays");
+    expect(fromOverview(steps.moodboard(board(2, { kind: "thesis", id: 1 })))).toBe("thesis:moodboards");
   });
 
-  it("is the nearest row below a Passage or a Script", () => {
+  it("is Styles for the Moodboard of a Style", () => {
+    const path = push(start({ kind: "thesis", tab: "styles", open: coat }), steps.moodboard(board(2, { kind: "style", id: 4 })));
+    expect(openRow(path)).toBe("thesis:styles");
+    expect(openRow(start({ kind: "thesis", tab: "overview", open: steps.moodboard(board(2, { kind: "style", id: 4 })) }))).toBe(
+      "thesis:styles",
+    );
+  });
+
+  it("is the tab below a Passage or a Script", () => {
     const passage = push(start({ kind: "thesis", tab: "essays", open: steps.essay(9, "On Ash") }), steps.passage("p1"));
-    expect(openRow(passage)).toBe("essay:9");
+    expect(openRow(passage)).toBe("thesis:essays");
     expect(openRow(push(start({ kind: "thesis", tab: "documentary" }), steps.script(3, "Ash film")))).toBe("thesis:documentary");
   });
 

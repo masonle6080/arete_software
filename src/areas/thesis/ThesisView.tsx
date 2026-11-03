@@ -14,7 +14,7 @@ interface Props {
   tab: ThesisTab;
   /** Opens an item of this Thesis one level below the tab in the navigation path. */
   onOpen(step: Step): void;
-  /** Opens a tab of this Thesis, or an item on top of its tab, as the sidebar tree does. */
+  /** Opens a tab of this Thesis, or an item on top of its tab, as the sidebar does. */
   onGo(view: View): void;
 }
 

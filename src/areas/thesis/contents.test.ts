@@ -46,13 +46,13 @@ describe("each item of a Thesis", () => {
   const trail = (view: View) => crumbs(pathOf(view, names));
 
   it("opens its tab from the Thesis root", () => {
-    expect(trail(itemView.tab("drop"))).toEqual(["Impermanence", "Drop"]);
+    expect(trail(itemView.tab("styles"))).toEqual(["Impermanence", "Styles"]);
     expect(trail(itemView.tab("essays"))).toEqual(["Impermanence", "Essays"]);
     expect(trail(itemView.tab("moodboards"))).toEqual(["Impermanence", "Moodboards"]);
   });
 
-  it("opens a Style under the Drop tab, as its tree row does", () => {
-    expect(trail(itemView.style(style(5, 2)))).toEqual(["Impermanence", "Drop", "S5 (Bone)"]);
+  it("opens a Style under the Styles tab", () => {
+    expect(trail(itemView.style(style(5, 2)))).toEqual(["Impermanence", "Styles", "S5 (Bone)"]);
   });
 
   it("opens an Essay under the Essays tab", () => {

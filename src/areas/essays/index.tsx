@@ -11,7 +11,7 @@ import { documentApi, type DocumentSummary, type StoredDocument } from "./api";
 import { EssayExport } from "./EssayExport";
 import { EssayTheses } from "./EssayTheses";
 import "./essays.css";
-import { Button, EmptyText } from "../../ui";
+import { Button, EmptyText, icons } from "../../ui";
 
 function EssayList({ onOpen }: { onOpen(id: number, title: string): void }) {
   const [essays, setEssays] = useState<DocumentSummary[] | null>(null);
@@ -77,7 +77,7 @@ export function EssayScreen({ id, focusPassageId, passageId, onOpenPassage, onTi
   const [error, setError] = useState<string | null>(null);
   const editor = useRef<DocumentEditorHandle>(null);
   const [saves, setSaves] = useState(0);
-  /** The last saved title, to tell the sidebar tree and the breadcrumb when it changes. */
+  /** The last saved title, to tell the Thesis Overview and the breadcrumb when it changes. */
   const savedTitle = useRef<string>();
   const onTitleRef = useRef(onTitle);
   onTitleRef.current = onTitle;
@@ -146,4 +146,4 @@ function EssaysArea({ onOpen }: AreaProps) {
   return <EssayList onOpen={(id, title) => onOpen(steps.essay(id, title))} />;
 }
 
-export const essaysArea: Area = { id: "essays", label: "Essays", Screen: EssaysArea };
+export const essaysArea: Area = { id: "essays", label: "Essays", icon: icons.essays, Screen: EssaysArea };
