@@ -1,6 +1,6 @@
 # A workspace centered on one current Thesis
 
-The sidebar is built around one current Thesis, picked from a dropdown at its top. Under the dropdown, a source-list tree shows that Thesis: Overview, Essays, Moodboards, the Drop with its Styles, and the Documentary. Records that exist apart from any one Thesis (Essays, Vendors, Blanks, Clips) sit under a **Shared** heading. Each Drop expresses one Thesis, and the founder works on one Thesis at a time, so the Thesis is the natural frame for almost every task. Showing its contents as one tree also makes the link from idea to garment visible, and that link was the main thing the old layout hid.
+The sidebar is built around one current Thesis, picked from a dropdown at its top. Under the dropdown, a source-list tree shows that Thesis: Overview, Essays, Moodboards, the Drop with its Styles, and the Documentary. Records that exist apart from any one Thesis (Essays, Vendors, Blanks, Clips) are a **Shared** group in the same dropdown, after the Theses. Picking one opens it and hides the Thesis tree. Each Drop expresses one Thesis, and the founder works on one Thesis at a time, so the Thesis is the natural frame for almost every task. Showing its contents as one tree also makes the link from idea to garment visible, and that link was the main thing the old layout hid.
 
 ## Considered Options
 

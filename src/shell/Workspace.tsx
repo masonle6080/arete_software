@@ -28,8 +28,8 @@ const areaLabel = (id: string) => areas.find((a) => a.id === id)?.label ?? id;
 
 /**
  * The open library: a source-list sidebar and the content pane. The sidebar
- * picks the current Thesis and shows it as a tree (ADR-0004). Below the tree
- * are the Shared areas, then Settings. The content pane shows the top of the
+ * picks the current Thesis or a Shared area from one dropdown, and shows the
+ * Thesis as a tree (ADR-0004). Below the tree is Settings. The content pane shows the top of the
  * navigation path under its breadcrumb; ⌘[ goes back one level.
  */
 export function Workspace({ library, onSwitchLibrary }: Props) {
@@ -137,6 +137,8 @@ export function Workspace({ library, onSwitchLibrary }: Props) {
   const place = path[depth].place;
   const key = `${visit}:${depth}:${placeKey(place)}`;
   const area = place.kind === "area" ? areas.find((a) => a.id === place.id) : undefined;
+  const root = path[0].place;
+  const openShared = root.kind === "area" && sharedAreas.some((a) => a.id === root.id) ? root.id : undefined;
 
   return (
     <div className="shell">
@@ -145,15 +147,14 @@ export function Workspace({ library, onSwitchLibrary }: Props) {
         <ThesisPicker
           value={thesisId}
           version={thesesVersion}
+          sharedAreas={sharedAreas}
+          openArea={openShared}
+          onArea={(id) => void go({ kind: "area", id })}
           onPick={pickThesis}
           onNewThesis={() => void go({ kind: "theses", create: true })}
           onAllTheses={() => void go({ kind: "theses" })}
         />
-        {thesisId !== undefined && <ThesisTree thesisId={thesisId} openKey={openKey} onGo={(v) => void go(v)} />}
-        <div className="sidebar-group">
-          <h2 className="sidebar-heading">Shared</h2>
-          {sharedAreas.map((a) => navButton({ kind: "area", id: a.id }, a.label))}
-        </div>
+        {thesisId !== undefined && openShared === undefined && <ThesisTree thesisId={thesisId} openKey={openKey} onGo={(v) => void go(v)} />}
         <div className="sidebar-group">{navButton({ kind: "area", id: settingsArea.id }, settingsArea.label)}</div>
         <Button className="switch" onClick={onSwitchLibrary}>
           Switch library…
