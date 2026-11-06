@@ -1,20 +1,20 @@
 import { useCallback, useEffect, useState, type FormEvent } from "react";
 import { toCoreError, type CoreError } from "../../shell/coreError";
-import type { Drop } from "../drop/types";
 import { NotesPanel } from "../note/NotesPanel";
 import { styleApi } from "../style/api";
 import type { Style } from "../style/types";
+import type { Thesis } from "../thesis/types";
 import { vendorApi, type Vendor } from "../vendor/api";
 import { orderStatusLabel, productionOrderApi, type ProductionOrder, type ProductionOrderStatus } from "./api";
 import "./productionOrder.css";
 import { Badge, Button, EmptyText, SectionHeader } from "../../ui";
 
 /**
- * The Drop's production overview: every Production Order with its Vendor,
+ * The Thesis's production overview: every Production Order with its Vendor,
  * status, delivery date, and total cost, a form to add one, and the open
  * order's details. The core owns every rule and computes every cost.
  */
-export function DropProductionOrders({ drop }: { drop: Drop }) {
+export function ThesisProductionOrders({ thesis }: { thesis: Thesis }) {
   const [orders, setOrders] = useState<ProductionOrder[]>([]);
   const [vendors, setVendors] = useState<Vendor[]>([]);
   const [vendorId, setVendorId] = useState<number>();
@@ -22,8 +22,8 @@ export function DropProductionOrders({ drop }: { drop: Drop }) {
   const [error, setError] = useState<CoreError>();
 
   const reload = useCallback(() => {
-    productionOrderApi.dropProductionOrders(drop.id).then(setOrders, (raw) => setError(toCoreError(raw)));
-  }, [drop.id]);
+    productionOrderApi.thesisProductionOrders(thesis.id).then(setOrders, (raw) => setError(toCoreError(raw)));
+  }, [thesis.id]);
   useEffect(reload, [reload]);
   useEffect(() => {
     vendorApi.listVendors().then(setVendors, (raw) => setError(toCoreError(raw)));
@@ -34,7 +34,7 @@ export function DropProductionOrders({ drop }: { drop: Drop }) {
     if (vendorId === undefined) return;
     setError(undefined);
     try {
-      const order = await productionOrderApi.createProductionOrder(drop.id, vendorId);
+      const order = await productionOrderApi.createProductionOrder(thesis.id, vendorId);
       setOpenId(order.id);
     } catch (raw) {
       setError(toCoreError(raw));
@@ -45,7 +45,7 @@ export function DropProductionOrders({ drop }: { drop: Drop }) {
   const open = orders.find((o) => o.id === openId);
 
   return (
-    <div className="drop-orders">
+    <div className="thesis-orders">
       <SectionHeader level={3} title="Production Orders" />
       {error && <p className="error">{error.message}</p>}
       {orders.length === 0 ? (
@@ -80,7 +80,7 @@ export function DropProductionOrders({ drop }: { drop: Drop }) {
           </tbody>
         </table>
       )}
-      {drop.stage !== "cancelled" && (
+      {thesis.canAddProductionOrders && (
         <form className="order-create" onSubmit={add}>
           <select value={vendorId ?? ""} onChange={(e) => setVendorId(e.target.value ? Number(e.target.value) : undefined)}>
             <option value="">Choose a Vendor</option>
@@ -123,7 +123,7 @@ function OrderDetail({ order, onChanged }: { order: ProductionOrder; onChanged()
   useEffect(() => {
     if (!draft) return;
     const ordered = new Set(orderedIds.split(",").filter(Boolean).map(Number));
-    styleApi.dropStyles(order.dropId).then(async (all) => {
+    styleApi.thesisStyles(order.thesisId).then(async (all) => {
       // The core takes quantities only for Approved Styles. A Style that left
       // Approved while on the order stays listed so its quantities can be cleared.
       const shown = all.filter((s) => s.status === "approved" || ordered.has(s.id));
@@ -131,7 +131,7 @@ function OrderDetail({ order, onChanged }: { order: ProductionOrder; onChanged()
       setStyles(shown);
       setSizes(Object.fromEntries(entries));
     }, (raw) => setError(toCoreError(raw)));
-  }, [order.dropId, draft, orderedIds]);
+  }, [order.thesisId, draft, orderedIds]);
 
   async function run(action: () => Promise<unknown>) {
     setError(undefined);
@@ -204,7 +204,7 @@ function OrderDetail({ order, onChanged }: { order: ProductionOrder; onChanged()
 
       {draft && (
         <div className="order-grid">
-          {styles.length === 0 && <EmptyText>The Drop has no Approved Styles to order.</EmptyText>}
+          {styles.length === 0 && <EmptyText>The Thesis has no Approved Styles to order.</EmptyText>}
           {styles.map((s) => (
             <div key={s.id} className="order-grid-style">
               <span>

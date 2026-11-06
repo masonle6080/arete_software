@@ -17,7 +17,7 @@ describe("canBeCover", () => {
 });
 
 describe("cardFace", () => {
-  const style: Style = { id: 1, dropId: 1, name: "Hooded Coat", color: "Ash", status: "draft", moves: [], cover: null };
+  const style: Style = { id: 1, thesisId: 1, name: "Hooded Coat", color: "Ash", status: "draft", moves: [], cover: null };
 
   it("shows the Cover image when the Style has a Cover", () => {
     const cover = { id: 7, media: "m", fileName: "front.png", path: "/lib/media/front.png" };

@@ -1,5 +1,4 @@
 import { documentaryStatusLabel, type DocumentaryStatus } from "../areas/documentary/types";
-import { stageLabel, type DropStage } from "../areas/drop/types";
 import { orderStatusLabel, type ProductionOrderStatus } from "../areas/productionOrder/api";
 import { sampleOutcomeLabel, type SampleOutcome } from "../areas/sample/api";
 import { styleStatusLabel, type StyleStatus } from "../areas/style/types";
@@ -17,7 +16,6 @@ export type BadgeGroup = "gray" | "accent" | "green" | "red";
 /** The status of each lifecycle that the app shows as a Badge. */
 export interface StatusOf {
   thesis: ThesisStatus;
-  drop: DropStage;
   style: StyleStatus;
   documentary: DocumentaryStatus;
   productionOrder: ProductionOrderStatus;
@@ -30,12 +28,13 @@ const groups: { [L in Lifecycle]: Record<StatusOf[L], BadgeGroup> } = {
   thesis: {
     seed: "gray",
     developing: "accent",
-    committed: "accent",
+    design: "accent",
+    sampling: "accent",
+    production: "accent",
     released: "green",
     archived: "green",
     abandoned: "red",
   },
-  drop: { design: "gray", sampling: "accent", production: "accent", released: "green", cancelled: "red" },
   style: { draft: "gray", sampling: "accent", approved: "green", cut: "red" },
   documentary: { planning: "gray", filming: "accent", editing: "accent", released: "green", abandoned: "red" },
   productionOrder: {
@@ -52,7 +51,6 @@ const groups: { [L in Lifecycle]: Record<StatusOf[L], BadgeGroup> } = {
 
 const labels: { [L in Lifecycle]: Record<StatusOf[L], string> } = {
   thesis: statusLabel,
-  drop: stageLabel,
   style: styleStatusLabel,
   documentary: documentaryStatusLabel,
   productionOrder: orderStatusLabel,

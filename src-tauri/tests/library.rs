@@ -146,6 +146,39 @@ fn a_library_at_version_zero_is_migrated_to_the_latest_schema_on_open() {
     assert_eq!(lib.schema_version().unwrap(), library::latest_schema_version());
 }
 
+/// The merge of Drop into Thesis (spec #44) is a clean reset: records made
+/// under the Drop model are deleted, so no half-converted Drop is left.
+#[test]
+fn the_thesis_drop_merge_starts_the_library_empty() {
+    use arete_lib::migrations::{Migration, ALL};
+    use arete_lib::thesis::{self, ThesisStatus};
+    use arete_lib::{style, vendor};
+    let merge = ALL.iter().position(|m| m.name == "0026_thesis_is_its_drop").unwrap();
+    let (before, after) = ALL.split_at(merge);
+    let old_records = Migration {
+        name: "0025a_test_drop_records",
+        sql: "INSERT INTO vendor (id, name) VALUES (1, 'Mill');
+              INSERT INTO thesis (id, title, statement, status) VALUES (1, 'Amor fati', '', 'committed');
+              INSERT INTO drop_ (id, thesis_id, name, stage) VALUES (1, 1, 'Amor fati SS27', 'sampling');
+              INSERT INTO style (id, drop_id, name, color) VALUES (1, 1, 'Heavy tee', 'Bone');
+              INSERT INTO production_order (id, drop_id, vendor_id) VALUES (1, 1, 1);",
+    };
+    let env = TestEnv::new();
+    let folder = env.path("lib");
+    drop(Library::create_with_migrations(&folder, before).unwrap());
+    let with_records: Vec<Migration> = before.iter().copied().chain([old_records]).chain(after.iter().copied()).collect();
+
+    let lib = Library::open_with_migrations(&folder, &with_records).unwrap();
+
+    assert!(thesis::list_theses(&lib).unwrap().iter().all(|g| g.theses.is_empty()));
+    assert_eq!(vendor::list_vendors(&lib).unwrap(), vec![]);
+    // The new schema takes the new statuses and Styles on a Thesis.
+    let t = common::design_thesis(&lib, "Amor fati");
+    assert_eq!(t.status, ThesisStatus::Design);
+    let tee = style::create_style(&lib, t.id, "Heavy tee", "Bone").unwrap();
+    assert_eq!(style::thesis_styles(&lib, t.id).unwrap(), vec![tee]);
+}
+
 #[test]
 fn a_library_from_a_newer_app_version_is_refused() {
     use arete_lib::migrations::Migration;

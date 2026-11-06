@@ -5,13 +5,13 @@ use std::path::PathBuf;
 use tauri::{AppHandle, State};
 
 use super::{allow_media, AppState};
-use crate::drop::DropId;
+use crate::thesis::ThesisId;
 use crate::error::CoreResult;
 use crate::style::{self, Style, StyleBase, StyleFile, StyleId, StyleStatus};
 
 #[tauri::command]
-pub fn create_style(state: State<AppState>, drop_id: DropId, name: String, color: String) -> CoreResult<Style> {
-    state.with_library(|lib| style::create_style(lib, drop_id, &name, &color))
+pub fn create_style(state: State<AppState>, thesis_id: ThesisId, name: String, color: String) -> CoreResult<Style> {
+    state.with_library(|lib| style::create_style(lib, thesis_id, &name, &color))
 }
 
 #[tauri::command]
@@ -39,10 +39,10 @@ pub fn get_style(app: AppHandle, state: State<AppState>, id: StyleId) -> CoreRes
 }
 
 #[tauri::command]
-pub fn drop_styles(app: AppHandle, state: State<AppState>, drop_id: DropId) -> CoreResult<Vec<Style>> {
+pub fn thesis_styles(app: AppHandle, state: State<AppState>, thesis_id: ThesisId) -> CoreResult<Vec<Style>> {
     state.with_library(|lib| {
         allow_media(&app, lib);
-        style::drop_styles(lib, drop_id)
+        style::thesis_styles(lib, thesis_id)
     })
 }
 

@@ -3,7 +3,7 @@ import type { Area, AreaProps } from "../../shell/area";
 import { toCoreError, type CoreError } from "../../shell/coreError";
 import { currencyApi, type CurrencySettings } from "../costSheet/api";
 import "./settings.css";
-import { Button, EmptyText, SectionHeader } from "../../ui";
+import { Button, EmptyText, SectionHeader, icons } from "../../ui";
 
 /**
  * Library settings: the Library folder, and the home currency and the
@@ -137,4 +137,4 @@ function SettingsScreen({ library }: AreaProps) {
   );
 }
 
-export const settingsArea: Area = { id: "settings", label: "Settings", Screen: SettingsScreen };
+export const settingsArea: Area = { id: "settings", label: "Settings", icon: icons.settings, Screen: SettingsScreen };

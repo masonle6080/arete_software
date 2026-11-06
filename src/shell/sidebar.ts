@@ -1,6 +1,6 @@
 /**
  * The sidebar's navigation model: the path each sidebar row starts, which
- * row a path marks as open, and the ⌘1–⌘5 and ⌘[ shortcuts. Pure, so it is
+ * row a path marks as open, and the ⌘1–⌘6 and ⌘[ shortcuts. Pure, so it is
  * tested without a DOM.
  */
 import { placeKey, popTo, push, thesisTabLabel, thesisTabs, type NavPath, type Step, type ThesisTab } from "./navPath";
@@ -48,7 +48,7 @@ export function pathOf(view: View, names: PathNames): NavPath {
  * What opening `step` does, for example from a chip: the new path, and the
  * Thesis to make current when it is not `currentThesis`.
  *
- * - A Thesis tab opens from the Thesis root, as its tree row does. A tab of
+ * - A Thesis tab opens from the Thesis root, as its sidebar row does. A tab of
  *   another Thesis makes that Thesis current first.
  * - A place already on the path goes back to that level, so the path never
  *   holds a place twice (a Style's Moodboard links back to the Style).
@@ -71,37 +71,41 @@ export function openStep(
   return { path: depth < 0 ? push(path, step) : popTo(path, depth) };
 }
 
-/** The tree row of one step, if it has one. */
-function rowOf({ place }: Step): string | undefined {
+/**
+ * The Thesis tab that owns one step, if any. An item marks the tab that
+ * lists it: a Style and a Style's Moodboard mark Styles, an Essay marks
+ * Essays, a Thesis Moodboard marks Moodboards, and a Script marks Documentary.
+ */
+function tabOf({ place }: Step): ThesisTab | undefined {
   switch (place.kind) {
     case "thesis":
-      return `thesis:${place.tab}`;
+      return place.tab;
     case "style":
+      return "styles";
     case "essay":
-      return `${place.kind}:${place.id}`;
-    case "moodboard": {
-      const { owner } = place.board;
-      return owner.kind === "style" ? `style:${owner.id}` : `moodboard:${place.board.id}`;
-    }
+      return "essays";
+    case "moodboard":
+      return place.board.owner.kind === "style" ? "styles" : "moodboards";
+    case "script":
+      return "documentary";
     default:
       return undefined;
   }
 }
 
 /**
- * The key of the sidebar row that `path` marks as open. Tree rows use the
- * same keys: `thesis:<tab>`, `style:<id>`, `essay:<id>`, `moodboard:<id>`.
- * Inside a Thesis it is the row of the deepest level that has one: the
- * Moodboard of a Style marks its Style, because the tree stops at Style.
- * Outside a Thesis it is the root: `area:<id>` or `theses`.
+ * The key of the sidebar row that `path` marks as open. The sidebar has no
+ * item rows, so inside a Thesis it is always a tab row, `thesis:<tab>`: the
+ * tab that owns the deepest level that has one (see `tabOf`). Outside a
+ * Thesis it is the root: `area:<id>` or `theses`.
  */
 export function openRow(path: NavPath): string {
   const root = path[0].place;
   if (root.kind === "theses") return "theses";
   if (root.kind === "area") return `area:${root.id}`;
   for (let i = path.length - 1; i >= 0; i--) {
-    const row = rowOf(path[i]);
-    if (row) return row;
+    const tab = tabOf(path[i]);
+    if (tab) return `thesis:${tab}`;
   }
   return "thesis:overview";
 }
@@ -116,14 +120,13 @@ export interface ShortcutKey {
 }
 
 /**
- * The Thesis tab that ⌘1–⌘5 opens: ⌘1 the first of `thesisTabs`, up to ⌘5
- * the fifth, the same order as the sidebar tree. Undefined for any other
+ * The Thesis tab that ⌘1–⌘6 opens: ⌘1 the first of `thesisTabs`, up to ⌘6
+ * the sixth, the same order as the sidebar rows. Undefined for any other
  * key or modifier.
  */
 export function shortcutTab(e: ShortcutKey): ThesisTab | undefined {
-  if (!e.metaKey || e.ctrlKey || e.altKey || e.shiftKey) return undefined;
-  const n = "12345".indexOf(e.key);
-  return n < 0 ? undefined : thesisTabs[n];
+  if (!e.metaKey || e.ctrlKey || e.altKey || e.shiftKey || !/^[1-9]$/.test(e.key)) return undefined;
+  return thesisTabs[Number(e.key) - 1];
 }
 
 /** Whether a keydown is ⌘[, which goes back one breadcrumb level. */

@@ -1,5 +1,5 @@
-//! Production Order: a committed order to one Vendor for a Drop's Styles
-//! (GLOSSARY: Production Order). A Drop has several, one Vendor each.
+//! Production Order: a committed order to one Vendor for a Thesis's Styles
+//! (GLOSSARY: Production Order). A Thesis has several, one Vendor each.
 //!
 //! An order holds quantities per size per Style, the Vendor's delivery date,
 //! and dated notes in the shared Notes record ([`crate::note`], owner
@@ -12,7 +12,7 @@
 //! the current Cost Sheets instead.
 //!
 //! Domain command functions for this area: [`create_production_order`],
-//! [`get_production_order`], [`drop_production_orders`],
+//! [`get_production_order`], [`thesis_production_orders`],
 //! [`set_order_quantity`], [`set_delivery_date`], [`move_production_order`].
 
 mod status;
@@ -24,7 +24,7 @@ use std::collections::HashMap;
 use rusqlite::{params, OptionalExtension, Row};
 
 use crate::cost_sheet::{self, HomeAmount, TierUnitCost};
-use crate::drop::{self, DropId, DropStage};
+use crate::thesis::{self, ThesisId};
 use crate::error::{CoreError, CoreResult};
 use crate::library::Library;
 use crate::lifecycle;
@@ -38,7 +38,7 @@ pub type ProductionOrderId = i64;
 #[serde(rename_all = "camelCase")]
 pub struct ProductionOrder {
     pub id: ProductionOrderId,
-    pub drop_id: DropId,
+    pub thesis_id: ThesisId,
     pub vendor_id: VendorId,
     /// The Vendor's name, for display.
     pub vendor_name: String,
@@ -48,7 +48,7 @@ pub struct ProductionOrder {
     pub moves: Vec<ProductionOrderStatus>,
     /// The Vendor's delivery date, `YYYY-MM-DD`.
     pub delivery_date: Option<String>,
-    /// The Styles with a quantity on this order, in the Drop's Style order.
+    /// The Styles with a quantity on this order, in the Thesis's Style order.
     pub styles: Vec<OrderStyle>,
     /// The pieces on the whole order.
     pub total_quantity: u32,
@@ -93,7 +93,7 @@ pub struct SizeQuantity {
     pub quantity: u32,
 }
 
-const SELECT: &str = "SELECT o.id, o.drop_id, o.vendor_id, v.name, o.status, o.delivery_date, o.currency
+const SELECT: &str = "SELECT o.id, o.thesis_id, o.vendor_id, v.name, o.status, o.delivery_date, o.currency
      FROM production_order o JOIN vendor v ON v.id = o.vendor_id";
 
 fn from_row(row: &Row) -> rusqlite::Result<ProductionOrder> {
@@ -103,7 +103,7 @@ fn from_row(row: &Row) -> rusqlite::Result<ProductionOrder> {
     })?;
     Ok(ProductionOrder {
         id: row.get(0)?,
-        drop_id: row.get(1)?,
+        thesis_id: row.get(1)?,
         vendor_id: row.get(2)?,
         vendor_name: row.get(3)?,
         status,
@@ -117,18 +117,15 @@ fn from_row(row: &Row) -> rusqlite::Result<ProductionOrder> {
     })
 }
 
-/// Creates a Draft Production Order on a Drop for one Vendor. Refuses a
-/// Cancelled Drop.
-pub fn create_production_order(lib: &Library, drop_id: DropId, vendor_id: VendorId) -> CoreResult<ProductionOrder> {
-    let d = drop::get_drop(lib, drop_id)?;
-    if d.stage == DropStage::Cancelled {
-        return Err(CoreError::InvalidInput { reason: "a Cancelled Drop takes no Production Orders".into() });
-    }
+/// Creates a Draft Production Order on a Thesis for one Vendor. Refuses a
+/// Thesis that takes no orders ([`thesis::ThesisStatus::takes_production_orders`]).
+pub fn create_production_order(lib: &Library, thesis_id: ThesisId, vendor_id: VendorId) -> CoreResult<ProductionOrder> {
+    thesis::check_takes_production_orders(&thesis::get_thesis(lib, thesis_id)?)?;
     vendor::get_vendor(lib, vendor_id)?;
     let conn = lib.writer()?;
     conn.execute(
-        "INSERT INTO production_order (drop_id, vendor_id, status) VALUES (?1, ?2, ?3)",
-        params![drop_id, vendor_id, ProductionOrderStatus::Draft.as_db()],
+        "INSERT INTO production_order (thesis_id, vendor_id, status) VALUES (?1, ?2, ?3)",
+        params![thesis_id, vendor_id, ProductionOrderStatus::Draft.as_db()],
     )?;
     get_production_order(lib, conn.last_insert_rowid())
 }
@@ -143,17 +140,17 @@ pub fn get_production_order(lib: &Library, id: ProductionOrderId) -> CoreResult<
     complete(lib, order)
 }
 
-/// Every Production Order of a Drop, oldest first: the Drop's production
+/// Every Production Order of a Thesis, oldest first: the Thesis's production
 /// overview.
-pub fn drop_production_orders(lib: &Library, drop_id: DropId) -> CoreResult<Vec<ProductionOrder>> {
-    drop::get_drop(lib, drop_id)?;
-    let mut stmt = lib.db().prepare(&format!("{SELECT} WHERE o.drop_id = ?1 ORDER BY o.id"))?;
-    let orders: Vec<ProductionOrder> = stmt.query_map([drop_id], from_row)?.collect::<Result<_, _>>()?;
+pub fn thesis_production_orders(lib: &Library, thesis_id: ThesisId) -> CoreResult<Vec<ProductionOrder>> {
+    thesis::get_thesis(lib, thesis_id)?;
+    let mut stmt = lib.db().prepare(&format!("{SELECT} WHERE o.thesis_id = ?1 ORDER BY o.id"))?;
+    let orders: Vec<ProductionOrder> = stmt.query_map([thesis_id], from_row)?.collect::<Result<_, _>>()?;
     orders.into_iter().map(|o| complete(lib, o)).collect()
 }
 
 /// Sets the quantity of one size of one Style on a Draft order. Zero
-/// removes the size. The Style must be on the order's Drop and Approved (zero
+/// removes the size. The Style must be on the order's Thesis and Approved (zero
 /// removes a size of any Style), and the size one of the Style's sizes.
 pub fn set_order_quantity(
     lib: &Library,
@@ -169,8 +166,8 @@ pub fn set_order_quantity(
         });
     }
     let style = style::get_style(lib, style_id)?;
-    if style.drop_id != order.drop_id {
-        return Err(CoreError::InvalidInput { reason: "the Style is on another Drop".into() });
+    if style.thesis_id != order.thesis_id {
+        return Err(CoreError::InvalidInput { reason: "the Style is on another Thesis".into() });
     }
     if quantity > 0 && style.status != StyleStatus::Approved {
         return Err(CoreError::InvalidInput {

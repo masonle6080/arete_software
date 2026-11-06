@@ -8,21 +8,18 @@ mod common;
 
 use std::path::PathBuf;
 
-use arete_lib::drop;
 use arete_lib::error::CoreError;
 use arete_lib::library::Library;
 use arete_lib::media;
 use arete_lib::note::{self, NoteInput, NoteOwner};
 use arete_lib::style::{self, StyleId};
-use arete_lib::thesis;
 use arete_lib::vendor::{self, VendorId, VendorInput, VendorRole};
 use arete_lib::sample::{self, SampleOutcome};
 use common::TestEnv;
 
 fn a_style(lib: &Library) -> StyleId {
-    let t = thesis::create_thesis(lib, "Amor fati", "").unwrap();
-    let d = drop::create_drop(lib, t.id, "Amor fati SS27").unwrap();
-    style::create_style(lib, d.id, "Heavy tee", "Bone").unwrap().id
+    let t = common::design_thesis(lib, "Amor fati");
+    style::create_style(lib, t.id, "Heavy tee", "Bone").unwrap().id
 }
 
 fn a_vendor(lib: &Library, name: &str) -> VendorId {

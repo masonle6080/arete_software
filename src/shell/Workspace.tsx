@@ -1,12 +1,27 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { settingsArea, sharedAreas } from "../areas";
 import type { LibraryInfo } from "../areas/library/session";
-import { loadCurrentThesis, saveCurrentThesis, ThesisList, ThesisPicker, ThesisTree } from "../areas/thesis";
+import { loadCurrentThesis, saveCurrentThesis, ThesisList, ThesisPicker } from "../areas/thesis";
 import { thesisApi } from "../areas/thesis/api";
-import { Breadcrumb, Button } from "../ui";
+import { Breadcrumb, Button, icons } from "../ui";
+import type { Area } from "./area";
 import { runLeaveGuards } from "./leaveGuards";
-import { crumbs, placeKey, pop, popTo, push, relabel, screenLevel, type NavPath, type Step } from "./navPath";
+import {
+  crumbs,
+  placeKey,
+  pop,
+  popTo,
+  push,
+  relabel,
+  screenLevel,
+  thesisTabLabel,
+  thesisTabs,
+  type NavPath,
+  type Step,
+  type ThesisTab,
+} from "./navPath";
 import { PlaceScreen } from "./PlaceScreen";
+import { SidebarRows, type SidebarRow } from "./SidebarRows";
 import {
   blocksBackShortcut,
   isBackShortcut,
@@ -28,8 +43,9 @@ const areaLabel = (id: string) => areas.find((a) => a.id === id)?.label ?? id;
 
 /**
  * The open library: a source-list sidebar and the content pane. The sidebar
- * picks the current Thesis or a Shared area from one dropdown, and shows the
- * Thesis as a tree (ADR-0004). Below the tree is Settings. The content pane shows the top of the
+ * picks the current Thesis or a Shared area from one dropdown. Below it are
+ * flat rows: the six tabs of the Thesis, or the Shared areas when one is
+ * open (ADR-0004). Settings and "Switch library…" stay at the bottom. The content pane shows the top of the
  * navigation path under its breadcrumb; ⌘[ goes back one level.
  */
 export function Workspace({ library, onSwitchLibrary }: Props) {
@@ -119,19 +135,18 @@ export function Workspace({ library, onSwitchLibrary }: Props) {
   }, [thesisId, go, navigate]);
 
   const openKey = openRow(path);
-  const navButton = (next: View, label: string) => {
-    const isOpen = openRow(pathOf(next, names.current)) === openKey;
-    return (
-      <Button
-        key={label}
-        className={isOpen ? "active" : undefined}
-        aria-current={isOpen ? "page" : undefined}
-        onClick={() => void go(next)}
-      >
-        {label}
-      </Button>
-    );
-  };
+  const areaRow = (a: Area): SidebarRow => ({
+    key: `area:${a.id}`,
+    label: a.label,
+    icon: a.icon,
+    onOpen: () => void go({ kind: "area", id: a.id }),
+  });
+  const tabRow = (tab: ThesisTab): SidebarRow => ({
+    key: `thesis:${tab}`,
+    label: thesisTabLabel[tab],
+    icon: icons[tab],
+    onOpen: () => void go({ kind: "thesis", tab }),
+  });
 
   const { depth, passageId } = screenLevel(path);
   const place = path[depth].place;
@@ -154,8 +169,12 @@ export function Workspace({ library, onSwitchLibrary }: Props) {
           onNewThesis={() => void go({ kind: "theses", create: true })}
           onAllTheses={() => void go({ kind: "theses" })}
         />
-        {thesisId !== undefined && openShared === undefined && <ThesisTree thesisId={thesisId} openKey={openKey} onGo={(v) => void go(v)} />}
-        <div className="sidebar-group">{navButton({ kind: "area", id: settingsArea.id }, settingsArea.label)}</div>
+        {openShared !== undefined ? (
+          <SidebarRows rows={sharedAreas.map(areaRow)} openKey={openKey} />
+        ) : (
+          thesisId !== undefined && <SidebarRows rows={thesisTabs.map(tabRow)} openKey={openKey} />
+        )}
+        <SidebarRows rows={[areaRow(settingsArea)]} openKey={openKey} />
         <Button className="switch" onClick={onSwitchLibrary}>
           Switch library…
         </Button>

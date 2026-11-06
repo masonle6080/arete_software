@@ -1,13 +1,13 @@
 /**
- * Tells the sidebar's Thesis tree and the Thesis Overview to reload. A
- * screen that adds, renames, or removes a Style, an Essay, or a Moodboard,
- * moves a Style's status, or changes a Style's Cover calls
- * `announceTreeChange()`.
+ * Tells the Thesis dropdown and the Thesis Overview to reload. A screen
+ * that adds, renames, or removes a Style, an Essay, or a Moodboard, moves a
+ * Style's or a Thesis's status, or changes a Style's Cover calls
+ * `announceThesisChange()`.
  * Screens in many areas do this, so a signal is simpler than a callback
  * passed through every screen. Announcing a change that is not in the
  * current Thesis only costs one extra reload.
  */
-export function createTreeChanges() {
+export function createThesisChanges() {
   const listeners = new Set<() => void>();
   return {
     announce() {
@@ -21,7 +21,7 @@ export function createTreeChanges() {
   };
 }
 
-const treeChanges = createTreeChanges();
+const thesisChanges = createThesisChanges();
 
-export const announceTreeChange = () => treeChanges.announce();
-export const listenTreeChanges = treeChanges.listen;
+export const announceThesisChange = () => thesisChanges.announce();
+export const listenThesisChanges = thesisChanges.listen;

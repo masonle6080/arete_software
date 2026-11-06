@@ -8,7 +8,7 @@ import type { Documentary } from "../documentary/types";
 import { clipApi, type Clip, type ClipFilter } from "./api";
 import { ClipDetails, passageLabel, useAllPassages } from "./ClipDetails";
 import "./clips.css";
-import { Button, Chip, EmptyText } from "../../ui";
+import { Button, Chip, EmptyText, icons } from "../../ui";
 
 const VIDEO_EXTENSIONS = ["mov", "mp4", "m4v", "avi", "mkv", "mts", "m2ts", "webm", "mxf", "3gp"];
 
@@ -298,4 +298,4 @@ function ClipsScreen() {
   );
 }
 
-export const clipsArea: Area = { id: "clips", label: "Clips", Screen: ClipsScreen };
+export const clipsArea: Area = { id: "clips", label: "Clips", icon: icons.clips, Screen: ClipsScreen };

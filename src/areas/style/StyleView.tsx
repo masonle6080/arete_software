@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useState, type FormEvent } from "react";
 import { convertFileSrc } from "@tauri-apps/api/core";
 import { toCoreError, type CoreError } from "../../shell/coreError";
-import { announceTreeChange } from "../../shell/treeChanges";
+import { announceThesisChange } from "../../shell/thesisChanges";
 import { Badge, Button, SectionHeader, SegmentedControl } from "../../ui";
-import { dropApi } from "../drop/api";
+import { thesisApi } from "../thesis/api";
 import { steps, type Step } from "../../shell/navPath";
 import { styleApi } from "./api";
 import { styleSections } from "./sections";
@@ -42,7 +42,7 @@ export function StyleView({ id, onOpen, onOpenStyle }: Props) {
   /** The color typed for a copy; `undefined` while the duplicate form is closed. */
   const [copyColor, setCopyColor] = useState<string>();
 
-  /** Whether the Style's Drop takes duplicated Styles now. */
+  /** Whether the Style's Thesis takes duplicated Styles now. */
   const [canDuplicate, setCanDuplicate] = useState(false);
 
   /** The open segment. It stays open when the Style reloads. */
@@ -58,9 +58,9 @@ export function StyleView({ id, onOpen, onOpenStyle }: Props) {
     styleApi
       .getStyle(id)
       .then(async (s) => {
-        const [drop, base] = await Promise.all([dropApi.getDrop(s.dropId), styleApi.styleBase(s.id)]);
+        const [thesis, base] = await Promise.all([thesisApi.getThesis(s.thesisId), styleApi.styleBase(s.id)]);
         setStyle(s);
-        setCanDuplicate(drop.canAddStyles);
+        setCanDuplicate(thesis.canAddStyles);
         setBaseKind(baseKindOf(base));
       })
       .catch((raw) => setError(toCoreError(raw)));
@@ -72,7 +72,7 @@ export function StyleView({ id, onOpen, onOpenStyle }: Props) {
     setConfirmCut(false);
     try {
       setStyle(await styleApi.moveStyle(id, to));
-      announceTreeChange();
+      announceThesisChange();
     } catch (raw) {
       setError(toCoreError(raw));
     }
@@ -84,7 +84,7 @@ export function StyleView({ id, onOpen, onOpenStyle }: Props) {
     try {
       const copy = await styleApi.duplicateStyle(id, copyColor ?? "");
       setCopyColor(undefined);
-      announceTreeChange();
+      announceThesisChange();
       onOpenStyle(steps.style(copy));
     } catch (raw) {
       setError(toCoreError(raw));

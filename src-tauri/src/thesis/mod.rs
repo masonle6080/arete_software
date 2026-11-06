@@ -1,16 +1,20 @@
-//! Thesis: a philosophical idea from the founder's life that a Drop expresses.
+//! Thesis: a philosophical idea from the founder's life, and the release of
+//! clothing that expresses it. One record covers both; the Drop is the
+//! release phase of its lifecycle (Design to Released), not a record.
 //!
 //! Domain command functions for this area: [`create_thesis`],
 //! [`move_thesis`], [`list_theses`], [`get_thesis`]. The lifecycle rules
-//! live on [`ThesisStatus`].
+//! live on [`ThesisStatus`]; the guards on a move live in `guard_move`.
 
 mod status;
 
-use rusqlite::{params, Connection, OptionalExtension, Row};
+use rusqlite::{params, OptionalExtension, Row};
 
+use crate::documentary::{self, DocumentaryId, DocumentaryStatus};
 use crate::error::{CoreError, CoreResult};
 use crate::library::Library;
 use crate::lifecycle;
+use crate::style;
 
 pub use status::ThesisStatus;
 
@@ -23,9 +27,53 @@ pub struct Thesis {
     pub title: String,
     pub statement: String,
     pub status: ThesisStatus,
-    /// The statuses the founder can move this Thesis to by hand now, so the
-    /// UI never repeats the lifecycle rules.
-    pub manual_moves: Vec<ThesisStatus>,
+    /// The statuses the founder can move this Thesis to now, so the UI never
+    /// repeats the lifecycle rules. A move can still be refused by a guard.
+    pub moves: Vec<ThesisStatus>,
+    /// Whether the founder can add or duplicate Styles on this Thesis now
+    /// ([`ThesisStatus::takes_new_styles`]).
+    pub can_add_styles: bool,
+    /// Whether the founder can add a Production Order to this Thesis now
+    /// ([`ThesisStatus::takes_production_orders`]).
+    pub can_add_production_orders: bool,
+}
+
+/// Refuses new or duplicated Styles on a Thesis that does not take them.
+pub(crate) fn check_takes_new_styles(thesis: &Thesis) -> CoreResult<()> {
+    if thesis.can_add_styles {
+        return Ok(());
+    }
+    Err(CoreError::InvalidInput {
+        reason: format!(
+            "a Thesis in {} takes no new Styles; add Styles only in {}",
+            thesis.status.label(),
+            status_list(ThesisStatus::takes_new_styles)
+        ),
+    })
+}
+
+/// Refuses a new Production Order on a Thesis that does not take them.
+pub(crate) fn check_takes_production_orders(thesis: &Thesis) -> CoreResult<()> {
+    if thesis.can_add_production_orders {
+        return Ok(());
+    }
+    Err(CoreError::InvalidInput {
+        reason: format!(
+            "a Thesis in {} takes no Production Orders; add them only in {}",
+            thesis.status.label(),
+            status_list(ThesisStatus::takes_production_orders)
+        ),
+    })
+}
+
+/// The labels of the statuses that pass `rule`, in lifecycle order, as
+/// "A, B or C".
+fn status_list(rule: fn(ThesisStatus) -> bool) -> String {
+    let labels: Vec<&str> = ThesisStatus::ALL.into_iter().filter(|s| rule(*s)).map(ThesisStatus::label).collect();
+    match labels.split_last() {
+        Some((last, rest)) if !rest.is_empty() => format!("{} or {last}", rest.join(", ")),
+        _ => labels.join(""),
+    }
 }
 
 const COLUMNS: &str = "id, title, statement, status";
@@ -40,7 +88,9 @@ fn from_row(row: &Row) -> rusqlite::Result<Thesis> {
         title: row.get(1)?,
         statement: row.get(2)?,
         status,
-        manual_moves: status.moves(),
+        moves: status.moves(),
+        can_add_styles: status.takes_new_styles(),
+        can_add_production_orders: status.takes_production_orders(),
     })
 }
 
@@ -59,20 +109,71 @@ pub fn create_thesis(lib: &Library, title: &str, statement: &str) -> CoreResult<
     get_thesis(lib, db.last_insert_rowid())
 }
 
-/// Moves a Thesis to `to` by hand. Refuses moves that
-/// [`ThesisStatus::move_allowed`] does not allow.
-pub fn move_thesis(lib: &Library, id: ThesisId, to: ThesisStatus) -> CoreResult<Thesis> {
-    let from = get_thesis(lib, id)?.status;
-    lifecycle::move_status(lib, "thesis", id, from, to)?;
-    get_thesis(lib, id)
+/// A reason a Thesis move needs the founder's explicit confirmation. Guards
+/// that warn but do not block add a variant here.
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize)]
+#[serde(rename_all = "camelCase", tag = "kind")]
+pub enum ThesisWarning {
+    /// Releasing the Thesis while its Documentary is not Released. The
+    /// Documentary should come out before the Thesis is Released.
+    #[serde(rename_all = "camelCase")]
+    DocumentaryNotReleased { documentary_id: DocumentaryId, title: String, status: DocumentaryStatus },
 }
 
-/// Sets a Thesis status as a cascade from its Drop (Committed, Released, or
-/// back to Developing). Only the Drop area calls this, inside its own
-/// transaction; the founder's moves go through [`move_thesis`].
-pub(crate) fn set_status_from_drop(conn: &Connection, id: ThesisId, to: ThesisStatus) -> CoreResult<()> {
-    conn.execute("UPDATE thesis SET status = ?1 WHERE id = ?2", params![to.as_db(), id])?;
-    Ok(())
+/// The result of [`move_thesis`].
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize)]
+#[serde(rename_all = "camelCase", tag = "outcome")]
+pub enum ThesisMove {
+    /// The move went through.
+    Moved(Thesis),
+    /// Nothing changed. The move goes through only when the founder repeats
+    /// it with `confirmed` set.
+    #[serde(rename_all = "camelCase")]
+    NeedsConfirmation { thesis: Thesis, warnings: Vec<ThesisWarning> },
+}
+
+/// Moves a Thesis to `to`. The lifecycle ([`ThesisStatus::move_allowed`])
+/// and the hard guards refuse with an error. Warnings stop the move with
+/// [`ThesisMove::NeedsConfirmation`] unless `confirmed` is true.
+pub fn move_thesis(lib: &Library, id: ThesisId, to: ThesisStatus, confirmed: bool) -> CoreResult<ThesisMove> {
+    let thesis = get_thesis(lib, id)?;
+    lifecycle::check_move(thesis.status, to)?;
+    let warnings = guard_move(lib, &thesis, to)?;
+    if !warnings.is_empty() && !confirmed {
+        return Ok(ThesisMove::NeedsConfirmation { thesis, warnings });
+    }
+    lib.writer()?.execute("UPDATE thesis SET status = ?1 WHERE id = ?2", params![to.as_db(), id])?;
+    Ok(ThesisMove::Moved(get_thesis(lib, id)?))
+}
+
+/// The checks on a move that the lifecycle allows, beyond the two statuses.
+/// A hard rule returns an error (Production needs every Style Approved or
+/// Cut). A soft rule returns a warning the founder can confirm past
+/// (Released before the Documentary). Add new guards here.
+fn guard_move(lib: &Library, thesis: &Thesis, to: ThesisStatus) -> CoreResult<Vec<ThesisWarning>> {
+    let mut warnings = Vec::new();
+    if to == ThesisStatus::Production {
+        let styles: Vec<String> = style::thesis_styles(lib, thesis.id)?
+            .into_iter()
+            .filter(|s| !s.status.ready_for_production())
+            .map(|s| format!("{} ({})", s.name, s.color))
+            .collect();
+        if !styles.is_empty() {
+            return Err(CoreError::StylesNotReady { styles });
+        }
+    }
+    if to == ThesisStatus::Released {
+        if let Some(film) = documentary::thesis_documentary(lib, thesis.id)? {
+            if film.status != DocumentaryStatus::Released {
+                warnings.push(ThesisWarning::DocumentaryNotReleased {
+                    documentary_id: film.id,
+                    title: film.title,
+                    status: film.status,
+                });
+            }
+        }
+    }
+    Ok(warnings)
 }
 
 /// One status group of the Thesis list.

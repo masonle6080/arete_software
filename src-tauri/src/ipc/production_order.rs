@@ -4,15 +4,15 @@
 use tauri::State;
 
 use super::AppState;
-use crate::drop::DropId;
+use crate::thesis::ThesisId;
 use crate::error::CoreResult;
 use crate::production_order::{self, ProductionOrder, ProductionOrderId, ProductionOrderStatus};
 use crate::style::StyleId;
 use crate::vendor::VendorId;
 
 #[tauri::command]
-pub fn create_production_order(state: State<AppState>, drop_id: DropId, vendor_id: VendorId) -> CoreResult<ProductionOrder> {
-    state.with_library(|lib| production_order::create_production_order(lib, drop_id, vendor_id))
+pub fn create_production_order(state: State<AppState>, thesis_id: ThesisId, vendor_id: VendorId) -> CoreResult<ProductionOrder> {
+    state.with_library(|lib| production_order::create_production_order(lib, thesis_id, vendor_id))
 }
 
 #[tauri::command]
@@ -21,8 +21,8 @@ pub fn get_production_order(state: State<AppState>, id: ProductionOrderId) -> Co
 }
 
 #[tauri::command]
-pub fn drop_production_orders(state: State<AppState>, drop_id: DropId) -> CoreResult<Vec<ProductionOrder>> {
-    state.with_library(|lib| production_order::drop_production_orders(lib, drop_id))
+pub fn thesis_production_orders(state: State<AppState>, thesis_id: ThesisId) -> CoreResult<Vec<ProductionOrder>> {
+    state.with_library(|lib| production_order::thesis_production_orders(lib, thesis_id))
 }
 
 #[tauri::command]

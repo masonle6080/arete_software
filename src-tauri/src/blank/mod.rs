@@ -1,6 +1,6 @@
 //! Blank: a library-wide, ready-made garment model bought from a Vendor
 //! (GLOSSARY: Blank). A Style can use a Blank as its base (see
-//! `style/base.rs`), and a Blank can be reused across Drops.
+//! `style/base.rs`), and a Blank can be reused across Theses.
 //!
 //! Domain command functions for this area: [`create_blank`],
 //! [`update_blank`], [`get_blank`], [`list_blanks`].

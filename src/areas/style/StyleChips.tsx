@@ -15,9 +15,9 @@ interface Props {
 }
 
 /**
- * The Style header chips: its Thesis and Drop, its base (a Blank or the
- * Tech Pack), and the number of Passages that motivate it. The Thesis and
- * Drop chips open them; the base chip opens Build, where the base is; the
+ * The Style header chips: its Thesis, its base (a Blank or the Tech Pack),
+ * and the number of Passages that motivate it. The Thesis chip opens the
+ * Thesis's Styles tab; the base chip opens Build, where the base is; the
  * Passage chip opens Design, where the Design Decisions show their Passages.
  */
 export function StyleChips({ style, onOpen, onSegment }: Props) {
@@ -25,14 +25,11 @@ export function StyleChips({ style, onOpen, onSegment }: Props) {
 
   if (error) return <p className="error">{error.message}</p>;
   if (!links) return null;
-  const { thesis, drop, base, passageCount } = links;
+  const { thesis, base, passageCount } = links;
   return (
     <div className="chips header-chips">
-      <Chip title="Open the Thesis" onClick={() => onOpen(steps.thesis("overview", thesis.id))}>
+      <Chip title="Open the Thesis's Styles" onClick={() => onOpen(steps.thesis("styles", thesis.id))}>
         {thesis.title}
-      </Chip>
-      <Chip title="Open the Drop" onClick={() => onOpen(steps.thesis("drop", thesis.id))}>
-        Drop · {drop.name}
       </Chip>
       <Chip title="Open Build" onClick={() => onSegment("build")}>
         {base === null ? "No base" : base.kind === "blank" ? `Base: ${blankLabel(base.blank)}` : "Base: Tech Pack"}

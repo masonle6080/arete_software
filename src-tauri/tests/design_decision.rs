@@ -9,17 +9,14 @@ mod common;
 
 use arete_lib::design_decision::{self, DesignAspect};
 use arete_lib::document::{self, DocumentEdit, DocumentKind, PassageText};
-use arete_lib::drop;
 use arete_lib::error::CoreError;
 use arete_lib::library::Library;
 use arete_lib::style::{self, StyleId, StyleStatus};
-use arete_lib::thesis;
 use common::TestEnv;
 
 fn a_style(lib: &Library) -> StyleId {
-    let t = thesis::create_thesis(lib, "Amor fati", "").unwrap();
-    let d = drop::create_drop(lib, t.id, "Amor fati SS27").unwrap();
-    style::create_style(lib, d.id, "Heavy tee", "Bone").unwrap().id
+    let t = common::design_thesis(lib, "Amor fati");
+    style::create_style(lib, t.id, "Heavy tee", "Bone").unwrap().id
 }
 
 /// A new Essay titled `title` that holds one Passage. Returns the Essay's ID.

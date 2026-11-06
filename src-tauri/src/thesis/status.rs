@@ -1,8 +1,10 @@
 //! Thesis status and its lifecycle rules.
 //!
-//! Seed → Developing → Committed → Released → Archived. Abandoned is reached
-//! from Seed or Developing. Only some moves are manual; the rest are cascades
-//! from the Drop (see [`ThesisStatus::move_allowed`]).
+//! A Thesis is both the idea and its release, so one lifecycle covers both:
+//! Seed → Developing → Design → Sampling → Production → Released →
+//! Archived. Abandoned is reached from any status before Released. Every
+//! move is manual. The guards that need more than the two statuses (Style
+//! statuses, the Documentary) live in `guard_move` in `thesis/mod.rs`.
 
 use crate::lifecycle::status_enum;
 
@@ -11,7 +13,9 @@ status_enum! {
     pub enum ThesisStatus for "Thesis" {
         Seed = ("Seed", "seed"),
         Developing = ("Developing", "developing"),
-        Committed = ("Committed", "committed"),
+        Design = ("Design", "design"),
+        Sampling = ("Sampling", "sampling"),
+        Production = ("Production", "production"),
         Released = ("Released", "released"),
         Archived = ("Archived", "archived"),
         Abandoned = ("Abandoned", "abandoned"),
@@ -19,20 +23,35 @@ status_enum! {
 }
 
 impl ThesisStatus {
-    /// Whether the founder may move a Thesis from `self` to `to` by hand.
-    /// Committed, Released, and the return to Developing come only from the
-    /// Drop (`set_status_from_drop`), so they are not manual moves.
+    /// Whether the founder may move a Thesis from `self` to `to`.
     pub fn move_allowed(self, to: ThesisStatus) -> bool {
         use ThesisStatus::*;
         matches!(
             (self, to),
-            (Seed, Developing) | (Seed, Abandoned) | (Developing, Abandoned) | (Released, Archived)
+            (Seed, Developing)
+                | (Developing, Design)
+                | (Design, Sampling)
+                | (Sampling, Production)
+                | (Production, Released)
+                | (Released, Archived)
+                | (Seed | Developing | Design | Sampling | Production, Abandoned)
         )
     }
 
-    /// Whether a new Drop may be made from a Thesis in this status. Creating
-    /// the Drop moves the Thesis to Committed.
-    pub fn can_take_drop(self) -> bool {
-        matches!(self, ThesisStatus::Seed | ThesisStatus::Developing)
+    /// Whether a Thesis in this status takes new or duplicated Styles. Only
+    /// Developing, Design and Sampling do: from Production on, the line is
+    /// fixed.
+    pub fn takes_new_styles(self) -> bool {
+        matches!(self, ThesisStatus::Developing | ThesisStatus::Design | ThesisStatus::Sampling)
+    }
+
+    /// Whether a Thesis in this status takes new Production Orders. Only the
+    /// Drop does (Design to Released): before Design there is nothing to
+    /// make, and after Released the release is over.
+    pub fn takes_production_orders(self) -> bool {
+        matches!(
+            self,
+            ThesisStatus::Design | ThesisStatus::Sampling | ThesisStatus::Production | ThesisStatus::Released
+        )
     }
 }

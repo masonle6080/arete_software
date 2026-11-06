@@ -8,17 +8,14 @@
 mod common;
 
 use arete_lib::cost_sheet::{self, CostCategory, CostLineInput};
-use arete_lib::drop;
 use arete_lib::library::Library;
 use arete_lib::style::{self, StyleId};
-use arete_lib::thesis;
 use arete_lib::vendor::{self, VendorInput, VendorRole};
 use common::TestEnv;
 
 fn a_style(lib: &Library) -> StyleId {
-    let t = thesis::create_thesis(lib, "Amor fati", "").unwrap();
-    let d = drop::create_drop(lib, t.id, "Amor fati SS27").unwrap();
-    style::create_style(lib, d.id, "Heavy tee", "Bone").unwrap().id
+    let t = common::design_thesis(lib, "Amor fati");
+    style::create_style(lib, t.id, "Heavy tee", "Bone").unwrap().id
 }
 
 fn line(category: CostCategory, description: &str, currency: &str) -> CostLineInput {
@@ -220,8 +217,8 @@ fn the_founder_edits_tiers_lines_and_cells() {
     assert!(cost_sheet::set_unit_cost(&lib, id, t50, Some("1,50")).is_err());
     assert!(cost_sheet::add_cost_line(&lib, style_id, line(CostCategory::Other, "x", "dollars")).is_err());
     assert!(cost_sheet::set_exchange_rate(&lib, "EUR", "0").is_err());
-    let drop_id = style::get_style(&lib, style_id).unwrap().drop_id;
-    let other_style = style::create_style(&lib, drop_id, "Hoodie", "Black").unwrap().id;
+    let thesis_id = style::get_style(&lib, style_id).unwrap().thesis_id;
+    let other_style = style::create_style(&lib, thesis_id, "Hoodie", "Black").unwrap().id;
     let other_tier = cost_sheet::add_quantity_tier(&lib, other_style, 50).unwrap().tiers[0].id;
     assert!(cost_sheet::set_unit_cost(&lib, id, other_tier, Some("1")).is_err());
 

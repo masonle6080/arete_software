@@ -8,20 +8,18 @@ mod common;
 
 use std::path::PathBuf;
 
-use arete_lib::drop::{self, DropId};
 use arete_lib::error::CoreError;
 use arete_lib::library::Library;
 use arete_lib::style::{self, StyleFile, StyleId};
-use arete_lib::thesis;
+use arete_lib::thesis::ThesisId;
 use common::TestEnv;
 
-fn a_drop(lib: &Library) -> DropId {
-    let t = thesis::create_thesis(lib, "Amor fati", "").unwrap();
-    drop::create_drop(lib, t.id, "Amor fati SS27").unwrap().id
+fn a_thesis(lib: &Library) -> ThesisId {
+    common::design_thesis(lib, "Amor fati").id
 }
 
-fn a_style(lib: &Library, drop_id: DropId) -> StyleId {
-    style::create_style(lib, drop_id, "Heavy tee", "Bone").unwrap().id
+fn a_style(lib: &Library, thesis_id: ThesisId) -> StyleId {
+    style::create_style(lib, thesis_id, "Heavy tee", "Bone").unwrap().id
 }
 
 /// A file outside the library. Each file gets distinct bytes: media is
@@ -44,7 +42,7 @@ fn attach(env: &TestEnv, lib: &Library, id: StyleId, names: &[&str]) -> Vec<Styl
 fn a_new_style_has_no_cover() {
     let env = TestEnv::new();
     let lib = env.library();
-    let id = a_style(&lib, a_drop(&lib));
+    let id = a_style(&lib, a_thesis(&lib));
 
     assert_eq!(style::get_style(&lib, id).unwrap().cover, None);
 }
@@ -53,22 +51,22 @@ fn a_new_style_has_no_cover() {
 fn an_image_file_of_the_style_becomes_its_cover() {
     let env = TestEnv::new();
     let lib = env.library();
-    let d = a_drop(&lib);
-    let id = a_style(&lib, d);
+    let t = a_thesis(&lib);
+    let id = a_style(&lib, t);
     let files = attach(&env, &lib, id, &["flat.ai", "front.png"]);
 
     let s = style::set_style_cover(&lib, id, files[1].id).unwrap();
 
     assert_eq!(s.cover, Some(files[1].clone()));
     assert_eq!(style::get_style(&lib, id).unwrap(), s);
-    assert_eq!(style::drop_styles(&lib, d).unwrap(), vec![s]);
+    assert_eq!(style::thesis_styles(&lib, t).unwrap(), vec![s]);
 }
 
 #[test]
 fn png_jpeg_webp_and_heic_files_can_be_a_cover_in_any_letter_case() {
     let env = TestEnv::new();
     let lib = env.library();
-    let id = a_style(&lib, a_drop(&lib));
+    let id = a_style(&lib, a_thesis(&lib));
     let names = ["a.png", "b.jpg", "c.jpeg", "d.webp", "e.heic", "f.PNG", "g.JPG", "h.HeIc"];
     for file in attach(&env, &lib, id, &names) {
         let s = style::set_style_cover(&lib, id, file.id).unwrap();
@@ -80,7 +78,7 @@ fn png_jpeg_webp_and_heic_files_can_be_a_cover_in_any_letter_case() {
 fn a_file_that_is_not_a_png_jpeg_webp_or_heic_image_is_refused() {
     let env = TestEnv::new();
     let lib = env.library();
-    let id = a_style(&lib, a_drop(&lib));
+    let id = a_style(&lib, a_thesis(&lib));
     let files = attach(&env, &lib, id, &["front.png", "flat.ai", "spec.pdf", "art.procreate", "anim.gif", "noext"]);
     style::set_style_cover(&lib, id, files[0].id).unwrap();
 
@@ -95,9 +93,9 @@ fn a_file_that_is_not_a_png_jpeg_webp_or_heic_image_is_refused() {
 fn an_image_of_another_style_is_refused() {
     let env = TestEnv::new();
     let lib = env.library();
-    let d = a_drop(&lib);
-    let tee = a_style(&lib, d);
-    let hoodie = style::create_style(&lib, d, "Hoodie", "Black").unwrap().id;
+    let t = a_thesis(&lib);
+    let tee = a_style(&lib, t);
+    let hoodie = style::create_style(&lib, t, "Hoodie", "Black").unwrap().id;
     let hoodie_front = attach(&env, &lib, hoodie, &["hoodie.png"]).remove(0);
 
     let err = style::set_style_cover(&lib, tee, hoodie_front.id).unwrap_err();
@@ -110,7 +108,7 @@ fn an_image_of_another_style_is_refused() {
 fn a_file_that_does_not_exist_is_refused() {
     let env = TestEnv::new();
     let lib = env.library();
-    let id = a_style(&lib, a_drop(&lib));
+    let id = a_style(&lib, a_thesis(&lib));
 
     let err = style::set_style_cover(&lib, id, 999).unwrap_err();
 
@@ -130,7 +128,7 @@ fn setting_a_cover_on_a_missing_style_is_not_found() {
 fn clearing_the_cover_leaves_the_style_with_no_cover_and_keeps_the_file() {
     let env = TestEnv::new();
     let lib = env.library();
-    let id = a_style(&lib, a_drop(&lib));
+    let id = a_style(&lib, a_thesis(&lib));
     let files = attach(&env, &lib, id, &["front.png"]);
     style::set_style_cover(&lib, id, files[0].id).unwrap();
 
@@ -145,7 +143,7 @@ fn clearing_the_cover_leaves_the_style_with_no_cover_and_keeps_the_file() {
 fn removing_the_cover_file_clears_the_cover() {
     let env = TestEnv::new();
     let lib = env.library();
-    let id = a_style(&lib, a_drop(&lib));
+    let id = a_style(&lib, a_thesis(&lib));
     let files = attach(&env, &lib, id, &["front.png", "back.png"]);
     style::set_style_cover(&lib, id, files[0].id).unwrap();
 
@@ -160,7 +158,7 @@ fn removing_the_cover_file_clears_the_cover() {
 fn removing_another_file_keeps_the_cover() {
     let env = TestEnv::new();
     let lib = env.library();
-    let id = a_style(&lib, a_drop(&lib));
+    let id = a_style(&lib, a_thesis(&lib));
     let files = attach(&env, &lib, id, &["front.png", "flat.ai"]);
     style::set_style_cover(&lib, id, files[0].id).unwrap();
 
@@ -173,9 +171,9 @@ fn removing_another_file_keeps_the_cover() {
 fn removing_a_file_of_another_style_is_refused() {
     let env = TestEnv::new();
     let lib = env.library();
-    let d = a_drop(&lib);
-    let tee = a_style(&lib, d);
-    let hoodie = style::create_style(&lib, d, "Hoodie", "Black").unwrap().id;
+    let t = a_thesis(&lib);
+    let tee = a_style(&lib, t);
+    let hoodie = style::create_style(&lib, t, "Hoodie", "Black").unwrap().id;
     let hoodie_front = attach(&env, &lib, hoodie, &["hoodie.png"]).remove(0);
 
     let err = style::remove_style_file(&lib, tee, hoodie_front.id).unwrap_err();
@@ -188,7 +186,7 @@ fn removing_a_file_of_another_style_is_refused() {
 fn a_duplicate_keeps_the_cover_on_its_own_copy_of_the_file() {
     let env = TestEnv::new();
     let lib = env.library();
-    let id = a_style(&lib, a_drop(&lib));
+    let id = a_style(&lib, a_thesis(&lib));
     let files = attach(&env, &lib, id, &["flat.ai", "front.png", "back.png"]);
     style::set_style_cover(&lib, id, files[2].id).unwrap();
 
@@ -211,7 +209,7 @@ fn a_duplicate_keeps_the_cover_on_its_own_copy_of_the_file() {
 fn a_duplicate_of_a_style_with_no_cover_has_no_cover() {
     let env = TestEnv::new();
     let lib = env.library();
-    let id = a_style(&lib, a_drop(&lib));
+    let id = a_style(&lib, a_thesis(&lib));
     attach(&env, &lib, id, &["front.png"]);
 
     let copy = style::duplicate_style(&lib, id, "Black").unwrap();
@@ -223,7 +221,7 @@ fn a_duplicate_of_a_style_with_no_cover_has_no_cover() {
 fn a_removed_file_stays_for_a_duplicate_that_shares_it() {
     let env = TestEnv::new();
     let lib = env.library();
-    let id = a_style(&lib, a_drop(&lib));
+    let id = a_style(&lib, a_thesis(&lib));
     let files = attach(&env, &lib, id, &["front.png"]);
     let copy = style::duplicate_style(&lib, id, "Black").unwrap();
 

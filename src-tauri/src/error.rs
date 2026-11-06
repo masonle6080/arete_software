@@ -22,6 +22,11 @@ pub enum CoreError {
     #[error("this library was made by a newer version of Arete (unknown migration {migration})")]
     NewerSchema { migration: String },
 
+    /// A migration left a row that points at a missing row. The library is
+    /// not changed: the migration rolls back.
+    #[error("migration {migration} leaves a broken reference in table {table}")]
+    BrokenMigration { migration: String, table: String },
+
     #[error("no library is open")]
     NoLibraryOpen,
 
@@ -30,11 +35,7 @@ pub enum CoreError {
     #[error("a {what} cannot move from {from} to {to}")]
     StatusMoveRefused { what: &'static str, from: &'static str, to: &'static str },
 
-    /// A Thesis has at most one Drop that is not Cancelled.
-    #[error("this Thesis already has a Drop; cancel it before you make a new one")]
-    ActiveDropExists { thesis_id: i64 },
-
-    /// A Drop moves to Production only when every Style is Approved or Cut.
+    /// A Thesis moves to Production only when every Style is Approved or Cut.
     /// `styles` names the others as "<name> (<color>)".
     #[error("approve or cut every Style before Production; not ready: {}", styles.join(", "))]
     StylesNotReady { styles: Vec<String> },
@@ -78,9 +79,9 @@ impl CoreError {
             CoreError::AlreadyALibrary { .. } => "AlreadyALibrary",
             CoreError::FolderNotEmpty { .. } => "FolderNotEmpty",
             CoreError::NewerSchema { .. } => "NewerSchema",
+            CoreError::BrokenMigration { .. } => "BrokenMigration",
             CoreError::NoLibraryOpen => "NoLibraryOpen",
             CoreError::StatusMoveRefused { .. } => "StatusMoveRefused",
-            CoreError::ActiveDropExists { .. } => "ActiveDropExists",
             CoreError::StylesNotReady { .. } => "StylesNotReady",
             CoreError::DocumentaryExists { .. } => "DocumentaryExists",
             CoreError::LibraryDisconnected { .. } => "LibraryDisconnected",

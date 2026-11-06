@@ -1,9 +1,9 @@
-.drop-orders { margin-top: var(--space-5); }
-.drop-orders table { border-collapse: collapse; max-width: 720px; width: 100%; }
-.drop-orders th,
-.drop-orders td { text-align: left; padding: 4px 8px; border-bottom: 1px solid var(--line); }
-.drop-orders th { font-weight: 500; color: var(--muted); font-size: var(--text-small); }
-.drop-orders .num { text-align: right; font-variant-numeric: tabular-nums; }
+.thesis-orders { margin-top: var(--space-5); }
+.thesis-orders table { border-collapse: collapse; max-width: 720px; width: 100%; }
+.thesis-orders th,
+.thesis-orders td { text-align: left; padding: 4px 8px; border-bottom: 1px solid var(--line); }
+.thesis-orders th { font-weight: 500; color: var(--muted); font-size: var(--text-small); }
+.thesis-orders .num { text-align: right; font-variant-numeric: tabular-nums; }
 .order-table tbody tr:hover,
 .order-table tbody tr.open { background: var(--hover); }
 .order-create { display: flex; gap: var(--space-2); margin-top: var(--space-2); }

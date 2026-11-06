@@ -6,10 +6,11 @@
 import type { Moodboard } from "../areas/moodboard/types";
 
 /**
- * The tabs of a Thesis, in order. The sidebar tree shows them in this order,
- * and ⌘1–⌘5 open them in this order, so the two cannot drift.
+ * The tabs of a Thesis, in order: the order in which an idea becomes
+ * clothing. The sidebar shows them in this order, and ⌘1–⌘6 open them in
+ * this order, so the two cannot drift.
  */
-export const thesisTabs = ["overview", "essays", "moodboards", "drop", "documentary"] as const;
+export const thesisTabs = ["overview", "essays", "moodboards", "styles", "documentary", "production"] as const;
 
 /** One tab of a Thesis: its Overview or one of its sections. */
 export type ThesisTab = (typeof thesisTabs)[number];
@@ -107,13 +108,14 @@ export function placeKey(place: Place): string {
 
 const titled = (title: string) => title.trim() || "Untitled";
 
-/** The label of each Thesis tab, in the tree and in the breadcrumb. */
+/** The label of each Thesis tab, in the sidebar and in the breadcrumb. */
 export const thesisTabLabel: Record<ThesisTab, string> = {
   overview: "Overview",
   essays: "Essays",
   moodboards: "Moodboards",
-  drop: "Drop",
+  styles: "Styles",
   documentary: "Documentary",
+  production: "Production",
 };
 
 /** The steps that open an item, each with its breadcrumb label. */

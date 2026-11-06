@@ -4,7 +4,7 @@ use tauri::State;
 
 use super::AppState;
 use crate::error::CoreResult;
-use crate::thesis::{self, Thesis, ThesisGroup, ThesisId, ThesisStatus};
+use crate::thesis::{self, Thesis, ThesisGroup, ThesisId, ThesisMove, ThesisStatus};
 
 #[tauri::command]
 pub fn create_thesis(state: State<AppState>, title: String, statement: String) -> CoreResult<Thesis> {
@@ -12,8 +12,8 @@ pub fn create_thesis(state: State<AppState>, title: String, statement: String) -
 }
 
 #[tauri::command]
-pub fn move_thesis(state: State<AppState>, id: ThesisId, to: ThesisStatus) -> CoreResult<Thesis> {
-    state.with_library(|lib| thesis::move_thesis(lib, id, to))
+pub fn move_thesis(state: State<AppState>, id: ThesisId, to: ThesisStatus, confirmed: bool) -> CoreResult<ThesisMove> {
+    state.with_library(|lib| thesis::move_thesis(lib, id, to, confirmed))
 }
 
 #[tauri::command]

@@ -1,9 +1,9 @@
 import { useEffect } from "react";
 import { useCoreQuery } from "../../shell/coreQuery";
 import { thesisTabLabel, type ThesisTab, type View } from "../../shell/sidebar";
-import { listenTreeChanges } from "../../shell/treeChanges";
-import { Button, countLabel, EmptyText, SectionHeader } from "../../ui";
-import { CardFaceView } from "../style/DropStyles";
+import { listenThesisChanges } from "../../shell/thesisChanges";
+import { Button, EmptyText, SectionHeader } from "../../ui";
+import { CardFaceView } from "../style/ThesisStyles";
 import { itemView, loadThesisContents } from "./contents";
 import type { Thesis } from "./types";
 
@@ -15,13 +15,13 @@ interface Props {
 
 /**
  * The body of the Thesis Overview, under the header that holds the statement,
- * the status Badge and moves, and the chips: a row of Drop Covers, the linked
+ * the status Badge and moves, and the chips: a row of Style Covers, the linked
  * Essays, and the Moodboards. Each section title opens its tab, and each item
  * opens that item.
  */
 export function ThesisOverview({ thesis, onGo }: Props) {
   const { data: contents, error, reload } = useCoreQuery(() => loadThesisContents(thesis.id), [thesis]);
-  useEffect(() => listenTreeChanges(reload), [reload]);
+  useEffect(() => listenThesisChanges(reload), [reload]);
 
   if (error) return <p className="error">{error.message}</p>;
   if (!contents) return null;
@@ -39,7 +39,7 @@ export function ThesisOverview({ thesis, onGo }: Props) {
   return (
     <div className="thesis-overview">
       <section className="thesis-section">
-        {header("drop", `Drop · ${countLabel(styles.length, "Style")}`)}
+        {header("styles", thesisTabLabel.styles, styles.length)}
         {styles.length === 0 ? (
           <EmptyText>No Styles yet.</EmptyText>
         ) : (

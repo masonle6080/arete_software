@@ -1,9 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { createTreeChanges } from "./treeChanges";
+import { createThesisChanges } from "./thesisChanges";
 
-describe("tree changes", () => {
+describe("Thesis changes", () => {
   it("tell every listener that a Style, Essay, or Moodboard changed", () => {
-    const changes = createTreeChanges();
+    const changes = createThesisChanges();
     const heard: string[] = [];
     changes.listen(() => heard.push("a"));
     changes.listen(() => heard.push("b"));
@@ -14,7 +14,7 @@ describe("tree changes", () => {
   });
 
   it("stop reaching a listener after it stops listening", () => {
-    const changes = createTreeChanges();
+    const changes = createThesisChanges();
     let heard = 0;
     const stop = changes.listen(() => heard++);
 

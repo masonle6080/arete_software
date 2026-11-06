@@ -7,6 +7,7 @@
 use std::path::PathBuf;
 
 use arete_lib::library::{self, AppConfig, Library};
+use arete_lib::thesis::{self, Thesis, ThesisId, ThesisMove, ThesisStatus};
 use tempfile::TempDir;
 
 pub struct TestEnv {
@@ -32,4 +33,36 @@ impl TestEnv {
     pub fn library(&self) -> Library {
         library::create_library(&self.config, &self.path("library")).unwrap()
     }
+}
+
+/// Moves Thesis `id` to `to` with `confirmed` set, and expects the move to
+/// go through.
+pub fn move_to(lib: &Library, id: ThesisId, to: ThesisStatus) -> Thesis {
+    match thesis::move_thesis(lib, id, to, true).unwrap() {
+        ThesisMove::Moved(t) => t,
+        other => panic!("→ {to}: {other:?}"),
+    }
+}
+
+/// Moves a new Thesis along the lifecycle to `at`, or straight to
+/// Abandoned. The Thesis must have no Style that blocks Production.
+pub fn walk_to(lib: &Library, id: i64, at: ThesisStatus) {
+    use ThesisStatus::*;
+    if at == Abandoned {
+        move_to(lib, id, Abandoned);
+        return;
+    }
+    for step in [Developing, Design, Sampling, Production, Released, Archived] {
+        if thesis::get_thesis(lib, id).unwrap().status == at {
+            return;
+        }
+        move_to(lib, id, step);
+    }
+}
+
+/// A new Thesis moved to Design, so it takes new Styles.
+pub fn design_thesis(lib: &Library, title: &str) -> Thesis {
+    let t = thesis::create_thesis(lib, title, "").unwrap();
+    move_to(lib, t.id, ThesisStatus::Developing);
+    move_to(lib, t.id, ThesisStatus::Design)
 }
